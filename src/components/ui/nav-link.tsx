@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import { cn } from "@/lib/cn";
 
-export type IconName = "home" | "message" | "clock" | "file" | "people" | "spark" | "user" | "camera" | "bell" | "gear" | "list";
+export type IconName = "home" | "message" | "clock" | "file" | "people" | "spark" | "user" | "camera" | "bell" | "gear" | "list" | "mail";
 
 export function NavLink({
   href,
@@ -108,6 +108,14 @@ function TabIcon({ name }: { name: IconName }) {
       <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
         <circle cx="12" cy="12" r="3" />
         <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8" />
+      </svg>
+    );
+  }
+  if (name === "mail") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+        <path d="M4 7h16v10H4V7Z" />
+        <path d="m4 8 8 6 8-6" />
       </svg>
     );
   }

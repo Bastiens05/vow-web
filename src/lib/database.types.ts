@@ -148,6 +148,7 @@ export type Database = {
           venue_city: string;
           is_demo: boolean;
           couple_preview: boolean;
+          reminders_enabled: boolean;
           created_at: string;
           updated_at: string;
         },
@@ -159,6 +160,7 @@ export type Database = {
           wedding_date: string;
           venue_name?: string;
           venue_city?: string;
+          reminders_enabled?: boolean;
         },
         {
           partner_one_name?: string;
@@ -166,6 +168,7 @@ export type Database = {
           wedding_date?: string;
           venue_name?: string;
           venue_city?: string;
+          reminders_enabled?: boolean;
         }
       >;
       wedding_members: Table<
@@ -357,6 +360,84 @@ export type Database = {
         { id?: string; user_id: string; endpoint: string; p256dh: string; auth_secret: string },
         { endpoint?: string }
       >;
+      timeline_suggestions: Table<
+        {
+          id: string;
+          wedding_id: string;
+          author_id: string;
+          label: string;
+          slots: Json;
+          created_at: string;
+        },
+        { wedding_id: string; author_id: string; label: string; slots: Json },
+        Record<string, never>
+      >;
+      timeline_templates: Table<
+        { id: string; user_id: string; name: string; slots: Json; created_at: string },
+        { id?: string; user_id: string; name: string; slots: Json },
+        { name?: string; slots?: Json }
+      >;
+      leads: Table<
+        {
+          id: string;
+          vendor_id: string;
+          full_names: string;
+          email: string;
+          phone: string;
+          wedding_date: string | null;
+          place: string;
+          guest_count: number | null;
+          message: string;
+          status: string;
+          wedding_id: string | null;
+          source_ip: string;
+          created_at: string;
+        },
+        {
+          vendor_id: string;
+          full_names: string;
+          email: string;
+          phone?: string;
+          wedding_date?: string | null;
+          place?: string;
+          guest_count?: number | null;
+          message?: string;
+          status?: string;
+          source_ip?: string;
+        },
+        { status?: string; wedding_id?: string | null }
+      >;
+      reminders: Table<
+        { id: string; wedding_id: string; milestone: number; kind: string; created_at: string },
+        { wedding_id: string; milestone: number; kind: string },
+        Record<string, never>
+      >;
+      signature_requests: Table<
+        {
+          id: string;
+          document_id: string;
+          wedding_id: string;
+          requested_by: string;
+          status: string;
+          signer_name: string;
+          signature_path: string;
+          consent_at: string | null;
+          signed_at: string | null;
+          signed_by: string | null;
+          signer_ip: string;
+          signer_user_agent: string;
+          document_sha256: string;
+          created_at: string;
+        },
+        {
+          document_id: string;
+          wedding_id: string;
+          requested_by: string;
+          document_sha256: string;
+          status?: string;
+        },
+        Record<string, never>
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -405,6 +486,34 @@ export type Database = {
       };
       delete_couple_demo: {
         Args: Record<string, never>;
+        Returns: undefined;
+      };
+      submit_quote_request: {
+        Args: {
+          p_slug: string;
+          p_names: string;
+          p_email: string;
+          p_phone: string;
+          p_wedding_date: string | null;
+          p_place: string;
+          p_guest_count: number | null;
+          p_message: string;
+          p_ip: string;
+        };
+        Returns: string;
+      };
+      run_due_reminders: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+      record_signature: {
+        Args: {
+          p_request_id: string;
+          p_name: string;
+          p_path: string;
+          p_ip: string;
+          p_user_agent: string;
+        };
         Returns: undefined;
       };
     };

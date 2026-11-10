@@ -24,6 +24,7 @@ export function isProtectedPath(pathname: string): boolean {
     pathname === "/reglages" ||
     pathname === "/alertes" ||
     pathname === "/compte" ||
-    pathname === "/bienvenue"
+    pathname === "/bienvenue" ||
+    pathname === "/demandes"
   );
 }

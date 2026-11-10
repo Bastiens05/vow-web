@@ -42,12 +42,6 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   const coupleUrl = await invitePath(page, coupleEmail);
   const catererUrl = await invitePath(page, catererEmail);
 
-  await page.getByRole("link", { name: "Déroulé" }).click();
-  await page.getByLabel("Nouveau moment").fill("Cérémonie");
-  await page.getByLabel("Heure").fill("16:00");
-  await page.getByRole("button", { name: "Ajouter au déroulé" }).click();
-  await expect(page.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
-
   await page.goto(`/mariage/${weddingId}/jour`);
   await expect(page.getByRole("button", { name: "+30 min" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Envoyer l’alerte" })).toHaveCount(0);
@@ -71,6 +65,12 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   await couplePage.getByRole("textbox", { name: "Régime" }).fill("Sans gluten");
   await couplePage.getByRole("button", { name: "Ajouter l'invité" }).click();
   await expect(couplePage.getByText(guestName)).toBeVisible();
+
+  await couplePage.goto(`/mariage/${weddingId}/deroulement`);
+  await couplePage.getByLabel("Nouveau moment").fill("Cérémonie");
+  await couplePage.getByLabel("Heure").fill("16:00");
+  await couplePage.getByRole("button", { name: "Ajouter au déroulé" }).click();
+  await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
 
   await couplePage.goto(`/mariage/${weddingId}/jour`);
   await expect(couplePage.getByRole("button", { name: "+30 min" }).first()).toBeVisible();

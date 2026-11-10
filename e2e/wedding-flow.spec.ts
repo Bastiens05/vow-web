@@ -62,7 +62,7 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await expect(couplePage.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
 
   await couplePage.goto("/espace");
-  await expect(couplePage.getByText("Léa & Hugo")).toBeVisible();
+  await expect(couplePage.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
   await expect(couplePage.getByText("Secret & Hidden")).toHaveCount(0);
 
   await page.goto("/espace");
@@ -82,18 +82,18 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await expect(couplePage.getByText("Merci, on est bien arrivés.")).toBeVisible();
   await expect(page.getByText("Merci, on est bien arrivés.")).toBeVisible({ timeout: 20_000 });
 
-  await page.getByRole("link", { name: "Déroulé" }).click();
-  await page.getByLabel("Nouveau moment").fill("Cérémonie");
-  await page.getByLabel("Heure").fill("16:00");
-  await page.getByLabel("Lieu", { exact: true }).fill("Jardin");
-  await page.getByRole("button", { name: "Ajouter au déroulé" }).click();
-  await expect(page.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
-
   await couplePage.getByRole("link", { name: "Déroulé" }).click();
+  await couplePage.getByLabel("Nouveau moment").fill("Cérémonie");
+  await couplePage.getByLabel("Heure").fill("16:00");
+  await couplePage.getByLabel("Lieu", { exact: true }).fill("Jardin");
+  await couplePage.getByRole("button", { name: "Ajouter au déroulé" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
   await couplePage.getByLabel("Commentaire").fill("On ajoute une lecture.");
   await couplePage.getByRole("button", { name: "Commenter" }).click();
   await expect(couplePage.getByText("On ajoute une lecture.")).toBeVisible();
+  await page.getByRole("link", { name: "Déroulé" }).click();
+  await expect(page.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
+  await expect(page.getByLabel("Nouveau moment")).toHaveCount(0);
 
   await page.getByRole("link", { name: "Documents" }).click();
   const fileName = `note-${stamp}.txt`;
