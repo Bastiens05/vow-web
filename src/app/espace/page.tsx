@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
+import { WeddingDirectory } from "@/components/wedding/wedding-directory";
+import { openCoupleDemo } from "@/server/actions/account";
 import { categoryLabel } from "@/lib/domain/categories";
 import { coupleSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
-import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
+import { todayIso } from "@/lib/domain/format";
 import { partitionWeddings } from "@/lib/domain/access";
 import { getDashboardSignals, listMyWeddings } from "@/server/data";
 import { requireSession } from "@/server/session";
@@ -15,11 +16,11 @@ export default async function DashboardPage() {
   const session = await requireSession();
   const weddings = await listMyWeddings(session.userId);
   const { upcoming, past } = partitionWeddings(
-    weddings.map((wedding) => ({ ...wedding, weddingDate: wedding.wedding_date })),
+    weddings.map((wedding) => ({ ...wedding, weddingDate: wedding.wedding_date, isDemo: wedding.is_demo })),
     todayIso(),
   );
   const isVendor = session.profile.role === "vendor";
-  const primary = upcoming[0] ?? past[0] ?? null;
+  const primary = upcoming.find((wedding) => !wedding.isDemo) ?? upcoming[0] ?? past[0] ?? null;
   const signals = await getDashboardSignals(primary ? [primary.id] : []);
   const steps = openSteps(
     isVendor
@@ -57,6 +58,13 @@ export default async function DashboardPage() {
           ) : null
         }
       />
+      {isVendor ? (
+        <form action={openCoupleDemo} className="mb-8">
+          <Button type="submit" variant="secondary">
+            Tester l&apos;espace mariés
+          </Button>
+        </form>
+      ) : null}
       {steps.length > 0 ? (
         <section className="mb-8">
           <h2 className="mb-3 text-sm font-medium text-muted">Prochaines étapes</h2>
@@ -86,52 +94,7 @@ export default async function DashboardPage() {
           </EmptyState>
         </div>
       ) : null}
-      <WeddingSection title="À venir" items={upcoming} empty="Aucun mariage à venir." />
-      <div className="mt-8">
-        <WeddingSection title="Passés" items={past} empty="Aucun mariage passé." />
-      </div>
+      <WeddingDirectory weddings={weddings} />
     </div>
-  );
-}
-
-function WeddingSection({
-  title,
-  items,
-  empty,
-}: {
-  title: string;
-  items: Array<{
-    id: string;
-    partner_one_name: string;
-    partner_two_name: string;
-    wedding_date: string;
-    venue_name: string;
-    venue_city: string;
-  }>;
-  empty: string;
-}) {
-  return (
-    <section>
-      <h2 className="mb-3 text-sm font-medium text-muted">{title}</h2>
-      {items.length === 0 ? <p className="text-sm text-muted">{empty}</p> : null}
-      <div className="grid gap-3 md:grid-cols-2">
-        {items.map((wedding) => (
-          <Card key={wedding.id} className="transition active:scale-[0.99]">
-            <p className="text-xs font-medium text-gold-deep">{formatLongDate(wedding.wedding_date)}</p>
-            <h3 className="mt-1 text-2xl font-semibold tracking-tight">
-              {weddingTitle(wedding.partner_one_name, wedding.partner_two_name)}
-            </h3>
-            <p className="mt-1 text-sm text-muted">
-              {[wedding.venue_name, wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
-            </p>
-            <div className="mt-4">
-              <ButtonLink href={`/mariage/${wedding.id}`} variant="secondary">
-                Ouvrir l&apos;espace
-              </ButtonLink>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </section>
   );
 }

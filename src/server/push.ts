@@ -24,10 +24,14 @@ export async function notifyWedding(
 
   setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:bonjour@vow.app", publicKey, privateKey);
   const admin = createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: prefs } = await admin.from("profiles").select("id, notify_push").in("id", userIds);
+  const allowed = new Set((prefs ?? []).filter((row) => row.notify_push).map((row) => row.id));
+  const recipients = userIds.filter((id) => allowed.has(id));
+  if (recipients.length === 0) return;
   const { data: subscriptions } = await admin
     .from("push_subscriptions")
     .select("endpoint, p256dh, auth_secret")
-    .in("user_id", userIds);
+    .in("user_id", recipients);
   await Promise.all(
     (subscriptions ?? []).map(async (subscription) => {
       try {

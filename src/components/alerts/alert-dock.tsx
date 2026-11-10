@@ -7,14 +7,16 @@ import { createClient } from "@/lib/supabase/client";
 export function AlertDock({
   initialToast = null,
   initialUnread = 0,
+  inApp = true,
 }: {
   initialToast?: string | null;
   initialUnread?: number;
+  inApp?: boolean;
 }) {
   const me = useRef<string | null>(null);
   const [userId, setUserId] = useState<string | null>(initialToast ? "known" : null);
   const [unread, setUnread] = useState(initialUnread);
-  const [toast, setToast] = useState<string | null>(initialToast);
+  const [toast, setToast] = useState<string | null>(inApp ? initialToast : null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -44,7 +46,7 @@ export function AlertDock({
       if (!active) return;
       setUnread(fresh.length);
       const latest = fresh[0];
-      if (showToast && latest && sessionStorage.getItem("vow-toast") !== latest.id) {
+      if (inApp && showToast && latest && sessionStorage.getItem("vow-toast") !== latest.id) {
         sessionStorage.setItem("vow-toast", latest.id);
         setToast(latest.body);
         window.setTimeout(() => setToast(null), 8000);
@@ -59,7 +61,7 @@ export function AlertDock({
         { event: "INSERT", schema: "public", table: "wedding_notifications" },
         (payload) => {
           const row = payload.new as { body?: string; author_id?: string };
-          if (!row.body || row.author_id === me.current) return;
+          if (!inApp || !row.body || row.author_id === me.current) return;
           const body = row.body;
           if (body) {
             setToast(body);
@@ -74,7 +76,7 @@ export function AlertDock({
       active = false;
       void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [inApp]);
 
   if (!userId && !toast) return null;
 

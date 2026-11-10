@@ -47,7 +47,11 @@ async function AlertSlot() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 md:left-auto md:right-0 md:w-auto">
       <div className="pointer-events-auto flex h-14 items-center justify-end px-3 md:h-16 md:px-6">
-        <AlertDock initialToast={latest?.body ?? null} initialUnread={latest ? 1 : 0} />
+        <AlertDock
+          inApp={session.profile.notify_in_app}
+          initialToast={session.profile.notify_in_app ? (latest?.body ?? null) : null}
+          initialUnread={latest ? 1 : 0}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,10 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/domain/categories";
-import { formatLongDate } from "@/lib/domain/format";
-import { getWeddingSpace } from "@/server/data";
+import { formatLongDate, weddingTitle } from "@/lib/domain/format";
+import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
+import { deleteCoupleDemo, leaveCouplePreview } from "@/server/actions/account";
+import { getWeddingSpace, listMyWeddings } from "@/server/data";
 
 export default async function WeddingLayout({
   children,
@@ -11,8 +15,50 @@ export default async function WeddingLayout({
 }) {
   const { id } = await params;
   const space = await getWeddingSpace(id);
+  const weddings = await listMyWeddings(space.session.userId);
+  const vendor = space.session.profile.role === "vendor";
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
+      <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-black/5 bg-ivory/95 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-3">
+        <WeddingSwitcher
+          currentId={id}
+          weddings={weddings.map((wedding) => ({
+            id: wedding.id,
+            title: weddingTitle(wedding.partner_one_name, wedding.partner_two_name),
+            date: wedding.wedding_date,
+            isDemo: wedding.is_demo,
+          }))}
+        />
+        <p className="min-w-0 flex-1 truncate text-sm text-muted">{space.title}</p>
+      </div>
+      {space.wedding.is_demo ? (
+        <div className="mb-6 rounded-2xl border border-gold/40 bg-[#f8f1e4] px-4 py-4">
+          <div className="mb-2">
+            <Badge>Démo</Badge>
+          </div>
+          <p className="text-sm font-medium">
+            {space.actingAsCouple ? "Vous testez l'espace mariés." : "Mariage d'essai, isolé de vos clients."}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Rien ici n&apos;est un vrai mariage. Le jour J d&apos;un client reste réservé au couple.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {space.actingAsCouple ? (
+              <form action={leaveCouplePreview}>
+                <input type="hidden" name="wedding_id" value={id} />
+                <Button type="submit" variant="secondary">
+                  Revenir en prestataire
+                </Button>
+              </form>
+            ) : null}
+            <form action={deleteCoupleDemo}>
+              <Button type="submit" variant="danger">
+                Supprimer la démo
+              </Button>
+            </form>
+          </div>
+        </div>
+      ) : null}
       <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">
         {formatLongDate(space.wedding.wedding_date)}
       </p>
@@ -21,9 +67,11 @@ export default async function WeddingLayout({
         {[space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
       </p>
       <p className="mb-8 mt-3 text-sm font-medium">
-        {space.role === "couple"
+        {space.actingAsCouple
           ? "Espace mariés"
-          : `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}`}
+          : vendor
+            ? `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}`
+            : "Espace mariés"}
       </p>
       {children}
     </div>

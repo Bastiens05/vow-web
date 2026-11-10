@@ -30,6 +30,8 @@ export type Database = {
           role: AppRole;
           full_name: string;
           email: string;
+          notify_in_app: boolean;
+          notify_push: boolean;
           created_at: string;
           updated_at: string;
         },
@@ -38,10 +40,12 @@ export type Database = {
           role: AppRole;
           full_name?: string;
           email?: string;
+          notify_in_app?: boolean;
+          notify_push?: boolean;
           created_at?: string;
           updated_at?: string;
         },
-        { full_name?: string; updated_at?: string }
+        { full_name?: string; notify_in_app?: boolean; notify_push?: boolean; updated_at?: string }
       >;
       vendor_profiles: Table<
         {
@@ -59,6 +63,7 @@ export type Database = {
           starting_price_cents: number | null;
           currency: string;
           published: boolean;
+          logo_path: string | null;
           created_at: string;
           updated_at: string;
         },
@@ -82,6 +87,7 @@ export type Database = {
           business_name?: string;
           slug?: string;
           category?: VendorCategory;
+          logo_path?: string | null;
           city?: string;
           zone?: string;
           description?: string;
@@ -140,6 +146,8 @@ export type Database = {
           wedding_date: string;
           venue_name: string;
           venue_city: string;
+          is_demo: boolean;
+          couple_preview: boolean;
           created_at: string;
           updated_at: string;
         },
@@ -386,6 +394,18 @@ export type Database = {
       post_wedding_alert: {
         Args: { p_wedding_id: string; p_message: string };
         Returns: Json;
+      };
+      open_couple_demo: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      leave_couple_preview: {
+        Args: { p_wedding_id: string };
+        Returns: undefined;
+      };
+      delete_couple_demo: {
+        Args: Record<string, never>;
+        Returns: undefined;
       };
     };
   };

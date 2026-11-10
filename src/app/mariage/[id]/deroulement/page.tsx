@@ -14,7 +14,7 @@ export default async function TimelinePage({ params }: { params: Promise<{ id: s
     <Card>
       <h2 className="font-semibold tracking-tight text-3xl">Déroulé du jour</h2>
       <p className="mt-1 mb-6 text-sm text-muted">Les moments, dans l&apos;ordre de la journée.</p>
-      <TimelineBoard weddingId={id} slots={slots} canEdit={canManageTimeline(space.role)} />
+      <TimelineBoard weddingId={id} slots={slots} canEdit={canManageTimeline(space.actingAsCouple ? "couple" : space.role)} />
     </Card>
   );
 }
