@@ -125,6 +125,15 @@ async function main() {
       venue_name: "Domaine de Malagar",
       venue_city: "Saint-André-du-Bois",
     },
+    {
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      created_by: demo.vendorUserId,
+      partner_one_name: "Inès",
+      partner_two_name: "Paul",
+      wedding_date: "2027-09-04",
+      venue_name: "Domaine des Landes",
+      venue_city: "Lacanau",
+    },
   ]);
   if (weddingsError) throw weddingsError;
 
@@ -134,6 +143,7 @@ async function main() {
       { wedding_id: demo.weddingId, user_id: demo.coupleUserId, member_role: "couple" as const },
       { wedding_id: demo.weddingId, user_id: demo.catererUserId, member_role: "vendor" as const },
       { wedding_id: demo.pastWeddingId, user_id: demo.vendorUserId, member_role: "vendor" as const },
+      { wedding_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", user_id: demo.vendorUserId, member_role: "vendor" as const },
     ],
     { onConflict: "wedding_id,user_id" },
   );

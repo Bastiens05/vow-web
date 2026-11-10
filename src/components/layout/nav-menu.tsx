@@ -12,18 +12,32 @@ export function NavMenu({
   category,
   signedIn,
   variant,
+  primaryWeddingId,
+  actingAsCouple,
 }: {
   role: "vendor" | "couple" | null;
   category: VendorCategory | null;
   signedIn: boolean;
   variant: "side" | "tab";
+  primaryWeddingId: string | null;
+  actingAsCouple: boolean;
 }) {
   const path = usePathname() ?? "";
-  const items = itemsFor(path, role, category, signedIn);
+  const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple);
   const shown = variant === "tab" ? items.slice(0, 5) : items;
+  const inWedding = Boolean(weddingIdFrom(path));
+  const label = inWedding
+    ? actingAsCouple || role === "couple"
+      ? "Espace mariés"
+      : "Espace prestataire"
+    : role === "vendor"
+      ? "Navigation générale"
+      : role === "couple"
+        ? "Espace mariés"
+        : "Navigation";
   return (
     <nav
-      aria-label={role === "couple" ? "Espace mariés" : role === "vendor" ? "Espace prestataire" : "Navigation"}
+      aria-label={label}
       className={
         variant === "tab"
           ? "fixed inset-x-0 bottom-0 z-40 flex border-t border-black/10 bg-white px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
@@ -47,11 +61,14 @@ function itemsFor(
   role: "vendor" | "couple" | null,
   category: VendorCategory | null,
   signedIn: boolean,
+  primaryWeddingId: string | null,
+  actingAsCouple: boolean,
 ): Item[] {
   const weddingId = weddingIdFrom(path);
   if (weddingId && signedIn && role) {
+    const view = actingAsCouple ? "couple" : role;
     const base = `/mariage/${weddingId}`;
-    const sheet = pratiqueLabel(role, category);
+    const sheet = pratiqueLabel(view, actingAsCouple ? null : category);
     const items: Item[] = [
       { href: base, label: "Aperçu", icon: "home" },
       { href: `${base}/messages`, label: "Messages", icon: "message" },
@@ -60,9 +77,7 @@ function itemsFor(
     ];
     if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
     items.push({ href: `${base}/deroulement`, label: "Déroulé", icon: "spark" });
-    if (role === "vendor") {
-      items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
-    }
+    if (view === "vendor") items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
     return items;
   }
   if (!signedIn) {
@@ -74,19 +89,25 @@ function itemsFor(
   }
   if (role === "vendor") {
     return [
-      { href: "/espace", label: "Mariages", icon: "home" },
-      { href: "/espace/profil", label: "Vitrine", icon: "camera" },
-      { href: "/compte", label: "Compte", icon: "user" },
+      { href: "/espace", label: "Accueil", icon: "home" },
+      { href: "/mariages", label: "Mariages", icon: "list" },
+      { href: "/messages", label: "Messages", icon: "message" },
+      { href: "/alertes", label: "Alertes", icon: "bell" },
+      { href: "/reglages", label: "Réglages", icon: "gear" },
     ];
   }
   return [
-    { href: "/espace", label: "Mariage", icon: "home" },
-    { href: "/compte", label: "Compte", icon: "user" },
+    { href: "/espace", label: "Accueil", icon: "home" },
+    { href: primaryWeddingId ? `/mariage/${primaryWeddingId}` : "/mariages", label: "Mariage", icon: "list" },
+    { href: "/alertes", label: "Alertes", icon: "bell" },
+    { href: "/reglages", label: "Réglages", icon: "gear" },
   ];
 }
 
 function isActive(path: string, href: string) {
-  if (href === "/espace" || href === "/") return path === href;
+  if (href === "/espace" || href === "/" || href === "/mariages" || href === "/messages" || href === "/alertes" || href === "/reglages") {
+    return path === href;
+  }
   if (/^\/mariage\/[^/]+$/.test(href)) return path === href;
   return path === href || path.startsWith(`${href}/`);
 }

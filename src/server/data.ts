@@ -5,7 +5,7 @@ import { sortTimelineSlots, weddingTitle } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession, type SessionProfile } from "@/server/session";
 
-export type WeddingCard = Tables<"weddings"> & { memberRole: AppRole };
+export type WeddingCard = Tables<"weddings"> & { memberRole: AppRole; coupleJoined: boolean };
 
 type MemberWithWedding = {
   member_role: AppRole;
@@ -16,11 +16,22 @@ export const listMyWeddings = cache(async (userId: string): Promise<WeddingCard[
   const supabase = await createClient();
   const { data } = await supabase.from("wedding_members").select("member_role, weddings(*)").eq("user_id", userId);
   const rows = (data ?? []) as unknown as MemberWithWedding[];
-  return rows.flatMap((row) => {
+  const cards = rows.flatMap((row) => {
     const wedding = Array.isArray(row.weddings) ? row.weddings[0] : row.weddings;
     if (!wedding) return [];
-    return [{ ...wedding, memberRole: row.member_role }];
+    return [{ ...wedding, memberRole: row.member_role, coupleJoined: false }];
   });
+  if (cards.length === 0) return [];
+  const { data: couples } = await supabase
+    .from("wedding_members")
+    .select("wedding_id")
+    .eq("member_role", "couple")
+    .in(
+      "wedding_id",
+      cards.map((card) => card.id),
+    );
+  const joined = new Set((couples ?? []).map((row) => row.wedding_id));
+  return cards.map((card) => ({ ...card, coupleJoined: joined.has(card.id) }));
 });
 
 export type MemberView = {
@@ -34,6 +45,7 @@ export type WeddingSpace = {
   session: SessionProfile;
   wedding: Tables<"weddings">;
   role: AppRole;
+  actingAsCouple: boolean;
   members: MemberView[];
   title: string;
 };
@@ -69,10 +81,15 @@ export const getWeddingSpace = cache(async (weddingId: string): Promise<WeddingS
     };
   });
 
+  const actingAsCouple =
+    mine.member_role === "couple" ||
+    (wedding.is_demo && wedding.couple_preview && wedding.created_by === session.userId);
+
   return {
     session,
     wedding,
     role: mine.member_role,
+    actingAsCouple,
     members,
     title: weddingTitle(wedding.partner_one_name, wedding.partner_two_name),
   };
@@ -107,6 +124,36 @@ export async function listMessages(weddingId: string, userId: string): Promise<M
     authorName: names.get(message.author_id) || "Membre",
     mine: message.author_id === userId,
   }));
+}
+
+export type InboxThread = {
+  weddingId: string;
+  title: string;
+  body: string;
+  createdAt: string;
+};
+
+export async function listInbox(): Promise<InboxThread[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("messages")
+    .select("body, created_at, wedding_id, weddings(partner_one_name, partner_two_name)")
+    .order("created_at", { ascending: false })
+    .limit(80);
+  const seen = new Set<string>();
+  const threads: InboxThread[] = [];
+  for (const row of data ?? []) {
+    if (seen.has(row.wedding_id)) continue;
+    seen.add(row.wedding_id);
+    const wedding = Array.isArray(row.weddings) ? row.weddings[0] : row.weddings;
+    threads.push({
+      weddingId: row.wedding_id,
+      title: wedding ? weddingTitle(wedding.partner_one_name, wedding.partner_two_name) : "Mariage",
+      body: row.body,
+      createdAt: row.created_at,
+    });
+  }
+  return threads;
 }
 
 export async function listDocuments(weddingId: string) {

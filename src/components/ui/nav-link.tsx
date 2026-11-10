@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import { cn } from "@/lib/cn";
 
-export type IconName = "home" | "message" | "clock" | "file" | "people" | "spark" | "user" | "camera";
+export type IconName = "home" | "message" | "clock" | "file" | "people" | "spark" | "user" | "camera" | "bell" | "gear" | "list";
 
 export function NavLink({
   href,
@@ -92,6 +92,32 @@ function TabIcon({ name }: { name: IconName }) {
       <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
         <path d="M4 8h4l2-2h4l2 2h4v10H4V8Z" />
         <circle cx="12" cy="13" r="3" />
+      </svg>
+    );
+  }
+  if (name === "bell") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+        <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2H4.5L6 16Z" />
+        <path d="M10 19a2 2 0 0 0 4 0" />
+      </svg>
+    );
+  }
+  if (name === "gear") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8" />
+      </svg>
+    );
+  }
+  if (name === "list") {
+    return (
+      <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+        <path d="M8 7h12M8 12h12M8 17h12" />
+        <circle cx="4" cy="7" r="1" fill="currentColor" />
+        <circle cx="4" cy="12" r="1" fill="currentColor" />
+        <circle cx="4" cy="17" r="1" fill="currentColor" />
       </svg>
     );
   }

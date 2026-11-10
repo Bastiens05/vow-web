@@ -55,6 +55,23 @@ async function main() {
     await page.getByRole("status").waitFor();
     await shot(page, `${prefix}-toast`);
     await shot(page, `${prefix}-tableau-prestataire`);
+    if (prefix === "desktop") {
+      await page.screenshot({ path: `${outDir}/desktop-accueil.png` });
+      console.log("desktop-accueil");
+    }
+    if (prefix === "mobile") {
+      await page.screenshot({ path: `${outDir}/mobile-accueil.png` });
+      await page.goto(`/mariage/${demo.weddingId}`);
+      await page.getByText("Changer de mariage").click();
+      await page.getByRole("link", { name: "Inès & Paul" }).waitFor();
+      await page.screenshot({ path: `${outDir}/mobile-switcher.png` });
+      await page.goto("/reglages");
+      await page.getByRole("heading", { name: "Réglages" }).waitFor();
+      await page.getByRole("button", { name: "Se déconnecter" }).waitFor();
+      await page.screenshot({ path: `${outDir}/mobile-reglages.png` });
+      console.log("mobile-accueil mobile-switcher mobile-reglages");
+      await page.goto("/espace");
+    }
 
     if (prefix === "mobile") {
       await page.goto("/espace/profil");
@@ -175,6 +192,11 @@ async function main() {
       });
       await page.locator("main").screenshot({ path: `${outDir}/mobile-fiche-photographe.png` });
       console.log("mobile-fiche-photographe");
+      await page.goto("/espace");
+      await page.getByRole("button", { name: "Tester l'espace mariés" }).click();
+      await page.getByText("Vous testez l'espace mariés.").waitFor();
+      await page.screenshot({ path: `${outDir}/mobile-demo-maries.png` });
+      console.log("mobile-demo-maries");
     }
 
     await context.close();

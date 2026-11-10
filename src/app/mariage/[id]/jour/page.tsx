@@ -12,17 +12,17 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
       <h2 className="text-xs font-medium text-gold-deep">
-        {space.role === "couple" ? "Jour J · vous tenez les horaires" : "Jour J · horaires en direct"}
+        {space.actingAsCouple ? "Jour J · vous tenez les horaires" : "Jour J · horaires en direct"}
       </h2>
       <p className="mt-2 text-sm leading-6 text-muted">
-        {space.role === "couple"
+        {space.actingAsCouple
           ? "Un retard se règle ici. Les prestataires le voient tout de suite."
           : "Lecture seule. Le couple décale les horaires et vous prévient."}
       </p>
       <div className="mt-6">
-        <DayBoard weddingId={id} slots={slots} canControl={space.role === "couple"} />
+        <DayBoard weddingId={id} slots={slots} canControl={space.actingAsCouple} />
       </div>
-      {space.role === "vendor" ? (
+      {!space.actingAsCouple && space.role === "vendor" ? (
         <p className="mt-6 text-sm">
           <Link href={`/mariage/${id}/deroulement`} className="underline">
             Modifier le déroulé

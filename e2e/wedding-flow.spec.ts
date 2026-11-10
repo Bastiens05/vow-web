@@ -66,13 +66,15 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
 
   await page.goto("/espace");
   await page.getByRole("link", { name: "Ouvrir l'espace" }).first().click();
-  await page.getByRole("link", { name: "Messages" }).click();
+  await expect(page.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Espace prestataire" }).getByRole("link", { name: "Messages" }).click();
   await page.getByLabel("Message").fill("Bonjour Léa, bienvenue dans l'espace.");
   await page.getByRole("button", { name: "Envoyer" }).click();
   await expect(page.getByText("Bonjour Léa, bienvenue dans l'espace.")).toBeVisible();
 
   await couplePage.getByRole("link", { name: "Ouvrir l'espace" }).click();
-  await couplePage.getByRole("link", { name: "Messages" }).click();
+  await expect(couplePage.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
+  await couplePage.getByRole("navigation", { name: "Espace mariés" }).getByRole("link", { name: "Messages" }).click();
   await expect(couplePage.getByText("Bonjour Léa, bienvenue dans l'espace.")).toBeVisible({ timeout: 20_000 });
   await couplePage.getByLabel("Message").fill("Merci, on est bien arrivés.");
   await couplePage.getByRole("button", { name: "Envoyer" }).click();

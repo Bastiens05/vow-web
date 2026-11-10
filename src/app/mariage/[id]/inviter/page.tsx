@@ -17,6 +17,7 @@ export default async function InvitePage({ params }: { params: Promise<{ id: str
       <p className="mt-1 mb-6 text-sm leading-6 text-muted">
         Le lien est lié à l&apos;adresse indiquée. La personne doit créer son compte, ou se connecter, avec exactement cet e-mail.
         L&apos;envoi se fait depuis votre messagerie : VOW affiche le lien, il ne l&apos;expédie pas tout seul.
+        Pour vous mettre à la place des mariés sans toucher un client, ouvrez Tester l&apos;espace mariés. Vous pouvez aussi inviter une autre adresse e-mail.
       </p>
       <InvitePanel weddingId={id} invitations={invitations} />
     </Card>
