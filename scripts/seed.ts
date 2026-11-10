@@ -280,6 +280,83 @@ async function main() {
   });
   if (noteError) throw noteError;
 
+  await admin.from("questionnaires").delete().eq("wedding_id", demo.weddingId);
+  const { data: questionnaire, error: questionnaireError } = await admin
+    .from("questionnaires")
+    .insert({
+      wedding_id: demo.weddingId,
+      vendor_id: demo.vendorProfileId,
+      title: "Avant le mariage",
+      status: "answered",
+    })
+    .select("id")
+    .single();
+  if (questionnaireError || !questionnaire) throw questionnaireError ?? new Error("questionnaire");
+  const { error: itemsError } = await admin.from("questionnaire_items").insert([
+    {
+      questionnaire_id: questionnaire.id,
+      prompt: "Où se passent les préparatifs ?",
+      answer: "À la maison, côté jardin.",
+      sort_order: 1,
+    },
+    {
+      questionnaire_id: questionnaire.id,
+      prompt: "À quelle heure commence la cérémonie ?",
+      answer: "16h, dans le jardin des tilleuls.",
+      sort_order: 2,
+    },
+  ]);
+  if (itemsError) throw itemsError;
+
+  await admin.from("wedding_stops").delete().eq("wedding_id", demo.weddingId);
+  const { error: stopsError } = await admin.from("wedding_stops").insert([
+    {
+      wedding_id: demo.weddingId,
+      label: "Cérémonie",
+      address: "Jardin des tilleuls, Château de la Louvière, Léognan",
+      starts_at: "16:00",
+      sort_order: 1,
+    },
+    {
+      wedding_id: demo.weddingId,
+      label: "Réception",
+      address: "Salle des chênes, Château de la Louvière, Léognan",
+      starts_at: "20:00",
+      sort_order: 2,
+    },
+  ]);
+  if (stopsError) throw stopsError;
+
+  await admin.from("deliveries").delete().eq("wedding_id", demo.weddingId);
+  const galleryPath = `${demo.weddingId}/${demo.vendorUserId}/finales.png`;
+  const galleryBody = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  const galleryUpload = await admin.storage.from("wedding-gallery").upload(galleryPath, galleryBody, {
+    contentType: "image/png",
+    upsert: true,
+  });
+  if (galleryUpload.error) throw galleryUpload.error;
+  const { data: delivery, error: deliveryError } = await admin
+    .from("deliveries")
+    .insert({
+      wedding_id: demo.weddingId,
+      vendor_id: demo.vendorProfileId,
+      title: "Photos finales",
+    })
+    .select("id")
+    .single();
+  if (deliveryError || !delivery) throw deliveryError ?? new Error("livraison");
+  const { error: fileError } = await admin.from("delivery_files").insert({
+    delivery_id: delivery.id,
+    storage_path: galleryPath,
+    file_name: "finales.png",
+    mime_type: "image/png",
+    size_bytes: galleryBody.length,
+  });
+  if (fileError) throw fileError;
+
   await admin.from("reviews").delete().eq("vendor_id", demo.vendorProfileId);
   await admin.from("deposits").delete().eq("vendor_id", demo.vendorProfileId);
   await admin.from("invoices").delete().eq("vendor_id", demo.vendorProfileId);

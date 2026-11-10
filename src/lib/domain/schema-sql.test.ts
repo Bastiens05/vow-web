@@ -34,6 +34,11 @@ describe("migration", () => {
       "invoices",
       "deposits",
       "reviews",
+      "questionnaires",
+      "questionnaire_items",
+      "wedding_stops",
+      "deliveries",
+      "delivery_files",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);
@@ -43,6 +48,7 @@ describe("migration", () => {
   it("creates both storage buckets and member-only document policies", () => {
     expect(sql).toContain("'vendor-media'");
     expect(sql).toContain("'wedding-documents'");
+    expect(sql).toContain("'wedding-gallery'");
     expect(sql).toContain("wedding_documents_select");
     expect(sql).toContain("is_wedding_member");
   });

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { revealPasswordSignup } from "./password-auth";
 
 const password = "VowTest2026!";
 
@@ -52,7 +53,7 @@ test("un devis devient une facture et l'acompte se relance sans Stripe", async (
 
 async function signUp(page: Page, input: { name: string; email: string; role: "Prestataire" | "Couple" }) {
   await page.goto("/inscription");
-  await page.getByRole("heading", { name: "Inscription" }).waitFor();
+  await revealPasswordSignup(page, input.role);
   await page.getByLabel("Nom complet").fill(input.name);
   await page.getByLabel("E-mail").fill(input.email);
   await page.getByLabel(/^Mot de passe/).fill(password);

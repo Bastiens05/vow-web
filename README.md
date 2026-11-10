@@ -10,7 +10,7 @@ Un prestataire publie une vitrine, crée un mariage, et invite le couple par un 
 
 Il n'y a pas de code d'accès commun. L'accès repose sur Supabase Auth (e-mail + mot de passe, ou lien magique) et sur les politiques de sécurité des lignes.
 
-Hors périmètre pour l'instant : budget, liste d'invités, plan de table, playlist, IA, paiements, annuaire.
+Hors périmètre pour l'instant : budget, playlist, IA, paiements.
 
 ## Prérequis
 
@@ -38,6 +38,7 @@ Migrations, dans cet ordre, sur un projet vide :
 4. `supabase/migrations/20261110233000_shell.sql` — coquille globale (préférences d'alertes, logo), et le mariage démo isolé (`open_couple_demo`, `leave_couple_preview`, `delete_couple_demo`). Un prestataire ne devient couple que sur ce mariage démo.
 5. `supabase/migrations/20261110240000_day_tools.sql` — demandes de devis (`leads`, `submit_quote_request`), modèles de déroulé (le couple les applique, le prestataire les suggère), rappels J-60/J-30/J-14 (`run_due_reminders`) et signatures électroniques simples (`signature_requests`, `record_signature`). L'insertion et la modification de `timeline_slots` sont réservées au couple, y compris via `is_wedding_couple` pour l'essai démo.
 6. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
+7. `supabase/migrations/20261111010000_daypack.sql` — questionnaire par métier, lieux du jour J, annuaire (téléphone et e-mail seulement si le prestataire les ouvre) et galerie photo / vidéo.
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 
