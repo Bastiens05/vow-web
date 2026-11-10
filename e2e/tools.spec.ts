@@ -154,7 +154,6 @@ async function signUp(
   input: { name: string; email: string; role: "Prestataire" | "Couple"; emailLocked?: boolean },
 ) {
   if (!page.url().includes("/inscription")) await page.goto("/inscription");
-  await page.getByRole("heading", { name: "Inscription" }).waitFor();
   await revealPasswordSignup(page, input.role);
   await page.getByLabel("Nom complet").fill(input.name);
   if (!input.emailLocked) await page.getByLabel("E-mail").fill(input.email);
