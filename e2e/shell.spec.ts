@@ -24,12 +24,7 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
 
-  await page.goto(`/mariage/${firstId}/deroulement`);
-  await page.getByLabel("Nouveau moment").fill("Cérémonie");
-  await page.getByLabel("Heure").fill("16:00");
-  await page.getByRole("button", { name: "Ajouter au déroulé" }).click();
-  await expect(page.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
-
+  await page.goto(`/mariage/${firstId}`);
   await page.getByText("Changer de mariage").click();
   await page.getByRole("link", { name: "Léa & Hugo" }).click();
   await expect(page.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
@@ -49,9 +44,26 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
   await page.waitForURL("**/espace**");
 
   const vendor = await asUser(email);
-  const slots = await vendor.from("timeline_slots").select("id").eq("wedding_id", firstId);
-  const slotId = slots.data?.[0]?.id ?? "";
+  const userId = (await vendor.auth.getUser()).data.user?.id ?? "";
+  const inserted = await vendor.from("timeline_slots").insert({
+    wedding_id: firstId,
+    title: "Interdit",
+    starts_at: "16:00",
+    created_by: userId,
+  });
+  expect(inserted.error).not.toBeNull();
+  const admin = adminClient();
+  const created = await admin
+    .from("timeline_slots")
+    .insert({ wedding_id: firstId, title: "Cérémonie", starts_at: "16:00", place: "", notes: "", created_by: userId })
+    .select("id")
+    .single();
+  const slotId = created.data?.id ?? "";
   expect(slotId).toBeTruthy();
+  const updated = await vendor.from("timeline_slots").update({ title: "Piraté" }).eq("id", slotId).select("title");
+  expect(updated.data ?? []).toEqual([]);
+  const kept = await admin.from("timeline_slots").select("title").eq("id", slotId).single();
+  expect(kept.data?.title).toBe("Cérémonie");
   const denied = await vendor.rpc("shift_timeline_slot", {
     p_slot_id: slotId,
     p_new_time: "16:30",
@@ -101,8 +113,14 @@ function publicEnv() {
   }
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
   const key = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error("Clés Supabase publiques absentes de .env.local");
-  return { url, key };
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key || !serviceKey) throw new Error("Clés Supabase absentes de .env.local");
+  return { url, key, serviceKey };
+}
+
+function adminClient() {
+  const { url, serviceKey } = publicEnv();
+  return createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
 async function asUser(email: string) {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { DayBoard } from "@/components/wedding/day-board";
 import { getWeddingSpace, listTimeline } from "@/server/data";
 
@@ -22,13 +21,6 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
       <div className="mt-6">
         <DayBoard weddingId={id} slots={slots} canControl={space.actingAsCouple} />
       </div>
-      {!space.actingAsCouple && space.role === "vendor" ? (
-        <p className="mt-6 text-sm">
-          <Link href={`/mariage/${id}/deroulement`} className="underline">
-            Modifier le déroulé
-          </Link>
-        </p>
-      ) : null}
     </div>
   );
 }

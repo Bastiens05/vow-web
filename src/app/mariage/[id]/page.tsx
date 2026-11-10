@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
+import { setReminders } from "@/server/actions/signatures";
 import { getWeddingSpace } from "@/server/data";
 
 export const metadata: Metadata = { title: "Mariage" };
@@ -9,6 +11,12 @@ export const metadata: Metadata = { title: "Mariage" };
 export default async function WeddingOverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const space = await getWeddingSpace(id);
+  const supabase = await createClient();
+  const { data: reminders } = await supabase
+    .from("reminders")
+    .select("id, milestone, kind, created_at")
+    .eq("wedding_id", id)
+    .order("created_at", { ascending: false });
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <Card>
@@ -52,8 +60,29 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
               Inviter quelqu&apos;un
             </ButtonLink>
           ) : null}
+          {!space.actingAsCouple && space.role === "vendor" ? (
+            <form action={setReminders}>
+              <input type="hidden" name="wedding_id" value={id} />
+              <input type="hidden" name="enabled" value={space.wedding.reminders_enabled ? "off" : "on"} />
+              <Button type="submit" variant="secondary">
+                {space.wedding.reminders_enabled ? "Couper les rappels" : "Activer les rappels"}
+              </Button>
+            </form>
+          ) : null}
         </div>
       </Card>
+      {(reminders ?? []).length > 0 ? (
+        <Card>
+          <h2 className="text-lg font-semibold tracking-tight">Rappels envoyés</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            {(reminders ?? []).map((reminder) => (
+              <li key={reminder.id}>
+                J-{reminder.milestone} · {reminder.kind}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
     </div>
   );
 }
