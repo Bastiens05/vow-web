@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { NavMenu } from "@/components/layout/nav-menu";
+import { SpaceSwitcher } from "@/components/layout/space-switcher";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { partitionWeddings } from "@/lib/domain/access";
 import { todayIso } from "@/lib/domain/format";
@@ -15,6 +16,7 @@ export async function DesktopNav() {
       <Link href={session ? "/espace" : "/"} className="px-3 text-lg font-semibold tracking-[0.22em]">
         VOW
       </Link>
+      <SpaceSwitcher vendorHref={context.vendorHref} coupleHref={context.coupleHref} />
       {context.inWedding ? (
         <Link
           href={session?.profile.role === "vendor" ? "/mariages" : "/espace"}
@@ -55,8 +57,9 @@ export async function MobileChrome() {
             VOW
           </Link>
         )}
-        <p className="truncate text-right text-sm text-muted">{context.inWedding ? "" : name}</p>
+        <p className="truncate text-right text-sm text-muted">{context.inWedding || context.quiet ? "" : name}</p>
       </header>
+      {context.quiet ? null : (
       <NavMenu
         role={session?.profile.role ?? null}
         category={session?.vendor?.category ?? null}
@@ -65,13 +68,15 @@ export async function MobileChrome() {
         primaryWeddingId={context.primaryWeddingId}
         actingAsCouple={context.actingAsCouple}
       />
+      )}
     </>
   );
 }
 
 async function navContext(session: SessionProfile | null) {
-  if (!session) return { primaryWeddingId: null, actingAsCouple: false, inWedding: false };
   const path = (await headers()).get("x-vow-path") ?? "";
+  const quiet = /^\/(connexion|inscription|bienvenue|cgu|confidentialite)(\/|$)/.test(path);
+  if (!session) return { primaryWeddingId: null, actingAsCouple: false, inWedding: false, quiet, vendorHref: null, coupleHref: null };
   const match = /^\/mariage\/([^/]+)/.exec(path);
   const weddings = await listMyWeddings(session.userId);
   const dated = weddings.map((wedding) => ({
@@ -81,10 +86,18 @@ async function navContext(session: SessionProfile | null) {
   }));
   const { upcoming, past } = partitionWeddings(dated, todayIso());
   const primary = upcoming.find((wedding) => !wedding.isDemo) ?? upcoming[0] ?? past[0] ?? null;
+  const coupleWedding = dated.find((wedding) => wedding.memberRole === "couple");
   let actingAsCouple = false;
   if (match) {
     const space = await getWeddingSpace(match[1]);
     actingAsCouple = space.actingAsCouple;
   }
-  return { primaryWeddingId: primary?.id ?? null, actingAsCouple, inWedding: Boolean(match) };
+  return {
+    primaryWeddingId: primary?.id ?? null,
+    actingAsCouple,
+    inWedding: Boolean(match),
+    quiet,
+    vendorHref: session.profile.role === "vendor" ? "/espace" : null,
+    coupleHref: coupleWedding ? `/mariage/${coupleWedding.id}` : null,
+  };
 }

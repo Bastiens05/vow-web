@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { revealPasswordLogin, revealPasswordSignup } from "./password-auth";
 import { createClient } from "@supabase/supabase-js";
 
 const password = "VowTest2026!";
@@ -43,6 +44,7 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
   await page.goto("/espace");
   await expect(page).toHaveURL(/connexion/);
 
+  await revealPasswordLogin(page);
   await page.getByLabel("E-mail").first().fill(email);
   await page.getByLabel("Mot de passe").first().fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
@@ -76,6 +78,7 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
 
 async function signUp(page: Page, email: string) {
   await page.goto("/inscription");
+  await revealPasswordSignup(page, "Prestataire");
   await page.getByLabel("Nom complet").fill("Camille Shell");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel(/^Mot de passe/).fill(password);

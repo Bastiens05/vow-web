@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { chromium, type Page } from "@playwright/test";
+import { revealPasswordLogin } from "../e2e/password-auth";
 import { demo, demoPassword } from "./demo";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
@@ -24,6 +25,7 @@ async function shot(page: Page, name: string) {
 
 async function login(page: Page, email: string) {
   await page.goto("/connexion");
+  await revealPasswordLogin(page);
   await page.getByLabel("E-mail").first().fill(email);
   await page.getByLabel("Mot de passe").first().fill(demoPassword);
   await page.getByRole("button", { name: "Se connecter" }).click();
@@ -44,11 +46,11 @@ async function main() {
     execFileSync("npm", ["run", "seed"], { stdio: "inherit" });
 
     await page.goto("/connexion");
-    await page.getByRole("heading", { name: "Connexion" }).waitFor();
+    await page.getByRole("heading", { name: "Votre e-mail" }).waitFor();
     await shot(page, `${prefix}-connexion`);
 
     await page.goto("/inscription");
-    await page.getByRole("heading", { name: "Inscription" }).waitFor();
+    await page.getByRole("heading", { name: "Bienvenue" }).waitFor();
     await shot(page, `${prefix}-inscription`);
 
     await login(page, demo.vendorEmail);

@@ -38,3 +38,89 @@ button {
 a {
   text-underline-offset: 3px;
 }
+
+.auth-screen {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.auth-step {
+  animation: auth-in 280ms ease;
+}
+
+.auth-choice,
+.auth-primary,
+.auth-quiet,
+.auth-chip {
+  min-height: 3.5rem;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 560;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.auth-choice,
+.auth-primary {
+  background: #1d1d1f;
+  color: white;
+}
+
+.auth-choice:active,
+.auth-primary:active,
+.auth-chip:active {
+  transform: scale(0.98);
+}
+
+.auth-primary:disabled,
+.auth-quiet:disabled {
+  opacity: 0.45;
+}
+
+.auth-quiet {
+  background: transparent;
+  color: #6e6e73;
+}
+
+.auth-chip {
+  min-height: 2.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  padding: 0 0.9rem;
+  font-size: 0.95rem;
+}
+
+.auth-chip-on {
+  background: #1d1d1f;
+  color: white;
+  border-color: #1d1d1f;
+}
+
+@keyframes auth-in {
+  from {
+    transform: translateY(8px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-screen {
+    background: #000;
+    color: #f5f5f7;
+  }
+
+  .auth-field,
+  .auth-chip {
+    background: #1c1c1e;
+    color: #f5f5f7;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .auth-choice,
+  .auth-primary,
+  .auth-chip-on {
+    background: #f5f5f7;
+    color: #1d1d1f;
+  }
+}
