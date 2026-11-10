@@ -46,9 +46,6 @@ export async function addTimelineSlot(
   formData: FormData,
 ): Promise<ActionState> {
   const session = await requireSession();
-  if (session.profile.role !== "vendor") {
-    return { error: "Seuls les prestataires modifient le déroulé." };
-  }
   const parsed = validateTimelineSlot({
     title: String(formData.get("title") ?? ""),
     startsAt: String(formData.get("starts_at") ?? ""),

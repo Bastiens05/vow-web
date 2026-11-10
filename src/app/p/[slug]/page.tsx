@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { categoryLabel } from "@/lib/domain/categories";
 import { formatPriceCents } from "@/lib/domain/price";
@@ -98,6 +99,9 @@ export default async function PublicVendorPage({ params }: PageProps) {
           </div>
         </section>
       ) : null}
+      <div className="mt-10">
+        <ButtonLink href={`/demande/${vendor.slug}`}>Demander un devis</ButtonLink>
+      </div>
       <Card className="mt-12">
         <h2 className="font-semibold tracking-tight text-3xl">Contact</h2>
         <div className="mt-3 space-y-1 text-sm">

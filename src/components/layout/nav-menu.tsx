@@ -24,8 +24,9 @@ export function NavMenu({
 }) {
   const path = usePathname() ?? "";
   const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple);
-  const shown = variant === "tab" ? items.slice(0, 5) : items;
   const inWedding = Boolean(weddingIdFrom(path));
+  const shown =
+    variant === "tab" && !inWedding && role === "vendor" ? items.filter((item) => item.label !== "Messages") : variant === "tab" ? items.slice(0, 5) : items;
   const label = inWedding
     ? actingAsCouple || role === "couple"
       ? "Espace mariés"
@@ -91,6 +92,7 @@ function itemsFor(
     return [
       { href: "/espace", label: "Accueil", icon: "home" },
       { href: "/mariages", label: "Mariages", icon: "list" },
+      { href: "/demandes", label: "Demandes", icon: "mail" },
       { href: "/messages", label: "Messages", icon: "message" },
       { href: "/alertes", label: "Alertes", icon: "bell" },
       { href: "/reglages", label: "Réglages", icon: "gear" },
@@ -105,7 +107,7 @@ function itemsFor(
 }
 
 function isActive(path: string, href: string) {
-  if (href === "/espace" || href === "/" || href === "/mariages" || href === "/messages" || href === "/alertes" || href === "/reglages") {
+  if (href === "/espace" || href === "/" || href === "/mariages" || href === "/messages" || href === "/alertes" || href === "/reglages" || href === "/demandes") {
     return path === href;
   }
   if (/^\/mariage\/[^/]+$/.test(href)) return path === href;

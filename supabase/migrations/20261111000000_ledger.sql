@@ -24,7 +24,7 @@ $$;
 revoke all on function public.owns_vendor(uuid) from public, anon;
 grant execute on function public.owns_vendor(uuid) to authenticated;
 
-create table public.quotes (
+create table if not exists public.quotes (
   id uuid primary key default gen_random_uuid(),
   wedding_id uuid not null references public.weddings (id) on delete cascade,
   vendor_id uuid not null references public.vendor_profiles (id) on delete cascade,
@@ -39,7 +39,7 @@ create table public.quotes (
   unique (vendor_id, number)
 );
 
-create table public.invoices (
+create table if not exists public.invoices (
   id uuid primary key default gen_random_uuid(),
   wedding_id uuid not null references public.weddings (id) on delete cascade,
   vendor_id uuid not null references public.vendor_profiles (id) on delete cascade,
@@ -55,7 +55,7 @@ create table public.invoices (
   unique (vendor_id, number)
 );
 
-create table public.deposits (
+create table if not exists public.deposits (
   id uuid primary key default gen_random_uuid(),
   wedding_id uuid not null references public.weddings (id) on delete cascade,
   vendor_id uuid not null references public.vendor_profiles (id) on delete cascade,
@@ -69,7 +69,7 @@ create table public.deposits (
   constraint deposits_amount check (amount_cents > 0)
 );
 
-create table public.reviews (
+create table if not exists public.reviews (
   id uuid primary key default gen_random_uuid(),
   wedding_id uuid not null references public.weddings (id) on delete cascade,
   vendor_id uuid not null references public.vendor_profiles (id) on delete cascade,
@@ -93,6 +93,17 @@ grant select, insert, update, delete on public.quotes to authenticated;
 grant select, insert, update, delete on public.invoices to authenticated;
 grant select, insert, update, delete on public.deposits to authenticated;
 grant select, insert, update on public.reviews to authenticated, anon;
+
+drop policy if exists quotes_select on public.quotes;
+drop policy if exists quotes_write on public.quotes;
+drop policy if exists invoices_select on public.invoices;
+drop policy if exists invoices_write on public.invoices;
+drop policy if exists deposits_select on public.deposits;
+drop policy if exists deposits_write on public.deposits;
+drop policy if exists reviews_couple_select on public.reviews;
+drop policy if exists reviews_public_select on public.reviews;
+drop policy if exists reviews_insert on public.reviews;
+drop policy if exists reviews_vendor_update on public.reviews;
 
 create policy quotes_select on public.quotes
   for select to authenticated

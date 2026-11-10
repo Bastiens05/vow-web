@@ -6,7 +6,7 @@ const sql = files.map((name) => readFileSync(`supabase/migrations/${name}`, "utf
 
 describe("migration", () => {
   it("enables row level security on every public table", () => {
-    const tables = [...sql.matchAll(/create table public\.(\w+)/g)].map((match) => match[1]);
+    const tables = [...sql.matchAll(/create table(?: if not exists)? public\.(\w+)/g)].map((match) => match[1]);
     expect(tables).toEqual([
       "profiles",
       "vendor_profiles",
@@ -25,6 +25,11 @@ describe("migration", () => {
       "wedding_notifications",
       "notification_reads",
       "push_subscriptions",
+      "timeline_suggestions",
+      "timeline_templates",
+      "leads",
+      "reminders",
+      "signature_requests",
       "quotes",
       "invoices",
       "deposits",

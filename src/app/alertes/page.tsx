@@ -12,7 +12,7 @@ export default async function AlertsPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("wedding_notifications")
-    .select("id, body, created_at, wedding_id, author_id")
+    .select("id, body, created_at, wedding_id, author_id, kind")
     .order("created_at", { ascending: false })
     .limit(40);
   await markAlertsRead();
@@ -30,8 +30,11 @@ export default async function AlertsPage() {
               {formatDateTime(note.created_at)}
               {note.author_id === session.userId ? " · vous" : ""}
             </p>
-            <Link href={`/mariage/${note.wedding_id}/jour`} className="mt-2 inline-flex min-h-11 items-center text-sm underline">
-              Ouvrir le Jour J
+            <Link
+              href={note.kind === "reminder" ? `/mariage/${note.wedding_id}` : `/mariage/${note.wedding_id}/jour`}
+              className="mt-2 inline-flex min-h-11 items-center text-sm underline"
+            >
+              {note.kind === "reminder" ? "Ouvrir le mariage" : "Ouvrir le Jour J"}
             </Link>
           </li>
         ))}

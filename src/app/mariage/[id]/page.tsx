@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReviewForm } from "@/components/wedding/review-form";
 import { createClient } from "@/lib/supabase/server";
+import { setReminders } from "@/server/actions/signatures";
 import { getWeddingSpace } from "@/server/data";
 
 export const metadata: Metadata = { title: "Mariage" };
@@ -13,9 +14,12 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
   const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
-  const { data: vendors } = vendorIds.length
-    ? await supabase.from("vendor_profiles").select("id, business_name, user_id").in("user_id", vendorIds)
-    : { data: [] as { id: string; business_name: string; user_id: string }[] };
+  const [{ data: vendors }, { data: reminders }] = await Promise.all([
+    vendorIds.length
+      ? supabase.from("vendor_profiles").select("id, business_name, user_id").in("user_id", vendorIds)
+      : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string }[] }),
+    supabase.from("reminders").select("id, milestone, kind, created_at").eq("wedding_id", id).order("created_at", { ascending: false }),
+  ]);
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <Card>
@@ -62,10 +66,31 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
               Inviter quelqu&apos;un
             </ButtonLink>
           ) : null}
+          {!space.actingAsCouple && space.role === "vendor" ? (
+            <form action={setReminders}>
+              <input type="hidden" name="wedding_id" value={id} />
+              <input type="hidden" name="enabled" value={space.wedding.reminders_enabled ? "off" : "on"} />
+              <Button type="submit" variant="secondary">
+                {space.wedding.reminders_enabled ? "Couper les rappels" : "Activer les rappels"}
+              </Button>
+            </form>
+          ) : null}
         </div>
       </Card>
       {space.actingAsCouple ? (
         <ReviewForm weddingId={id} vendors={(vendors ?? []).map((vendor) => ({ id: vendor.id, name: vendor.business_name }))} />
+      ) : null}
+      {(reminders ?? []).length > 0 ? (
+        <Card>
+          <h2 className="text-lg font-semibold tracking-tight">Rappels envoyés</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            {(reminders ?? []).map((reminder) => (
+              <li key={reminder.id}>
+                J-{reminder.milestone} · {reminder.kind}
+              </li>
+            ))}
+          </ul>
+        </Card>
       ) : null}
     </div>
   );
