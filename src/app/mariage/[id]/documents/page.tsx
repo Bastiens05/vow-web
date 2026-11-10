@@ -12,7 +12,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
   return (
     <Card>
-      <h2 className="font-serif text-3xl">Documents</h2>
+      <h2 className="font-semibold tracking-tight text-3xl">Documents</h2>
       <p className="mt-1 mb-5 text-sm text-muted">Visibles uniquement par les membres de ce mariage.</p>
       <DocumentManager weddingId={id} userId={space.session.userId} documents={documents} names={names} />
     </Card>

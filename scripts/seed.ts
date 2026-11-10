@@ -212,6 +212,43 @@ async function main() {
   ]);
   if (invitationError) throw invitationError;
 
+  const { error: practicalError } = await admin.from("wedding_practical").upsert({
+    wedding_id: demo.weddingId,
+    partner_one_phone: "06 11 22 33 44",
+    partner_two_phone: "06 55 66 77 88",
+    postal_address: "12 rue Sainte-Catherine, 33000 Bordeaux",
+    ceremony_address: "Jardin des tilleuls, Château de la Louvière, Léognan",
+    reception_address: "Salle des chênes, même domaine",
+    key_contacts: "Témoin de Léa : Emma Martin, 06 01 02 03 04\nTémoin de Hugo : Paul Bernard",
+    notes: "Prévoir un coin à l'ombre pour les préparatifs.",
+  });
+  if (practicalError) throw practicalError;
+
+  await admin.from("photo_groups").delete().eq("wedding_id", demo.weddingId);
+  const { error: groupsError } = await admin.from("photo_groups").insert([
+    { wedding_id: demo.weddingId, title: "Les mariés", people: "Léa et Hugo", notes: "Sous les tilleuls", sort_order: 1 },
+    { wedding_id: demo.weddingId, title: "Famille de Léa", people: "Parents, frère, grands-parents", notes: "", sort_order: 2 },
+    { wedding_id: demo.weddingId, title: "Témoins", people: "Emma, Paul, Chloé, Adam", notes: "Juste après la cérémonie", sort_order: 3 },
+  ]);
+  if (groupsError) throw groupsError;
+
+  await admin.from("guests").delete().eq("wedding_id", demo.weddingId);
+  const { error: guestsError } = await admin.from("guests").insert([
+    { wedding_id: demo.weddingId, full_name: "Emma Martin", table_label: "Table 1", dietary: "", notes: "Témoin" },
+    { wedding_id: demo.weddingId, full_name: "Paul Bernard", table_label: "Table 1", dietary: "Végétarien", notes: "" },
+    { wedding_id: demo.weddingId, full_name: "Claire Dupont", table_label: "Table 4", dietary: "Sans gluten", notes: "" },
+  ]);
+  if (guestsError) throw guestsError;
+
+  await admin.from("wedding_notifications").delete().eq("wedding_id", demo.weddingId);
+  const { error: noteError } = await admin.from("wedding_notifications").insert({
+    wedding_id: demo.weddingId,
+    author_id: demo.coupleUserId,
+    kind: "shift",
+    body: "Léa Martin a décalé l'entrée en salle de 30 minutes, c'est désormais à 20h30.",
+  });
+  if (noteError) throw noteError;
+
   console.log("Données de démonstration prêtes.");
   console.log(`Prestataire : ${demo.vendorEmail} / ${demoPassword}`);
   console.log(`Couple : ${demo.coupleEmail} / ${demoPassword}`);

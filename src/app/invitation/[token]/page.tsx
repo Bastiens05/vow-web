@@ -31,19 +31,19 @@ export default async function InvitationPage({
         <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">Invitation</p>
         {preview.status === "missing" ? (
           <>
-            <h1 className="mt-2 font-serif text-4xl">Invitation introuvable</h1>
+            <h1 className="mt-2 font-semibold tracking-tight text-4xl">Invitation introuvable</h1>
             <p className="mt-3 text-sm text-muted">Ce lien n&apos;existe pas ou n&apos;est plus valide.</p>
           </>
         ) : null}
         {preview.status === "expired" ? (
           <>
-            <h1 className="mt-2 font-serif text-4xl">Invitation expirée</h1>
+            <h1 className="mt-2 font-semibold tracking-tight text-4xl">Invitation expirée</h1>
             <p className="mt-3 text-sm text-muted">Demandez un nouveau lien à votre prestataire.</p>
           </>
         ) : null}
         {preview.status === "accepted" ? (
           <>
-            <h1 className="mt-2 font-serif text-4xl">Invitation déjà utilisée</h1>
+            <h1 className="mt-2 font-semibold tracking-tight text-4xl">Invitation déjà utilisée</h1>
             {session ? (
               <div className="mt-4">
                 <ButtonLink href={`/mariage/${preview.weddingId}`}>Ouvrir le mariage</ButtonLink>
@@ -55,7 +55,7 @@ export default async function InvitationPage({
         ) : null}
         {preview.status === "pending" ? (
           <>
-            <h1 className="mt-2 font-serif text-4xl">
+            <h1 className="mt-2 font-semibold tracking-tight text-4xl">
               {weddingTitle(preview.partnerOne, preview.partnerTwo)}
             </h1>
             <p className="mt-2 text-sm text-muted">

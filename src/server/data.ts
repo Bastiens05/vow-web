@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { AppRole, Json, Tables } from "@/lib/database.types";
 import { sortTimelineSlots, weddingTitle } from "@/lib/domain/format";
@@ -6,21 +7,21 @@ import { requireSession, type SessionProfile } from "@/server/session";
 
 export type WeddingCard = Tables<"weddings"> & { memberRole: AppRole };
 
-export async function listMyWeddings(userId: string): Promise<WeddingCard[]> {
+type MemberWithWedding = {
+  member_role: AppRole;
+  weddings: Tables<"weddings"> | Tables<"weddings">[] | null;
+};
+
+export const listMyWeddings = cache(async (userId: string): Promise<WeddingCard[]> => {
   const supabase = await createClient();
-  const { data: memberships } = await supabase
-    .from("wedding_members")
-    .select("wedding_id, member_role")
-    .eq("user_id", userId);
-  const ids = (memberships ?? []).map((member) => member.wedding_id);
-  if (ids.length === 0) return [];
-  const { data: weddings } = await supabase.from("weddings").select("*").in("id", ids);
-  const roleByWedding = new Map((memberships ?? []).map((member) => [member.wedding_id, member.member_role]));
-  return (weddings ?? []).map((wedding) => ({
-    ...wedding,
-    memberRole: roleByWedding.get(wedding.id) ?? "couple",
-  }));
-}
+  const { data } = await supabase.from("wedding_members").select("member_role, weddings(*)").eq("user_id", userId);
+  const rows = (data ?? []) as unknown as MemberWithWedding[];
+  return rows.flatMap((row) => {
+    const wedding = Array.isArray(row.weddings) ? row.weddings[0] : row.weddings;
+    if (!wedding) return [];
+    return [{ ...wedding, memberRole: row.member_role }];
+  });
+});
 
 export type MemberView = {
   userId: string;
@@ -37,30 +38,29 @@ export type WeddingSpace = {
   title: string;
 };
 
-export async function getWeddingSpace(weddingId: string): Promise<WeddingSpace> {
+type MemberWithProfile = {
+  user_id: string;
+  member_role: AppRole;
+  profiles: { full_name: string; email: string } | { full_name: string; email: string }[] | null;
+};
+
+export const getWeddingSpace = cache(async (weddingId: string): Promise<WeddingSpace> => {
   const session = await requireSession();
   const supabase = await createClient();
-  const { data: wedding } = await supabase.from("weddings").select("*").eq("id", weddingId).maybeSingle();
+  const [weddingResult, membersResult] = await Promise.all([
+    supabase.from("weddings").select("*").eq("id", weddingId).maybeSingle(),
+    supabase
+      .from("wedding_members")
+      .select("user_id, member_role, profiles(full_name, email)")
+      .eq("wedding_id", weddingId),
+  ]);
+  const wedding = weddingResult.data;
   if (!wedding) notFound();
-  const { data: membership } = await supabase
-    .from("wedding_members")
-    .select("member_role")
-    .eq("wedding_id", weddingId)
-    .eq("user_id", session.userId)
-    .maybeSingle();
-  if (!membership) notFound();
-
-  const { data: rows } = await supabase
-    .from("wedding_members")
-    .select("user_id, member_role")
-    .eq("wedding_id", weddingId);
-  const userIds = (rows ?? []).map((row) => row.user_id);
-  const { data: profiles } = userIds.length
-    ? await supabase.from("profiles").select("id, full_name, email").in("id", userIds)
-    : { data: [] };
-  const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
-  const members: MemberView[] = (rows ?? []).map((row) => {
-    const profile = profileById.get(row.user_id);
+  const rows = (membersResult.data ?? []) as unknown as MemberWithProfile[];
+  const mine = rows.find((row) => row.user_id === session.userId);
+  if (!mine) notFound();
+  const members: MemberView[] = rows.map((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
     return {
       userId: row.user_id,
       role: row.member_role,
@@ -72,11 +72,11 @@ export async function getWeddingSpace(weddingId: string): Promise<WeddingSpace> 
   return {
     session,
     wedding,
-    role: membership.member_role,
+    role: mine.member_role,
     members,
     title: weddingTitle(wedding.partner_one_name, wedding.partner_two_name),
   };
-}
+});
 
 export type MessageView = {
   id: string;
@@ -200,6 +200,67 @@ export async function getVendorEditor(userId: string) {
   ]);
   return { vendor, offers: offers ?? [], photos: photos ?? [] };
 }
+
+export type PracticalRow = Tables<"wedding_practical">;
+export type PhotoGroupRow = Tables<"photo_groups">;
+export type GuestRow = Tables<"guests">;
+
+export async function getPracticalSheet(weddingId: string) {
+  const supabase = await createClient();
+  const [practical, groups, guests] = await Promise.all([
+    supabase.from("wedding_practical").select("*").eq("wedding_id", weddingId).maybeSingle(),
+    supabase.from("photo_groups").select("*").eq("wedding_id", weddingId).order("sort_order").order("created_at"),
+    supabase.from("guests").select("*").eq("wedding_id", weddingId).order("sort_order").order("full_name"),
+  ]);
+  return {
+    practical: practical.data,
+    groups: groups.data ?? [],
+    guests: guests.data ?? [],
+  };
+}
+
+export async function getDashboardSignals(weddingIds: string[]) {
+  if (weddingIds.length === 0) {
+    return { coupleJoined: false, hasTimeline: false, hasDocument: false, hasPractical: false, hasPhotoGroups: false, hasGuests: false };
+  }
+  const primary = weddingIds[0];
+  const supabase = await createClient();
+  const [members, slots, documents, practical, groups, guests] = await Promise.all([
+    supabase.from("wedding_members").select("user_id").eq("wedding_id", primary).eq("member_role", "couple"),
+    supabase.from("timeline_slots").select("id").eq("wedding_id", primary).limit(1),
+    supabase.from("documents").select("id").eq("wedding_id", primary).limit(1),
+    supabase.from("wedding_practical").select("wedding_id, postal_address, partner_one_phone, key_contacts").eq("wedding_id", primary).maybeSingle(),
+    supabase.from("photo_groups").select("id").eq("wedding_id", primary).limit(1),
+    supabase.from("guests").select("id").eq("wedding_id", primary).limit(1),
+  ]);
+  const sheet = practical.data;
+  const hasPractical = Boolean(
+    sheet && (sheet.postal_address || sheet.partner_one_phone || sheet.key_contacts),
+  );
+  return {
+    coupleJoined: (members.data ?? []).length > 0,
+    hasTimeline: (slots.data ?? []).length > 0,
+    hasDocument: (documents.data ?? []).length > 0,
+    hasPractical,
+    hasPhotoGroups: (groups.data ?? []).length > 0,
+    hasGuests: (guests.data ?? []).length > 0,
+  };
+}
+
+export const latestUnreadAlert = cache(async (userId: string) => {
+  const supabase = await createClient();
+  const { data: notes } = await supabase
+    .from("wedding_notifications")
+    .select("id, body, author_id")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const others = (notes ?? []).filter((note) => note.author_id !== userId);
+  if (others.length === 0) return null;
+  const ids = others.map((note) => note.id);
+  const { data: reads } = await supabase.from("notification_reads").select("notification_id").in("notification_id", ids);
+  const seen = new Set((reads ?? []).map((row) => row.notification_id));
+  return others.find((note) => !seen.has(note.id)) ?? null;
+});
 
 export async function getPublicVendor(slug: string) {
   const supabase = await createClient();

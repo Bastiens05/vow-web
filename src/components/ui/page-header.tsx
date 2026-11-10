@@ -12,11 +12,9 @@ export function PageHeader({
   return (
     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-2xl">
-        {eyebrow ? (
-          <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">{eyebrow}</p>
-        ) : null}
-        <h1 className="mt-2 font-serif text-4xl font-medium tracking-tight text-ink sm:text-5xl">{title}</h1>
-        {description ? <p className="mt-3 text-sm leading-6 text-muted">{description}</p> : null}
+        {eyebrow ? <p className="text-xs font-medium text-gold-deep">{eyebrow}</p> : null}
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        {description ? <p className="mt-2 text-sm leading-6 text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
     </header>
@@ -31,7 +29,7 @@ export function Container({
   narrow?: boolean;
 }) {
   return (
-    <div className={narrow ? "mx-auto w-full max-w-lg px-4 py-10 sm:py-16" : "mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12"}>
+    <div className={narrow ? "mx-auto w-full max-w-md px-5 py-8" : "mx-auto w-full max-w-5xl px-5 py-8 sm:py-10"}>
       {children}
     </div>
   );
@@ -39,9 +37,9 @@ export function Container({
 
 export function EmptyState({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line bg-paper/70 px-5 py-10 text-center">
-      <p className="font-serif text-2xl text-ink">{title}</p>
-      {children ? <div className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">{children}</div> : null}
+    <div className="rounded-2xl border border-dashed border-line bg-paper px-5 py-10 text-center">
+      <p className="text-lg font-semibold tracking-tight">{title}</p>
+      {children ? <div className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted">{children}</div> : null}
     </div>
   );
 }

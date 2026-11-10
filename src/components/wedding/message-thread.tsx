@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/field";
@@ -14,11 +14,13 @@ export function MessageThread({ weddingId, messages }: { weddingId: string; mess
   const router = useRouter();
   const action = sendMessage.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
+  const [optimistic, setOptimistic] = useState<MessageView[]>([]);
   const bottom = useRef<HTMLDivElement>(null);
+  const shown = [...messages, ...optimistic.filter((item) => !messages.some((message) => message.body === item.body && message.mine))];
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" });
-  }, [messages.length]);
+  }, [shown.length]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -49,10 +51,10 @@ export function MessageThread({ weddingId, messages }: { weddingId: string; mess
   return (
     <div className="flex flex-col gap-4">
       <div className="flex max-h-[32rem] flex-col gap-3 overflow-y-auto pr-1">
-        {messages.length === 0 ? (
+        {shown.length === 0 ? (
           <p className="text-sm text-muted">Aucun message pour l’instant. Écrivez le premier.</p>
         ) : null}
-        {messages.map((message) => (
+        {shown.map((message) => (
           <article
             key={message.id}
             className={message.mine ? "ml-auto max-w-[85%] rounded-2xl bg-[#f3e6c8] px-4 py-3" : "mr-auto max-w-[85%] rounded-2xl border border-line bg-paper px-4 py-3"}
@@ -66,7 +68,26 @@ export function MessageThread({ weddingId, messages }: { weddingId: string; mess
         ))}
         <div ref={bottom} />
       </div>
-      <form action={formAction} className="space-y-3">
+      <form
+        action={async (formData) => {
+          const body = String(formData.get("body") ?? "").trim();
+          if (body) {
+            setOptimistic((current) => [
+              ...current,
+              {
+                id: `local-${Date.now()}`,
+                body,
+                createdAt: new Date().toISOString(),
+                authorId: "me",
+                authorName: "Vous",
+                mine: true,
+              },
+            ]);
+          }
+          await formAction(formData);
+        }}
+        className="space-y-3"
+      >
         <label className="block text-sm">
           Message
           <TextArea name="body" required maxLength={2000} className="mt-1.5 min-h-24" placeholder="Écrire au fil du mariage…" />

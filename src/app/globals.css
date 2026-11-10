@@ -1,17 +1,16 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
-  --color-ivory: #f3eee6;
-  --color-paper: #fffcf8;
-  --color-ink: #1c1612;
-  --color-muted: #6d645c;
-  --color-line: #e4d8c8;
-  --color-gold: #c5a059;
-  --color-gold-deep: #8c6d32;
-  --color-danger: #8d3b3b;
-  --color-danger-bg: #f8ece8;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-ivory: #f5f5f7;
+  --color-paper: #ffffff;
+  --color-ink: #1d1d1f;
+  --color-muted: #6e6e73;
+  --color-line: #e6e6ea;
+  --color-gold: #1d1d1f;
+  --color-gold-deep: #8a6a32;
+  --color-danger: #9b2c2c;
+  --color-danger-bg: #fdecec;
 }
 
 html {
@@ -22,16 +21,17 @@ body {
   background: var(--color-ivory);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
-  background: #e7d3a4;
-  color: var(--color-ink);
+  background: #d6d6dc;
 }
 
 input,
 textarea,
-select {
+select,
+button {
   font: inherit;
 }
 

@@ -44,7 +44,12 @@ async function main() {
     await shot(page, `${prefix}-inscription`);
 
     await login(page, demo.vendorEmail);
+    await page.getByRole("status").waitFor();
+    await shot(page, `${prefix}-toast`);
     await shot(page, `${prefix}-tableau-prestataire`);
+    await page.goto("/alertes");
+    await page.getByRole("heading", { name: "Alertes" }).waitFor();
+    await shot(page, `${prefix}-alertes`);
 
     await page.goto("/espace/profil");
     await page.getByRole("heading", { name: "Votre page publique" }).waitFor();
@@ -78,6 +83,28 @@ async function main() {
     await page.goto(`/mariage/${demo.weddingId}/deroulement`);
     await page.getByRole("heading", { name: "Cérémonie" }).waitFor();
     await shot(page, `${prefix}-deroule`);
+
+    await page.goto(`/mariage/${demo.weddingId}/jour`);
+    await page.getByRole("button", { name: "+30 min" }).first().waitFor();
+    await shot(page, `${prefix}-jour`);
+
+    await page.goto(`/mariage/${demo.weddingId}/pratique`);
+    await page.getByRole("heading", { name: "Infos pratiques" }).waitFor();
+    await shot(page, `${prefix}-pratique`);
+
+    if (prefix === "mobile") {
+      await page.goto("/espace");
+      await page.route("**/mariage/**", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await route.continue();
+      });
+      const pending = page.getByRole("link", { name: "Ouvrir l'espace" }).first().click();
+      await page.getByLabel("Chargement").waitFor();
+      await page.screenshot({ path: `${outDir}/mobile-chargement.png` });
+      console.log("mobile-chargement");
+      await pending;
+      await page.unroute("**/mariage/**");
+    }
 
     await context.close();
   }

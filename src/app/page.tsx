@@ -20,7 +20,7 @@ export default function HomePage() {
   return (
     <Container>
       <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">Prestataires & couples</p>
-      <h1 className="mt-3 max-w-3xl font-serif text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
+      <h1 className="mt-3 max-w-3xl font-semibold tracking-tight text-5xl font-medium leading-tight tracking-tight sm:text-6xl">
         Le mariage, dans un seul espace.
       </h1>
       <p className="mt-5 max-w-2xl text-base leading-7 text-muted">
@@ -36,7 +36,7 @@ export default function HomePage() {
       <div className="mt-14 grid gap-4 md:grid-cols-3">
         {points.map((point) => (
           <article key={point.title} className="rounded-2xl border border-line bg-paper p-5">
-            <h2 className="font-serif text-3xl">{point.title}</h2>
+            <h2 className="font-semibold tracking-tight text-3xl">{point.title}</h2>
             <p className="mt-3 text-sm leading-6 text-muted">{point.text}</p>
           </article>
         ))}

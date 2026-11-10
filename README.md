@@ -30,9 +30,14 @@ Copier `.env.example` vers `.env.local`.
 
 ## Base de données
 
-Un seul fichier de migration, à appliquer sur un projet vide :
+Migrations, dans cet ordre, sur un projet vide :
 
 1. `supabase/migrations/20261110180000_init.sql`
+2. `supabase/migrations/20261110210000_practical.sql` — infos pratiques, photos de groupe, invités, et le mode Jour J (décalages, alertes, abonnements push)
+
+Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
+
+Les fonctions serveur Vercel sont épinglées sur Paris (`cdg1` dans `vercel.json`), à côté du projet Supabase `eu-west-3`.
 
 Il crée les tables, les fonctions (`create_wedding`, `create_invitation`, `accept_invitation`, `preview_invitation`), active la RLS sur chaque table, ajoute `messages` à la publication temps réel, et crée les buckets Storage.
 

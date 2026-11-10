@@ -35,7 +35,7 @@ export default async function PublicVendorPage({ params }: PageProps) {
         </p>
       ) : null}
       <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">{categoryLabel(vendor.category)}</p>
-      <h1 className="mt-2 font-serif text-5xl sm:text-6xl">{vendor.business_name}</h1>
+      <h1 className="mt-2 font-semibold tracking-tight text-5xl sm:text-6xl">{vendor.business_name}</h1>
       <p className="mt-3 text-sm text-muted">
         {vendor.city}
         {vendor.zone ? ` · ${vendor.zone}` : ""}
@@ -63,11 +63,11 @@ export default async function PublicVendorPage({ params }: PageProps) {
 
       {offers.length > 0 ? (
         <section className="mt-12">
-          <h2 className="font-serif text-4xl">Offres</h2>
+          <h2 className="font-semibold tracking-tight text-4xl">Offres</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {offers.map((offer) => (
               <Card key={offer.id}>
-                <h3 className="font-serif text-2xl">{offer.title}</h3>
+                <h3 className="font-semibold tracking-tight text-2xl">{offer.title}</h3>
                 {offer.description ? <p className="mt-2 text-sm leading-6 text-muted">{offer.description}</p> : null}
                 {offer.price_cents !== null ? (
                   <p className="mt-3 text-sm text-gold-deep">{formatPriceCents(offer.price_cents)}</p>
@@ -79,7 +79,7 @@ export default async function PublicVendorPage({ params }: PageProps) {
       ) : null}
 
       <Card className="mt-12">
-        <h2 className="font-serif text-3xl">Contact</h2>
+        <h2 className="font-semibold tracking-tight text-3xl">Contact</h2>
         <div className="mt-3 space-y-1 text-sm">
           {vendor.contact_email ? <p>{vendor.contact_email}</p> : null}
           {vendor.contact_phone ? <p>{vendor.contact_phone}</p> : null}

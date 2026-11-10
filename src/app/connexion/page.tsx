@@ -19,7 +19,7 @@ export default async function LoginPage({
     <Container narrow>
       <Card>
         <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">Espace membre</p>
-        <h1 className="mt-2 font-serif text-4xl">Connexion</h1>
+        <h1 className="mt-2 font-semibold tracking-tight text-4xl">Connexion</h1>
         <p className="mt-2 text-sm leading-6 text-muted">E-mail et mot de passe, ou un lien magique si le compte existe déjà.</p>
         {params.error === "lien" ? (
           <div className="mt-4">

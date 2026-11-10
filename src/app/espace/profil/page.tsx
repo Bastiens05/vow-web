@@ -36,12 +36,12 @@ export default async function ProfilePage() {
       {vendor ? (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <Card>
-            <h2 className="font-serif text-3xl">Offres</h2>
+            <h2 className="font-semibold tracking-tight text-3xl">Offres</h2>
             <p className="mt-1 mb-4 text-sm text-muted">Les formules affichées sur la page publique.</p>
             <OffersEditor offers={offers} />
           </Card>
           <Card>
-            <h2 className="font-serif text-3xl">Portfolio</h2>
+            <h2 className="font-semibold tracking-tight text-3xl">Portfolio</h2>
             <p className="mt-1 mb-4 text-sm text-muted">JPG, PNG ou WebP, 8 Mo maximum.</p>
             <PhotoManager vendorId={vendor.id} userId={session.userId} photos={photos} />
           </Card>
