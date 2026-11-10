@@ -4,12 +4,14 @@ export type AppRole = "vendor" | "couple";
 
 export type VendorCategory =
   | "photographer"
+  | "videographer"
   | "dj"
   | "florist"
   | "caterer"
   | "venue"
   | "planner"
   | "beauty"
+  | "officiant"
   | "other";
 
 type Table<Row, Insert, Update> = {

@@ -10,7 +10,12 @@ export async function DesktopNav() {
       <Link href={session ? "/espace" : "/"} className="px-3 text-lg font-semibold tracking-[0.22em]">
         VOW
       </Link>
-      <NavMenu role={session?.profile.role ?? null} signedIn={Boolean(session)} variant="side" />
+      <NavMenu
+        role={session?.profile.role ?? null}
+        category={session?.vendor?.category ?? null}
+        signedIn={Boolean(session)}
+        variant="side"
+      />
       {session ? (
         <form action={signOut}>
           <button type="submit" className="min-h-11 w-full rounded-xl px-3 text-left text-sm text-muted hover:text-ink">
@@ -26,15 +31,20 @@ export async function MobileChrome() {
   const session = await getSession();
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-ivory/90 px-4 backdrop-blur md:hidden">
-        <Link href={session ? "/espace" : "/"} className="text-base font-semibold tracking-[0.22em]">
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-black/10 bg-white/95 px-4 pr-28 backdrop-blur md:hidden">
+        <Link href={session ? "/espace" : "/"} className="shrink-0 text-base font-semibold tracking-[0.22em]">
           VOW
         </Link>
-        <span className="max-w-[50%] truncate text-sm text-muted">
+        <p className="truncate text-right text-sm text-muted">
           {session?.vendor?.business_name || session?.profile.full_name || ""}
-        </span>
+        </p>
       </header>
-      <NavMenu role={session?.profile.role ?? null} signedIn={Boolean(session)} variant="tab" />
+      <NavMenu
+        role={session?.profile.role ?? null}
+        category={session?.vendor?.category ?? null}
+        signedIn={Boolean(session)}
+        variant="tab"
+      />
     </>
   );
 }

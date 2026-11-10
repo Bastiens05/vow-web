@@ -34,6 +34,7 @@ Migrations, dans cet ordre, sur un projet vide :
 
 1. `supabase/migrations/20261110180000_init.sql`
 2. `supabase/migrations/20261110210000_practical.sql` — infos pratiques, photos de groupe, invités, et le mode Jour J (décalages, alertes, abonnements push)
+3. `supabase/migrations/20261110230000_spaces.sql` — métiers (vidéaste, officiant), fiches visibles par métier (`can_see_sheet`), et Jour J réservé au couple (`shift_timeline_slot`, `post_wedding_alert`)
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 
@@ -58,7 +59,8 @@ npm run seed
 
 Comptes de démonstration (mot de passe `DemoVow2026!`) :
 
-- prestataire : `camille@demo.vow.test`
+- prestataire photographe : `camille@demo.vow.test`
+- traiteur : `nina@demo.vow.test`
 - couple : `lea@demo.vow.test`
 
 Ne lancez pas ce seed sur un projet public : le mot de passe est connu.
@@ -72,7 +74,7 @@ npx supabase link --project-ref hwrcmkvfuytviixqibzo
 npx supabase db push
 ```
 
-Ou, dans le SQL Editor du dashboard, coller une seule fois le fichier `supabase/migrations/20261110180000_init.sql`.
+Ou, dans le SQL Editor du dashboard, coller les trois fichiers dans l'ordre ci-dessus, chacun une seule fois. `20261110230000_spaces.sql` n'est pas encore appliqué sur `vow-mvp` : à passer après relecture, jamais depuis cette branche automatiquement.
 
 Les buckets `vendor-media` (public) et `wedding-documents` (privé) sont créés par la migration. Vérifiez-les dans Storage après l'application. Aucune création manuelle n'est nécessaire si la migration passe.
 
@@ -131,6 +133,8 @@ Il faut un Supabase local déjà démarré, avec les variables dans `.env.local`
 ## Ce que la sécurité couvre
 
 - Chaque table `public` a la RLS activée. Un membre ne lit que les mariages auxquels il appartient.
+- Le décalage du jour J (`shift_timeline_slot`) et l'alerte (`post_wedding_alert`) exigent `is_wedding_couple`. Un prestataire lit le déroulé, il ne le décale pas.
+- `can_see_sheet` limite les photos de groupe au couple, au photographe, au vidéaste et au wedding planner, et les invités (tables, régimes) au couple, au traiteur, au lieu et au wedding planner. Les autres métiers voient les adresses, pas ces listes.
 - La création d'un mariage et l'acceptation d'une invitation passent par des fonctions qui vérifient le rôle du compte. Il n'existe pas de code prestataire en dur.
 - L'invitation n'est acceptée que si l'e-mail du compte connecté est celui de l'invitation, et si le rôle (couple ou prestataire) correspond.
 - `vendor-media` est un bucket public pour que la vitrine publiée s'affiche sans clé secrète. Les noms de fichiers sont des identifiants aléatoires. `wedding-documents` reste privé : le téléchargement passe par une URL signée, après contrôle d'appartenance au mariage.

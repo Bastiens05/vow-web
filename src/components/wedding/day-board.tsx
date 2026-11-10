@@ -10,7 +10,15 @@ import { createClient } from "@/lib/supabase/client";
 import { sendDayAlert, shiftSlot } from "@/server/actions/day";
 import type { SlotView } from "@/server/data";
 
-export function DayBoard({ weddingId, slots }: { weddingId: string; slots: SlotView[] }) {
+export function DayBoard({
+  weddingId,
+  slots,
+  canControl,
+}: {
+  weddingId: string;
+  slots: SlotView[];
+  canControl: boolean;
+}) {
   const router = useRouter();
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const live = slots.map((slot) => (overrides[slot.id] ? { ...slot, startsAt: overrides[slot.id] ?? slot.startsAt } : slot));
@@ -70,10 +78,16 @@ export function DayBoard({ weddingId, slots }: { weddingId: string; slots: SlotV
 
   return (
     <div className="space-y-6">
-      <label className="flex min-h-12 items-center gap-3 text-sm">
-        <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-5 w-5" />
-        Décaler aussi les moments suivants
-      </label>
+      {canControl ? (
+        <label className="flex min-h-12 items-center gap-3 text-sm">
+          <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-5 w-5" />
+          Décaler aussi les moments suivants
+        </label>
+      ) : (
+        <p className="rounded-2xl bg-paper px-4 py-3 text-sm leading-6">
+          Le couple met à jour les horaires. Vous voyez le déroulé en direct et recevez les alertes.
+        </p>
+      )}
       {error ? <Alert>{error}</Alert> : null}
       <ol className="space-y-4">
         {live.map((slot) => (
@@ -81,44 +95,50 @@ export function DayBoard({ weddingId, slots }: { weddingId: string; slots: SlotV
             <p className="text-4xl font-semibold tracking-tight">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
             <h2 className="mt-1 text-xl font-semibold">{slot.title}</h2>
             {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : null}
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <Button type="button" disabled={pendingId === slot.id} onClick={() => move(slot, 15)} className="min-h-14">
-                {pendingId === slot.id ? "…" : "+15 min"}
-              </Button>
-              <Button type="button" disabled={pendingId === slot.id} onClick={() => move(slot, 30)} className="min-h-14">
-                {pendingId === slot.id ? "…" : "+30 min"}
-              </Button>
-            </div>
-            <TimePick weddingId={weddingId} slot={slot} cascade={cascade} onError={setError} />
+            {canControl ? (
+              <>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button type="button" disabled={pendingId === slot.id} onClick={() => move(slot, 15)} className="min-h-14">
+                    {pendingId === slot.id ? "…" : "+15 min"}
+                  </Button>
+                  <Button type="button" disabled={pendingId === slot.id} onClick={() => move(slot, 30)} className="min-h-14">
+                    {pendingId === slot.id ? "…" : "+30 min"}
+                  </Button>
+                </div>
+                <TimePick weddingId={weddingId} slot={slot} cascade={cascade} onError={setError} />
+              </>
+            ) : null}
           </li>
         ))}
       </ol>
-      <form action={alertForm} className="rounded-3xl bg-paper p-4">
-        <label className="block text-sm font-medium">
-          Prévenir les prestataires
-          <textarea
-            name="message"
-            required
-            maxLength={240}
-            placeholder="Le cocktail prend 20 minutes de plus."
-            className="mt-2 min-h-24 w-full rounded-2xl border border-line bg-ivory px-3 py-3 text-base"
-          />
-        </label>
-        {alertState.error ? (
-          <div className="mt-3">
-            <Alert>{alertState.error}</Alert>
-          </div>
-        ) : null}
-        {alertState.success ? (
-          <div className="mt-3">
-            <Alert tone="success">{alertState.success}</Alert>
-          </div>
-        ) : null}
-        <Button type="submit" disabled={alertPending} className="mt-3 w-full min-h-14" aria-busy={alertPending}>
-          {alertPending ? "Envoi…" : "Envoyer l’alerte"}
-        </Button>
-      </form>
-      <PushToggle />
+      {canControl ? (
+        <form action={alertForm} className="rounded-3xl bg-paper p-4">
+          <label className="block text-sm font-medium">
+            Prévenir les prestataires
+            <textarea
+              name="message"
+              required
+              maxLength={240}
+              placeholder="Le cocktail prend 20 minutes de plus."
+              className="mt-2 min-h-24 w-full rounded-2xl border border-line bg-ivory px-3 py-3 text-base"
+            />
+          </label>
+          {alertState.error ? (
+            <div className="mt-3">
+              <Alert>{alertState.error}</Alert>
+            </div>
+          ) : null}
+          {alertState.success ? (
+            <div className="mt-3">
+              <Alert tone="success">{alertState.success}</Alert>
+            </div>
+          ) : null}
+          <Button type="submit" disabled={alertPending} className="mt-3 min-h-14 w-full" aria-busy={alertPending}>
+            {alertPending ? "Envoi…" : "Envoyer l’alerte"}
+          </Button>
+        </form>
+      ) : null}
+      {canControl ? <PushToggle /> : null}
     </div>
   );
 }

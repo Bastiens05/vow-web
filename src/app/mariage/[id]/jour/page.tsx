@@ -11,18 +11,24 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
   const slots = await listTimeline(id, space.session.userId);
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
-      <h2 className="text-xs font-medium text-gold-deep">Jour J</h2>
+      <h2 className="text-xs font-medium text-gold-deep">
+        {space.role === "couple" ? "Jour J · vous tenez les horaires" : "Jour J · horaires en direct"}
+      </h2>
       <p className="mt-2 text-sm leading-6 text-muted">
-        Un retard se règle ici. Tout le monde sur ce mariage le voit tout de suite.
+        {space.role === "couple"
+          ? "Un retard se règle ici. Les prestataires le voient tout de suite."
+          : "Lecture seule. Le couple décale les horaires et vous prévient."}
       </p>
       <div className="mt-6">
-        <DayBoard weddingId={id} slots={slots} />
+        <DayBoard weddingId={id} slots={slots} canControl={space.role === "couple"} />
       </div>
-      <p className="mt-6 text-sm">
-        <Link href={`/mariage/${id}/deroulement`} className="underline">
-          Modifier le déroulé
-        </Link>
-      </p>
+      {space.role === "vendor" ? (
+        <p className="mt-6 text-sm">
+          <Link href={`/mariage/${id}/deroulement`} className="underline">
+            Modifier le déroulé
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

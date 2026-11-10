@@ -22,10 +22,12 @@ const admin = createClient<Database>(url, serviceKey, {
 async function main() {
   await ensureUser(demo.vendorUserId, demo.vendorEmail, "vendor", demo.vendorName);
   await ensureUser(demo.coupleUserId, demo.coupleEmail, "couple", demo.coupleName);
+  await ensureUser(demo.catererUserId, demo.catererEmail, "vendor", demo.catererName);
 
   const { error: profileError } = await admin.from("profiles").upsert([
     { id: demo.vendorUserId, role: "vendor", full_name: demo.vendorName, email: demo.vendorEmail },
     { id: demo.coupleUserId, role: "couple", full_name: demo.coupleName, email: demo.coupleEmail },
+    { id: demo.catererUserId, role: "vendor", full_name: demo.catererName, email: demo.catererEmail },
   ]);
   if (profileError) throw profileError;
 
@@ -47,6 +49,24 @@ async function main() {
     published: true,
   });
   if (vendorError) throw vendorError;
+
+  const { error: catererError } = await admin.from("vendor_profiles").upsert({
+    id: demo.catererProfileId,
+    user_id: demo.catererUserId,
+    business_name: "Table Nina",
+    slug: "table-nina",
+    category: "caterer",
+    city: "Bordeaux",
+    zone: "Gironde",
+    description: "Cuisine de saison pour les dîners de mariage, régimes et plan de table compris.",
+    contact_email: "nina@table-nina.example",
+    contact_phone: "06 98 76 54 32",
+    website: "",
+    starting_price_cents: null,
+    currency: "EUR",
+    published: true,
+  });
+  if (catererError) throw catererError;
 
   await admin.from("vendor_offers").delete().eq("vendor_id", demo.vendorProfileId);
   const { error: offersError } = await admin.from("vendor_offers").insert([
@@ -112,6 +132,7 @@ async function main() {
     [
       { wedding_id: demo.weddingId, user_id: demo.vendorUserId, member_role: "vendor" as const },
       { wedding_id: demo.weddingId, user_id: demo.coupleUserId, member_role: "couple" as const },
+      { wedding_id: demo.weddingId, user_id: demo.catererUserId, member_role: "vendor" as const },
       { wedding_id: demo.pastWeddingId, user_id: demo.vendorUserId, member_role: "vendor" as const },
     ],
     { onConflict: "wedding_id,user_id" },
@@ -252,6 +273,7 @@ async function main() {
   console.log("Données de démonstration prêtes.");
   console.log(`Prestataire : ${demo.vendorEmail} / ${demoPassword}`);
   console.log(`Couple : ${demo.coupleEmail} / ${demoPassword}`);
+  console.log(`Traiteur : ${demo.catererEmail} / ${demoPassword}`);
   console.log(`Vitrine : /p/${demo.slug}`);
   console.log(`Mariage : /mariage/${demo.weddingId}`);
 }

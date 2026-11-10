@@ -45,8 +45,10 @@ async function AlertSlot() {
   if (!session) return null;
   const latest = await latestUnreadAlert(session.userId);
   return (
-    <div className="fixed right-3 top-2 z-50 md:right-6">
-      <AlertDock initialToast={latest?.body ?? null} initialUnread={latest ? 1 : 0} />
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 md:left-auto md:right-0 md:w-auto">
+      <div className="pointer-events-auto flex h-14 items-center justify-end px-3 md:h-16 md:px-6">
+        <AlertDock initialToast={latest?.body ?? null} initialUnread={latest ? 1 : 0} />
+      </div>
     </div>
   );
 }

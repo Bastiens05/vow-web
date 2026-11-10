@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { chromium, type Page } from "@playwright/test";
 import { demo, demoPassword } from "./demo";
@@ -9,6 +10,12 @@ const viewports = [
   { name: "desktop", width: 1440, height: 900 },
   { name: "mobile", width: 390, height: 844 },
 ] as const;
+
+async function expectNo(page: Page, text: string) {
+  if ((await page.getByText(text).count()) > 0) {
+    throw new Error(`Texte inattendu visible : ${text}`);
+  }
+}
 
 async function shot(page: Page, name: string) {
   await page.screenshot({ path: `${outDir}/${name}.png`, fullPage: true });
@@ -34,6 +41,7 @@ async function main() {
     });
     const page = await context.newPage();
     const prefix = viewport.name;
+    execFileSync("npm", ["run", "seed"], { stdio: "inherit" });
 
     await page.goto("/connexion");
     await page.getByRole("heading", { name: "Connexion" }).waitFor();
@@ -47,6 +55,27 @@ async function main() {
     await page.getByRole("status").waitFor();
     await shot(page, `${prefix}-toast`);
     await shot(page, `${prefix}-tableau-prestataire`);
+
+    if (prefix === "mobile") {
+      await page.goto("/espace/profil");
+      await page.getByLabel("Nom commercial").fill("Bastien Sellier photographe");
+      await page.getByRole("button", { name: "Enregistrer la vitrine" }).click();
+      await page.getByText("Vitrine publiée.").waitFor();
+      await page.goto(`/mariage/${demo.weddingId}/jour`);
+      await page.getByText("Lecture seule").waitFor();
+      await page.locator("header").screenshot({ path: `${outDir}/mobile-header.png` });
+      await page.getByRole("navigation", { name: "Espace prestataire" }).screenshot({ path: `${outDir}/mobile-tabbar.png` });
+      await page.screenshot({ path: `${outDir}/mobile-jour-prestataire.png` });
+      console.log("mobile-header mobile-tabbar mobile-jour-prestataire");
+      await page.goto(`/mariage/${demo.weddingId}`);
+      await page.getByText("Espace prestataire · Photographe").waitFor();
+      await page.screenshot({ path: `${outDir}/mobile-mariage-photographe.png` });
+      console.log("mobile-mariage-photographe");
+      await page.goto("/espace/profil");
+      await page.getByLabel("Nom commercial").fill("Atelier Lumière");
+      await page.getByRole("button", { name: "Enregistrer la vitrine" }).click();
+      await page.getByText("Vitrine publiée.").waitFor();
+    }
     await page.goto("/alertes");
     await page.getByRole("heading", { name: "Alertes" }).waitFor();
     await shot(page, `${prefix}-alertes`);
@@ -87,6 +116,14 @@ async function main() {
     await page.goto(`/mariage/${demo.weddingId}/jour`);
     await page.getByRole("button", { name: "+30 min" }).first().waitFor();
     await shot(page, `${prefix}-jour`);
+    if (prefix === "mobile") {
+      await page.screenshot({ path: `${outDir}/mobile-jour-couple.png` });
+      console.log("mobile-jour-couple");
+    }
+    if (prefix === "desktop") {
+      await page.screenshot({ path: `${outDir}/desktop-jour-maries.png` });
+      console.log("desktop-jour-maries");
+    }
 
     await page.goto(`/mariage/${demo.weddingId}/pratique`);
     await page.getByRole("heading", { name: "Infos pratiques" }).waitFor();
@@ -96,7 +133,11 @@ async function main() {
       await page.goto("/espace");
       await page.route("**/mariage/**", async (route) => {
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        await route.continue();
+        try {
+          await route.continue();
+        } catch {
+          // The delayed navigation can be aborted once the shot is taken.
+        }
       });
       const pending = page.getByRole("link", { name: "Ouvrir l'espace" }).first().click();
       await page.getByLabel("Chargement").waitFor();
@@ -104,6 +145,36 @@ async function main() {
       console.log("mobile-chargement");
       await pending;
       await page.unroute("**/mariage/**");
+    }
+
+    if (prefix === "mobile") {
+      await context.clearCookies();
+      await login(page, demo.catererEmail);
+      await page.goto(`/mariage/${demo.weddingId}`);
+      await page.getByText("Espace prestataire · Traiteur").waitFor();
+      await page.getByRole("link", { name: "Invités" }).waitFor();
+      await page.screenshot({ path: `${outDir}/mobile-mariage-traiteur.png` });
+      console.log("mobile-mariage-traiteur");
+      await page.goto(`/mariage/${demo.weddingId}/pratique`);
+      await page.getByRole("heading", { name: "Tables et régimes" }).waitFor();
+      await page.getByText("Paul Bernard", { exact: true }).waitFor();
+      await expectNo(page, "Photos de groupe");
+      await page.addStyleTag({
+        content: "header, nav, [role=status] { display: none !important; } main { padding-bottom: 1.5rem !important; }",
+      });
+      await page.locator("main").screenshot({ path: `${outDir}/mobile-fiche-traiteur.png` });
+      console.log("mobile-fiche-traiteur");
+      await context.clearCookies();
+      await login(page, demo.vendorEmail);
+      await page.goto(`/mariage/${demo.weddingId}/pratique`);
+      await page.getByRole("heading", { name: "Groupes photo" }).waitFor();
+      await page.getByText("Famille de Léa").waitFor();
+      await expectNo(page, "Sans gluten");
+      await page.addStyleTag({
+        content: "header, nav, [role=status] { display: none !important; } main { padding-bottom: 1.5rem !important; }",
+      });
+      await page.locator("main").screenshot({ path: `${outDir}/mobile-fiche-photographe.png` });
+      console.log("mobile-fiche-photographe");
     }
 
     await context.close();

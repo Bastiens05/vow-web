@@ -1,24 +1,35 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { NavLink } from "@/components/ui/nav-link";
+import type { VendorCategory } from "@/lib/domain/categories";
+import { pratiqueLabel } from "@/lib/domain/trades";
+import { NavLink, type IconName } from "@/components/ui/nav-link";
 
-type Item = { href: string; label: string };
+type Item = { href: string; label: string; icon: IconName };
 
 export function NavMenu({
   role,
+  category,
   signedIn,
   variant,
 }: {
   role: "vendor" | "couple" | null;
+  category: VendorCategory | null;
   signedIn: boolean;
   variant: "side" | "tab";
 }) {
   const path = usePathname() ?? "";
-  const items = itemsFor(path, role, signedIn);
+  const items = itemsFor(path, role, category, signedIn);
   const shown = variant === "tab" ? items.slice(0, 5) : items;
   return (
-    <nav className={variant === "tab" ? "fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" : "mt-8 flex flex-1 flex-col gap-1"}>
+    <nav
+      aria-label={role === "couple" ? "Espace mariés" : role === "vendor" ? "Espace prestataire" : "Navigation"}
+      className={
+        variant === "tab"
+          ? "fixed inset-x-0 bottom-0 z-40 flex border-t border-black/10 bg-white px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
+          : "mt-8 flex flex-1 flex-col gap-1"
+      }
+    >
       {shown.map((item) => (
         <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
       ))}
@@ -31,32 +42,47 @@ function weddingIdFrom(path: string) {
   return match?.[1] ?? null;
 }
 
-function itemsFor(path: string, role: "vendor" | "couple" | null, signedIn: boolean): Item[] {
+function itemsFor(
+  path: string,
+  role: "vendor" | "couple" | null,
+  category: VendorCategory | null,
+  signedIn: boolean,
+): Item[] {
   const weddingId = weddingIdFrom(path);
-  if (weddingId && signedIn) {
+  if (weddingId && signedIn && role) {
     const base = `/mariage/${weddingId}`;
+    const sheet = pratiqueLabel(role, category);
     const items: Item[] = [
-      { href: base, label: "Aperçu" },
-      { href: `${base}/messages`, label: "Messages" },
-      { href: `${base}/jour`, label: "Jour J" },
-      { href: `${base}/documents`, label: "Documents" },
-      { href: `${base}/pratique`, label: "Pratique" },
-      { href: `${base}/deroulement`, label: "Déroulé" },
+      { href: base, label: "Aperçu", icon: "home" },
+      { href: `${base}/messages`, label: "Messages", icon: "message" },
+      { href: `${base}/jour`, label: "Jour J", icon: "clock" },
+      { href: `${base}/documents`, label: "Documents", icon: "file" },
     ];
-    if (role === "vendor") items.push({ href: `${base}/inviter`, label: "Invitations" });
+    if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
+    items.push({ href: `${base}/deroulement`, label: "Déroulé", icon: "spark" });
+    if (role === "vendor") {
+      items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
+    }
     return items;
   }
   if (!signedIn) {
     return [
-      { href: "/", label: "Accueil" },
-      { href: "/connexion", label: "Connexion" },
-      { href: "/inscription", label: "Compte" },
+      { href: "/", label: "Accueil", icon: "home" },
+      { href: "/connexion", label: "Connexion", icon: "user" },
+      { href: "/inscription", label: "Compte", icon: "spark" },
     ];
   }
-  const items: Item[] = [{ href: "/espace", label: "Accueil" }];
-  if (role === "vendor") items.push({ href: "/espace/profil", label: "Vitrine" });
-  items.push({ href: "/compte", label: "Compte" });
-  return items;
+  if (role === "vendor") {
+    return [
+      { href: "/espace", label: "Mariages", icon: "home" },
+      { href: "/espace/profil", label: "Vitrine", icon: "camera" },
+      { href: "/compte", label: "Compte", icon: "user" },
+    ];
+  }
+  return [
+    { href: "/espace", label: "Mariage", icon: "home" },
+    { href: "/compte", label: "Compte", icon: "user" },
+  ];
 }
 
 function isActive(path: string, href: string) {

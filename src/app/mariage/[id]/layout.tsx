@@ -1,3 +1,4 @@
+import { categoryLabel } from "@/lib/domain/categories";
 import { formatLongDate } from "@/lib/domain/format";
 import { getWeddingSpace } from "@/server/data";
 
@@ -16,8 +17,13 @@ export default async function WeddingLayout({
         {formatLongDate(space.wedding.wedding_date)}
       </p>
       <h1 className="mt-2 font-semibold tracking-tight text-4xl sm:text-5xl">{space.title}</h1>
-      <p className="mt-2 mb-8 text-sm text-muted">
+      <p className="mt-2 text-sm text-muted">
         {[space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
+      </p>
+      <p className="mb-8 mt-3 text-sm font-medium">
+        {space.role === "couple"
+          ? "Espace mariés"
+          : `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}`}
       </p>
       {children}
     </div>

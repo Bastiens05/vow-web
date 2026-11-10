@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
+import { categoryLabel } from "@/lib/domain/categories";
 import { coupleSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
 import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
 import { partitionWeddings } from "@/lib/domain/access";
@@ -43,9 +44,13 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
       <PageHeader
-        eyebrow={isVendor ? "Prestataire" : "Couple"}
+        eyebrow={isVendor ? `Espace prestataire${session.vendor ? ` · ${categoryLabel(session.vendor.category)}` : ""}` : "Espace mariés"}
         title={name || "Votre espace"}
-        description={isVendor ? "Les mariages en cours, et ce qu'il reste à faire." : "Votre mariage, au même endroit."}
+        description={
+          isVendor
+            ? "Vos mariages et votre vitrine. Le jour J, le couple tient les horaires."
+            : "Votre mariage. Le jour J, c'est vous qui prévenez les prestataires."
+        }
         actions={
           isVendor ? (
             <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink>
