@@ -1,4 +1,3 @@
-import { WeddingNav } from "@/components/wedding/wedding-nav";
 import { formatLongDate } from "@/lib/domain/format";
 import { getWeddingSpace } from "@/server/data";
 
@@ -16,13 +15,10 @@ export default async function WeddingLayout({
       <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">
         {formatLongDate(space.wedding.wedding_date)}
       </p>
-      <h1 className="mt-2 font-serif text-4xl sm:text-5xl">{space.title}</h1>
-      <p className="mt-2 text-sm text-muted">
+      <h1 className="mt-2 font-semibold tracking-tight text-4xl sm:text-5xl">{space.title}</h1>
+      <p className="mt-2 mb-8 text-sm text-muted">
         {[space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
       </p>
-      <div className="mt-6">
-        <WeddingNav weddingId={id} isVendor={space.role === "vendor"} />
-      </div>
       {children}
     </div>
   );

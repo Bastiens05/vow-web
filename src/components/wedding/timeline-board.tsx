@@ -27,7 +27,7 @@ export function TimelineBoard({
         {slots.map((slot) => (
           <li key={slot.id} className="relative">
             <span className="absolute -left-[1.45rem] top-1.5 h-2.5 w-2.5 rounded-full bg-gold" />
-            <p className="font-serif text-2xl">{formatSlotTime(slot.startsAt)}</p>
+            <p className="font-semibold tracking-tight text-2xl">{formatSlotTime(slot.startsAt)}</p>
             <h2 className="text-lg font-medium">{slot.title}</h2>
             {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : null}
             {slot.notes ? <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{slot.notes}</p> : null}

@@ -252,6 +252,101 @@ export type Database = {
         { id?: string; slot_id: string; author_id: string; body: string },
         { body?: string }
       >;
+      wedding_practical: Table<
+        {
+          wedding_id: string;
+          partner_one_phone: string;
+          partner_two_phone: string;
+          postal_address: string;
+          ceremony_address: string;
+          reception_address: string;
+          key_contacts: string;
+          notes: string;
+          updated_at: string;
+        },
+        {
+          wedding_id: string;
+          partner_one_phone?: string;
+          partner_two_phone?: string;
+          postal_address?: string;
+          ceremony_address?: string;
+          reception_address?: string;
+          key_contacts?: string;
+          notes?: string;
+        },
+        {
+          partner_one_phone?: string;
+          partner_two_phone?: string;
+          postal_address?: string;
+          ceremony_address?: string;
+          reception_address?: string;
+          key_contacts?: string;
+          notes?: string;
+        }
+      >;
+      photo_groups: Table<
+        {
+          id: string;
+          wedding_id: string;
+          title: string;
+          people: string;
+          notes: string;
+          sort_order: number;
+          created_at: string;
+        },
+        { id?: string; wedding_id: string; title: string; people?: string; notes?: string; sort_order?: number },
+        { title?: string; people?: string; notes?: string; sort_order?: number }
+      >;
+      guests: Table<
+        {
+          id: string;
+          wedding_id: string;
+          full_name: string;
+          table_label: string;
+          dietary: string;
+          notes: string;
+          sort_order: number;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          full_name: string;
+          table_label?: string;
+          dietary?: string;
+          notes?: string;
+          sort_order?: number;
+        },
+        { full_name?: string; table_label?: string; dietary?: string; notes?: string; sort_order?: number }
+      >;
+      wedding_notifications: Table<
+        {
+          id: string;
+          wedding_id: string;
+          author_id: string;
+          kind: string;
+          body: string;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          author_id: string;
+          kind: string;
+          body: string;
+        },
+        { body?: string }
+      >;
+      notification_reads: Table<
+        { notification_id: string; user_id: string; read_at: string },
+        { notification_id: string; user_id: string; read_at?: string },
+        { read_at?: string }
+      >;
+      push_subscriptions: Table<
+        { id: string; user_id: string; endpoint: string; p256dh: string; auth_secret: string; created_at: string },
+        { id?: string; user_id: string; endpoint: string; p256dh: string; auth_secret: string },
+        { endpoint?: string }
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -281,6 +376,14 @@ export type Database = {
       accept_invitation: {
         Args: { p_token: string };
         Returns: string;
+      };
+      shift_timeline_slot: {
+        Args: { p_slot_id: string; p_new_time: string; p_cascade: boolean };
+        Returns: Json;
+      };
+      post_wedding_alert: {
+        Args: { p_wedding_id: string; p_message: string };
+        Returns: Json;
       };
     };
   };

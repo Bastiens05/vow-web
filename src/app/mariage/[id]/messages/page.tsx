@@ -11,7 +11,7 @@ export default async function MessagesPage({ params }: { params: Promise<{ id: s
   const messages = await listMessages(id, space.session.userId);
   return (
     <Card>
-      <h2 className="mb-4 font-serif text-3xl">Conversation</h2>
+      <h2 className="mb-4 font-semibold tracking-tight text-3xl">Conversation</h2>
       <MessageThread weddingId={id} messages={messages} />
     </Card>
   );

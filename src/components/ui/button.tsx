@@ -5,15 +5,15 @@ import { cn } from "@/lib/cn";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-gold text-ink hover:bg-[#d4b36d]",
-  secondary: "border border-line bg-paper text-ink hover:border-gold",
+  primary: "bg-ink text-white hover:bg-black active:scale-[0.98]",
+  secondary: "border border-line bg-paper text-ink hover:bg-black/[0.03] active:scale-[0.98]",
   ghost: "text-muted hover:text-ink",
-  danger: "border border-danger/30 bg-paper text-danger hover:bg-danger-bg",
+  danger: "border border-danger/20 bg-paper text-danger hover:bg-danger-bg",
 };
 
 export function buttonClass(variant: ButtonVariant = "primary", className?: string) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
     variants[variant],
     className,
   );
@@ -39,7 +39,7 @@ export function ButtonLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} className={buttonClass(variant, className)}>
+    <Link href={href} prefetch className={buttonClass(variant, className)}>
       {children}
     </Link>
   );

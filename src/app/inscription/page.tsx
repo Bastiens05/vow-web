@@ -19,7 +19,7 @@ export default async function SignupPage({
     <Container narrow>
       <Card>
         <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">Nouveau compte</p>
-        <h1 className="mt-2 font-serif text-4xl">Inscription</h1>
+        <h1 className="mt-2 font-semibold tracking-tight text-4xl">Inscription</h1>
         <p className="mt-2 text-sm leading-6 text-muted">
           Un compte prestataire ou un compte couple. Le rôle est choisi ici, il n&apos;y a pas de code d&apos;accès.
         </p>

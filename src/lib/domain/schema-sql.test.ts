@@ -1,7 +1,8 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const sql = readFileSync("supabase/migrations/20261110180000_init.sql", "utf8");
+const files = readdirSync("supabase/migrations").filter((name) => name.endsWith(".sql")).sort();
+const sql = files.map((name) => readFileSync(`supabase/migrations/${name}`, "utf8")).join("\n");
 
 describe("migration", () => {
   it("enables row level security on every public table", () => {
@@ -18,6 +19,12 @@ describe("migration", () => {
       "documents",
       "timeline_slots",
       "timeline_comments",
+      "wedding_practical",
+      "photo_groups",
+      "guests",
+      "wedding_notifications",
+      "notification_reads",
+      "push_subscriptions",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

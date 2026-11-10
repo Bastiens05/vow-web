@@ -53,7 +53,7 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
 
   const couplePage = await freshPage(browser);
   await couplePage.goto(inviteUrl.pathname + inviteUrl.search);
-  await couplePage.getByRole("main").getByRole("link", { name: "Créer un compte" }).click();
+  await couplePage.getByRole("link", { name: "Créer un compte" }).click();
   await couplePage.waitForURL("**/inscription**");
   await signUp(couplePage, { name: "Léa Martin", email: coupleEmail, role: "Couple", emailLocked: true });
   await couplePage.waitForURL("**/invitation/**");

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getWeddingSpace } from "@/server/data";
 
@@ -9,9 +10,9 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
   const { id } = await params;
   const space = await getWeddingSpace(id);
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-2">
       <Card>
-        <h2 className="font-serif text-3xl">Membres</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Membres</h2>
         <ul className="mt-4 space-y-3">
           {space.members.map((member) => (
             <li key={member.userId} className="flex items-center justify-between gap-3">
@@ -24,14 +25,21 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
           ))}
         </ul>
       </Card>
-      <Card>
-        <h2 className="font-serif text-3xl">Cet espace</h2>
-        <p className="mt-3 text-sm leading-6 text-muted">
-          Messages, documents et déroulé du jour sont réservés aux personnes invitées sur ce mariage.
-          {space.role === "vendor"
-            ? " Vous pouvez inviter le couple, ou un autre prestataire, depuis l'onglet Invitations."
-            : " Vous pouvez lire le déroulé et le commenter."}
+      <Card className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold tracking-tight">À faire ici</h2>
+        <p className="text-sm leading-6 text-muted">
+          Messages, documents, déroulé et infos pratiques restent dans ce mariage.
         </p>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink href={`/mariage/${id}/pratique`} variant="secondary">
+            Infos pratiques
+          </ButtonLink>
+          {space.role === "vendor" ? (
+            <ButtonLink href={`/mariage/${id}/inviter`} variant="secondary">
+              Inviter quelqu&apos;un
+            </ButtonLink>
+          ) : null}
+        </div>
       </Card>
     </div>
   );
