@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ReviewForm } from "@/components/wedding/review-form";
+import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace } from "@/server/data";
 
 export const metadata: Metadata = { title: "Mariage" };
@@ -9,6 +11,11 @@ export const metadata: Metadata = { title: "Mariage" };
 export default async function WeddingOverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const space = await getWeddingSpace(id);
+  const supabase = await createClient();
+  const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
+  const { data: vendors } = vendorIds.length
+    ? await supabase.from("vendor_profiles").select("id, business_name, user_id").in("user_id", vendorIds)
+    : { data: [] as { id: string; business_name: string; user_id: string }[] };
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <Card>
@@ -41,6 +48,9 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
             : "Vous voyez le déroulé en direct. Le couple décale les horaires et vous envoie les alertes. Votre onglet pratique suit votre métier."}
         </p>
         <div className="flex flex-wrap gap-2">
+          <ButtonLink href={`/mariage/${id}/devis`} variant="secondary">
+            Devis et factures
+          </ButtonLink>
           <ButtonLink href={`/mariage/${id}/jour`} variant="secondary">
             {space.actingAsCouple ? "Tenir le jour J" : "Voir le jour J"}
           </ButtonLink>
@@ -54,6 +64,9 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
           ) : null}
         </div>
       </Card>
+      {space.actingAsCouple ? (
+        <ReviewForm weddingId={id} vendors={(vendors ?? []).map((vendor) => ({ id: vendor.id, name: vendor.business_name }))} />
+      ) : null}
     </div>
   );
 }

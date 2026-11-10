@@ -36,6 +36,7 @@ Migrations, dans cet ordre, sur un projet vide :
 2. `supabase/migrations/20261110210000_practical.sql` — infos pratiques, photos de groupe, invités, et le mode Jour J (décalages, alertes, abonnements push)
 3. `supabase/migrations/20261110230000_spaces.sql` — métiers (vidéaste, officiant), fiches visibles par métier (`can_see_sheet`), et Jour J réservé au couple (`shift_timeline_slot`, `post_wedding_alert`)
 4. `supabase/migrations/20261110233000_shell.sql` — coquille globale (préférences d'alertes, logo), et le mariage démo isolé (`open_couple_demo`, `leave_couple_preview`, `delete_couple_demo`). Un prestataire ne devient couple que sur ce mariage démo.
+5. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 

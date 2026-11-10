@@ -64,6 +64,7 @@ export type Database = {
           currency: string;
           published: boolean;
           logo_path: string | null;
+          stripe_account_id: string | null;
           created_at: string;
           updated_at: string;
         },
@@ -357,6 +358,100 @@ export type Database = {
         { id?: string; user_id: string; endpoint: string; p256dh: string; auth_secret: string },
         { endpoint?: string }
       >;
+      quotes: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          number: number;
+          title: string;
+          amount_cents: number;
+          status: string;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          vendor_id: string;
+          number: number;
+          title: string;
+          amount_cents: number;
+          status?: string;
+        },
+        { status?: string }
+      >;
+      invoices: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          quote_id: string | null;
+          number: number;
+          title: string;
+          amount_cents: number;
+          status: string;
+          due_on: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          vendor_id: string;
+          quote_id?: string | null;
+          number: number;
+          title: string;
+          amount_cents: number;
+          status?: string;
+          due_on?: string | null;
+        },
+        { status?: string }
+      >;
+      deposits: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          invoice_id: string | null;
+          amount_cents: number;
+          due_on: string;
+          status: string;
+          stripe_session_id: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          vendor_id: string;
+          invoice_id?: string | null;
+          amount_cents: number;
+          due_on: string;
+          status?: string;
+          stripe_session_id?: string | null;
+        },
+        { status?: string; stripe_session_id?: string | null }
+      >;
+      reviews: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          author_id: string;
+          rating: number;
+          body: string;
+          status: string;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          vendor_id: string;
+          author_id: string;
+          rating: number;
+          body?: string;
+          status?: string;
+        },
+        { status?: string }
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -406,6 +501,10 @@ export type Database = {
       delete_couple_demo: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      run_deposit_reminders: {
+        Args: Record<string, never>;
+        Returns: number;
       };
     };
   };

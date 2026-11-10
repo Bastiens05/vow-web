@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { WeddingDirectory } from "@/components/wedding/wedding-directory";
 import { openCoupleDemo } from "@/server/actions/account";
@@ -7,6 +8,9 @@ import { categoryLabel } from "@/lib/domain/categories";
 import { coupleSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
 import { todayIso } from "@/lib/domain/format";
 import { partitionWeddings } from "@/lib/domain/access";
+import { formatEuros } from "@/lib/domain/money";
+import { createClient } from "@/lib/supabase/server";
+import { moderateReview } from "@/server/actions/ledger";
 import { getDashboardSignals, listMyWeddings } from "@/server/data";
 import { requireSession } from "@/server/session";
 
@@ -41,6 +45,7 @@ export default async function DashboardPage() {
         }),
   );
   const name = isVendor ? session.vendor?.business_name || session.profile.full_name : session.profile.full_name;
+  const ledger = isVendor && session.vendor ? await vendorLedger(session.vendor.id) : null;
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
@@ -58,6 +63,38 @@ export default async function DashboardPage() {
           ) : null
         }
       />
+      {ledger ? (
+        <section className="mb-8 grid gap-3 sm:grid-cols-3">
+          <Card>
+            <p className="text-xs text-muted">Encaissé cette année</p>
+            <p className="mt-1 text-2xl font-semibold">{formatEuros(ledger.revenueCents)}</p>
+          </Card>
+          <Card>
+            <p className="text-xs text-muted">Mariages à venir</p>
+            <p className="mt-1 text-2xl font-semibold">{upcoming.filter((wedding) => !wedding.isDemo).length}</p>
+          </Card>
+          <Card>
+            <p className="text-xs text-muted">À traiter</p>
+            <p className="mt-1 text-2xl font-semibold">{ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews}</p>
+            <p className="mt-1 text-xs text-muted">devis, acomptes, avis</p>
+          </Card>
+        </section>
+      ) : null}
+      {ledger && ledger.reviews.length > 0 ? (
+        <section className="mb-8 grid gap-2">
+          <h2 className="text-sm font-medium text-muted">Avis à publier</h2>
+          {ledger.reviews.map((review) => (
+            <Card key={review.id} className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm">{review.rating}/5 · {review.body || "Sans commentaire"}</p>
+              <form action={moderateReview} className="flex gap-2">
+                <input type="hidden" name="id" value={review.id} />
+                <input type="hidden" name="status" value="published" />
+                <Button type="submit" variant="secondary">Publier</Button>
+              </form>
+            </Card>
+          ))}
+        </section>
+      ) : null}
       {isVendor ? (
         <form action={openCoupleDemo} className="mb-8">
           <Button type="submit" variant="secondary">
@@ -97,4 +134,25 @@ export default async function DashboardPage() {
       <WeddingDirectory weddings={weddings} />
     </div>
   );
+}
+
+async function vendorLedger(vendorId: string) {
+  const supabase = await createClient();
+  const year = new Date().getFullYear();
+  const [invoices, quotes, deposits, reviews] = await Promise.all([
+    supabase.from("invoices").select("amount_cents, status, created_at").eq("vendor_id", vendorId),
+    supabase.from("quotes").select("id, status").eq("vendor_id", vendorId).eq("status", "sent"),
+    supabase.from("deposits").select("id, status").eq("vendor_id", vendorId).in("status", ["pending", "reminded"]),
+    supabase.from("reviews").select("id, rating, body, status").eq("vendor_id", vendorId).eq("status", "pending"),
+  ]);
+  const revenueCents = (invoices.data ?? [])
+    .filter((row) => row.status === "paid" && row.created_at.startsWith(String(year)))
+    .reduce((sum, row) => sum + row.amount_cents, 0);
+  return {
+    revenueCents,
+    openQuotes: (quotes.data ?? []).length,
+    pendingDeposits: (deposits.data ?? []).length,
+    pendingReviews: (reviews.data ?? []).length,
+    reviews: reviews.data ?? [],
+  };
 }
