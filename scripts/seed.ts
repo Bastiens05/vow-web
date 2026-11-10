@@ -280,6 +280,83 @@ async function main() {
   });
   if (noteError) throw noteError;
 
+  await admin.from("reviews").delete().eq("vendor_id", demo.vendorProfileId);
+  await admin.from("deposits").delete().eq("vendor_id", demo.vendorProfileId);
+  await admin.from("invoices").delete().eq("vendor_id", demo.vendorProfileId);
+  await admin.from("quotes").delete().eq("vendor_id", demo.vendorProfileId);
+  const due = new Date();
+  due.setUTCDate(due.getUTCDate() + 2);
+  const { error: quotesError } = await admin.from("quotes").insert([
+    {
+      id: "b1111111-1111-4111-8111-111111111111",
+      wedding_id: demo.weddingId,
+      vendor_id: demo.vendorProfileId,
+      number: 1,
+      title: "Reportage journée",
+      amount_cents: 240000,
+      status: "sent",
+    },
+    {
+      id: "b4444444-4444-4444-8444-444444444444",
+      wedding_id: demo.pastWeddingId,
+      vendor_id: demo.vendorProfileId,
+      number: 2,
+      title: "Reportage Chloé & Adrien",
+      amount_cents: 220000,
+      status: "invoiced",
+    },
+  ]);
+  if (quotesError) throw quotesError;
+  const { error: invoicesError } = await admin.from("invoices").insert([
+    {
+      id: "b2222222-2222-4222-8222-222222222222",
+      wedding_id: demo.weddingId,
+      vendor_id: demo.vendorProfileId,
+      number: 1,
+      title: "Acompte reportage",
+      amount_cents: 80000,
+      status: "pending",
+      due_on: "2027-03-01",
+    },
+    {
+      id: "b3333333-3333-4333-8333-333333333333",
+      wedding_id: demo.pastWeddingId,
+      vendor_id: demo.vendorProfileId,
+      number: 2,
+      title: "Reportage Chloé & Adrien",
+      amount_cents: 220000,
+      status: "paid",
+    },
+  ]);
+  if (invoicesError) throw invoicesError;
+  const { error: depositsError } = await admin.from("deposits").insert({
+    wedding_id: demo.weddingId,
+    vendor_id: demo.vendorProfileId,
+    amount_cents: 80000,
+    due_on: due.toISOString().slice(0, 10),
+    status: "pending",
+  });
+  if (depositsError) throw depositsError;
+  const { error: reviewsError } = await admin.from("reviews").insert([
+    {
+      wedding_id: demo.weddingId,
+      vendor_id: demo.vendorProfileId,
+      author_id: demo.coupleUserId,
+      rating: 5,
+      body: "Des photos justes, sans nous presser.",
+      status: "pending",
+    },
+    {
+      wedding_id: demo.pastWeddingId,
+      vendor_id: demo.vendorProfileId,
+      author_id: demo.coupleUserId,
+      rating: 5,
+      body: "On se revoit dans chaque image.",
+      status: "published",
+    },
+  ]);
+  if (reviewsError) throw reviewsError;
+
   console.log("Données de démonstration prêtes.");
   console.log(`Prestataire : ${demo.vendorEmail} / ${demoPassword}`);
   console.log(`Couple : ${demo.coupleEmail} / ${demoPassword}`);

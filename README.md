@@ -37,12 +37,13 @@ Migrations, dans cet ordre, sur un projet vide :
 3. `supabase/migrations/20261110230000_spaces.sql` — métiers (vidéaste, officiant), fiches visibles par métier (`can_see_sheet`), et Jour J réservé au couple (`shift_timeline_slot`, `post_wedding_alert`)
 4. `supabase/migrations/20261110233000_shell.sql` — coquille globale (préférences d'alertes, logo), et le mariage démo isolé (`open_couple_demo`, `leave_couple_preview`, `delete_couple_demo`). Un prestataire ne devient couple que sur ce mariage démo.
 5. `supabase/migrations/20261110240000_day_tools.sql` — demandes de devis (`leads`, `submit_quote_request`), modèles de déroulé (le couple les applique, le prestataire les suggère), rappels J-60/J-30/J-14 (`run_due_reminders`) et signatures électroniques simples (`signature_requests`, `record_signature`). L'insertion et la modification de `timeline_slots` sont réservées au couple, y compris via `is_wedding_couple` pour l'essai démo.
+6. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 
 Les fonctions serveur Vercel sont épinglées sur Paris (`cdg1` dans `vercel.json`), à côté du projet Supabase `eu-west-3`.
 
-Un cron Vercel, une fois par jour à 06:00 UTC (`/api/cron/reminders`), crée les rappels dans l'application. Le plan Hobby n'autorise qu'une exécution quotidienne. Le travail est idempotent : chaque manque n'est rappelé qu'une fois par palier (J-60, J-30, J-14). Aucun secret n'est requis pour ce chemin. Le canal e-mail existe derrière `src/server/mail.ts` et reste éteint : `emailChannelEnabled()` renvoie toujours faux, aucun prestataire n'est appelé.
+Deux crons Vercel, une fois par jour à 06:00 UTC : `/api/cron/reminders` pour les rappels J-60/J-30/J-14, et `/api/cron/deposits` pour les acomptes à échéance. Le plan Hobby n'autorise qu'une exécution quotidienne par chemin. Chaque travail est idempotent. Aucun secret n'est requis. Le canal e-mail existe derrière `src/server/mail.ts` et reste éteint : `emailChannelEnabled()` renvoie toujours faux, aucun prestataire n'est appelé. Stripe n'est appelé que si `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY` sont définis.
 
 Il crée les tables, les fonctions (`create_wedding`, `create_invitation`, `accept_invitation`, `preview_invitation`), active la RLS sur chaque table, ajoute `messages` à la publication temps réel, et crée les buckets Storage.
 

@@ -42,7 +42,7 @@ export const getSession = cache(async (): Promise<SessionProfile | null> => {
   if (profile.role === "vendor") {
     const { data: vendorProfile } = await supabase
       .from("vendor_profiles")
-      .select("id, user_id, business_name, slug, category, city, published, description, zone, contact_email, contact_phone, website, starting_price_cents, currency, logo_path, created_at, updated_at")
+      .select("id, user_id, business_name, slug, category, city, published, description, zone, contact_email, contact_phone, website, starting_price_cents, currency, logo_path, stripe_account_id, created_at, updated_at")
       .eq("user_id", userId)
       .maybeSingle();
     vendor = vendorProfile;

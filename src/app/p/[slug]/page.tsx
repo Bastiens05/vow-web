@@ -8,6 +8,7 @@ import { categoryLabel } from "@/lib/domain/categories";
 import { formatPriceCents } from "@/lib/domain/price";
 import { publicObjectUrl } from "@/lib/storage";
 import { getPublicVendor } from "@/server/data";
+import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/server/session";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -28,6 +29,12 @@ export default async function PublicVendorPage({ params }: PageProps) {
   if (!data.vendor.published && !isOwner) notFound();
 
   const { vendor, offers, photos } = data;
+  const supabase = await createClient();
+  const { data: reviews } = await supabase
+    .from("reviews")
+    .select("id, rating, body")
+    .eq("vendor_id", vendor.id)
+    .eq("status", "published");
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       {!vendor.published ? (
@@ -79,6 +86,19 @@ export default async function PublicVendorPage({ params }: PageProps) {
         </section>
       ) : null}
 
+      {(reviews ?? []).length > 0 ? (
+        <section className="mt-12">
+          <h2 className="font-semibold tracking-tight text-4xl">Avis</h2>
+          <div className="mt-4 grid gap-3">
+            {(reviews ?? []).map((review) => (
+              <Card key={review.id}>
+                <p className="text-sm text-gold-deep">{review.rating}/5</p>
+                {review.body ? <p className="mt-2 text-sm leading-6">{review.body}</p> : null}
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <div className="mt-10">
         <ButtonLink href={`/demande/${vendor.slug}`}>Demander un devis</ButtonLink>
       </div>

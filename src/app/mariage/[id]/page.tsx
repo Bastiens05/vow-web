@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ReviewForm } from "@/components/wedding/review-form";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
 import { getWeddingSpace } from "@/server/data";
@@ -12,11 +13,13 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
   const { id } = await params;
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
-  const { data: reminders } = await supabase
-    .from("reminders")
-    .select("id, milestone, kind, created_at")
-    .eq("wedding_id", id)
-    .order("created_at", { ascending: false });
+  const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
+  const [{ data: vendors }, { data: reminders }] = await Promise.all([
+    vendorIds.length
+      ? supabase.from("vendor_profiles").select("id, business_name, user_id").in("user_id", vendorIds)
+      : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string }[] }),
+    supabase.from("reminders").select("id, milestone, kind, created_at").eq("wedding_id", id).order("created_at", { ascending: false }),
+  ]);
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <Card>
@@ -49,6 +52,9 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
             : "Vous voyez le déroulé en direct. Le couple décale les horaires et vous envoie les alertes. Votre onglet pratique suit votre métier."}
         </p>
         <div className="flex flex-wrap gap-2">
+          <ButtonLink href={`/mariage/${id}/devis`} variant="secondary">
+            Devis et factures
+          </ButtonLink>
           <ButtonLink href={`/mariage/${id}/jour`} variant="secondary">
             {space.actingAsCouple ? "Tenir le jour J" : "Voir le jour J"}
           </ButtonLink>
@@ -71,6 +77,9 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
           ) : null}
         </div>
       </Card>
+      {space.actingAsCouple ? (
+        <ReviewForm weddingId={id} vendors={(vendors ?? []).map((vendor) => ({ id: vendor.id, name: vendor.business_name }))} />
+      ) : null}
       {(reminders ?? []).length > 0 ? (
         <Card>
           <h2 className="text-lg font-semibold tracking-tight">Rappels envoyés</h2>
