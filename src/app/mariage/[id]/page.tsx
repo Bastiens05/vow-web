@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReviewForm } from "@/components/wedding/review-form";
+import { canDeliver } from "@/lib/domain/trades";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
 import { getWeddingSpace } from "@/server/data";
@@ -55,6 +56,20 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
           <ButtonLink href={`/mariage/${id}/devis`} variant="secondary">
             Devis et factures
           </ButtonLink>
+          <ButtonLink href={`/mariage/${id}/questions`} variant="secondary">
+            Questions
+          </ButtonLink>
+          <ButtonLink href={`/mariage/${id}/carte`} variant="secondary">
+            Carte
+          </ButtonLink>
+          <ButtonLink href={`/mariage/${id}/equipe`} variant="secondary">
+            Équipe
+          </ButtonLink>
+          {canDeliver(space.actingAsCouple ? "couple" : space.role, space.session.vendor?.category ?? null) ? (
+            <ButtonLink href={`/mariage/${id}/galerie`} variant="secondary">
+              Galerie
+            </ButtonLink>
+          ) : null}
           <ButtonLink href={`/mariage/${id}/jour`} variant="secondary">
             {space.actingAsCouple ? "Tenir le jour J" : "Voir le jour J"}
           </ButtonLink>

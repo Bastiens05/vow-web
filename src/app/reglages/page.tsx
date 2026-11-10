@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { ShareForm } from "@/components/account/share-form";
 import {
   AccountNameForm,
   BusinessForm,
@@ -40,6 +41,9 @@ export default async function SettingsPage() {
             phone={session.vendor?.contact_phone ?? ""}
           />
           {session.vendor ? <LogoField userId={session.userId} logoPath={session.vendor.logo_path} /> : null}
+          {session.vendor ? (
+            <ShareForm sharePhone={session.vendor.share_phone} shareEmail={session.vendor.share_email} />
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <ButtonLink href="/espace/profil" variant="secondary">
               Ouvrir la vitrine

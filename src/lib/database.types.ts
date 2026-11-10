@@ -64,6 +64,8 @@ export type Database = {
           currency: string;
           published: boolean;
           logo_path: string | null;
+          share_phone: boolean;
+          share_email: boolean;
           stripe_account_id: string | null;
           created_at: string;
           updated_at: string;
@@ -89,6 +91,9 @@ export type Database = {
           slug?: string;
           category?: VendorCategory;
           logo_path?: string | null;
+          share_phone?: boolean;
+          share_email?: boolean;
+          stripe_account_id?: string | null;
           city?: string;
           zone?: string;
           description?: string;
@@ -533,6 +538,81 @@ export type Database = {
         },
         { status?: string }
       >;
+      questionnaires: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          title: string;
+          status: string;
+          created_at: string;
+        },
+        { id?: string; wedding_id: string; vendor_id: string; title: string; status?: string },
+        { title?: string; status?: string }
+      >;
+      questionnaire_items: Table<
+        {
+          id: string;
+          questionnaire_id: string;
+          prompt: string;
+          answer: string;
+          sort_order: number;
+        },
+        { id?: string; questionnaire_id: string; prompt: string; answer?: string; sort_order?: number },
+        { prompt?: string; answer?: string; sort_order?: number }
+      >;
+      wedding_stops: Table<
+        {
+          id: string;
+          wedding_id: string;
+          label: string;
+          address: string;
+          starts_at: string | null;
+          sort_order: number;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          label: string;
+          address: string;
+          starts_at?: string | null;
+          sort_order?: number;
+        },
+        { label?: string; address?: string; starts_at?: string | null; sort_order?: number }
+      >;
+      deliveries: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          title: string;
+          expires_at: string | null;
+          created_at: string;
+        },
+        { id?: string; wedding_id: string; vendor_id: string; title: string; expires_at?: string | null },
+        { title?: string; expires_at?: string | null }
+      >;
+      delivery_files: Table<
+        {
+          id: string;
+          delivery_id: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          size_bytes: number;
+          created_at: string;
+        },
+        {
+          id?: string;
+          delivery_id: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          size_bytes: number;
+        },
+        { file_name?: string }
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -614,6 +694,18 @@ export type Database = {
       run_deposit_reminders: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      wedding_directory: {
+        Args: { p_wedding_id: string };
+        Returns: {
+          user_id: string;
+          member_role: string;
+          full_name: string;
+          business_name: string | null;
+          category: string | null;
+          phone: string | null;
+          email: string | null;
+        }[];
       };
     };
   };

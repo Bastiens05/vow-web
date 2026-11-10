@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canSeeSheet, pratiqueLabel, sheetsFor } from "./trades";
+import { canDeliver, canSeeSheet, pratiqueLabel, sheetsFor } from "./trades";
 
 describe("sheetsFor", () => {
   it("gives the couple every sheet", () => {
@@ -16,6 +16,14 @@ describe("sheetsFor", () => {
     expect(canSeeSheet("vendor", "caterer", "guests")).toBe(true);
     expect(canSeeSheet("vendor", "caterer", "photos")).toBe(false);
     expect(canSeeSheet("vendor", "venue", "guests")).toBe(true);
+  });
+
+  it("keeps the gallery to the couple and the photo trades", () => {
+    expect(canDeliver("couple", null)).toBe(true);
+    expect(canDeliver("vendor", "photographer")).toBe(true);
+    expect(canDeliver("vendor", "videographer")).toBe(true);
+    expect(canDeliver("vendor", "caterer")).toBe(false);
+    expect(canDeliver("vendor", "planner")).toBe(false);
   });
 
   it("lets the planner see everything and the DJ only the addresses", () => {

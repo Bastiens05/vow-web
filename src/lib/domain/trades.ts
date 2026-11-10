@@ -17,6 +17,11 @@ export function canSeeSheet(role: "vendor" | "couple", category: VendorCategory 
   return sheetsFor(role, category).includes(sheet);
 }
 
+export function canDeliver(role: "vendor" | "couple", category: VendorCategory | null): boolean {
+  if (role === "couple") return true;
+  return category === "photographer" || category === "videographer";
+}
+
 export function pratiqueLabel(role: "vendor" | "couple", category: VendorCategory | null): string | null {
   const sheets = sheetsFor(role, category);
   const extra = sheets.filter((sheet) => sheet !== "practical");
