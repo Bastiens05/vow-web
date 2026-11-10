@@ -26,13 +26,20 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
         </ul>
       </Card>
       <Card className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-tight">À faire ici</h2>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {space.role === "couple" ? "Votre rôle" : "Votre métier"}
+        </h2>
         <p className="text-sm leading-6 text-muted">
-          Messages, documents, déroulé et infos pratiques restent dans ce mariage.
+          {space.role === "couple"
+            ? "Vous tenez les horaires du jour J et les infos du mariage. Les prestataires voient seulement ce qui concerne leur métier."
+            : "Vous voyez le déroulé en direct. Le couple décale les horaires et vous envoie les alertes. Votre onglet pratique suit votre métier."}
         </p>
         <div className="flex flex-wrap gap-2">
+          <ButtonLink href={`/mariage/${id}/jour`} variant="secondary">
+            {space.role === "couple" ? "Tenir le jour J" : "Voir le jour J"}
+          </ButtonLink>
           <ButtonLink href={`/mariage/${id}/pratique`} variant="secondary">
-            Infos pratiques
+            {space.role === "couple" ? "Infos pratiques" : "Ma fiche"}
           </ButtonLink>
           {space.role === "vendor" ? (
             <ButtonLink href={`/mariage/${id}/inviter`} variant="secondary">

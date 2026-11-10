@@ -13,18 +13,26 @@ export function PracticalBoard({
   groups,
   guests,
   canEditDetails,
+  showPhotos,
+  showGuests,
+  canEditPhotos,
+  canEditGuests,
 }: {
   weddingId: string;
   practical: PracticalRow | null;
   groups: PhotoGroupRow[];
   guests: GuestRow[];
   canEditDetails: boolean;
+  showPhotos: boolean;
+  showGuests: boolean;
+  canEditPhotos: boolean;
+  canEditGuests: boolean;
 }) {
   return (
     <div className="space-y-8">
       <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} />
-      <Groups weddingId={weddingId} groups={groups} />
-      <Guests weddingId={weddingId} guests={guests} />
+      {showPhotos ? <Groups weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
+      {showGuests ? <Guests weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
     </div>
   );
 }
@@ -84,7 +92,7 @@ function DetailsForm({
   );
 }
 
-function Groups({ weddingId, groups }: { weddingId: string; groups: PhotoGroupRow[] }) {
+function Groups({ weddingId, groups, canEdit }: { weddingId: string; groups: PhotoGroupRow[]; canEdit: boolean }) {
   const action = addPhotoGroup.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
@@ -100,17 +108,19 @@ function Groups({ weddingId, groups }: { weddingId: string; groups: PhotoGroupRo
               {group.people ? <p className="mt-1 text-sm text-muted">{group.people}</p> : null}
               {group.notes ? <p className="mt-1 text-sm">{group.notes}</p> : null}
             </div>
-            <form action={deletePhotoGroup}>
-              <input type="hidden" name="id" value={group.id} />
-              <input type="hidden" name="wedding_id" value={weddingId} />
-              <Button type="submit" variant="ghost">
-                Retirer
-              </Button>
-            </form>
+            {canEdit ? (
+              <form action={deletePhotoGroup}>
+                <input type="hidden" name="id" value={group.id} />
+                <input type="hidden" name="wedding_id" value={weddingId} />
+                <Button type="submit" variant="ghost">
+                  Retirer
+                </Button>
+              </form>
+            ) : null}
           </li>
         ))}
       </ol>
-      <form action={formAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+      {canEdit ? <form action={formAction} className="mt-4 grid gap-3 sm:grid-cols-2">
         <Field label="Groupe">
           <TextInput name="title" required placeholder="Famille de la mariée" />
         </Field>
@@ -126,12 +136,12 @@ function Groups({ weddingId, groups }: { weddingId: string; groups: PhotoGroupRo
         <Button type="submit" variant="secondary" disabled={pending}>
           {pending ? "Ajout…" : "Ajouter le groupe"}
         </Button>
-      </form>
+      </form> : null}
     </section>
   );
 }
 
-function Guests({ weddingId, guests }: { weddingId: string; guests: GuestRow[] }) {
+function Guests({ weddingId, guests, canEdit }: { weddingId: string; guests: GuestRow[]; canEdit: boolean }) {
   const action = addGuest.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
@@ -158,19 +168,22 @@ function Guests({ weddingId, guests }: { weddingId: string; guests: GuestRow[] }
                 <td className="px-3 py-2">{guest.table_label}</td>
                 <td className="px-3 py-2">{guest.dietary}</td>
                 <td className="px-3 py-2 text-right">
-                  <form action={deleteGuest}>
-                    <input type="hidden" name="id" value={guest.id} />
-                    <input type="hidden" name="wedding_id" value={weddingId} />
-                    <button type="submit" className="text-xs text-muted underline">
-                      Retirer
-                    </button>
-                  </form>
+                  {canEdit ? (
+                    <form action={deleteGuest}>
+                      <input type="hidden" name="id" value={guest.id} />
+                      <input type="hidden" name="wedding_id" value={weddingId} />
+                      <button type="submit" className="text-xs text-muted underline">
+                        Retirer
+                      </button>
+                    </form>
+                  ) : null}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {canEdit ? (
       <form action={formAction} className="mt-4 grid gap-3 sm:grid-cols-2">
         <Field label="Nom">
           <TextInput name="full_name" required />
@@ -193,6 +206,7 @@ function Guests({ weddingId, guests }: { weddingId: string; guests: GuestRow[] }
           {pending ? "Ajout…" : "Ajouter l'invité"}
         </Button>
       </form>
+      ) : null}
     </section>
   );
 }

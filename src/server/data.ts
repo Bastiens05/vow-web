@@ -205,12 +205,19 @@ export type PracticalRow = Tables<"wedding_practical">;
 export type PhotoGroupRow = Tables<"photo_groups">;
 export type GuestRow = Tables<"guests">;
 
-export async function getPracticalSheet(weddingId: string) {
+export async function getPracticalSheet(
+  weddingId: string,
+  access: { photos: boolean; guests: boolean } = { photos: true, guests: true },
+) {
   const supabase = await createClient();
   const [practical, groups, guests] = await Promise.all([
     supabase.from("wedding_practical").select("*").eq("wedding_id", weddingId).maybeSingle(),
-    supabase.from("photo_groups").select("*").eq("wedding_id", weddingId).order("sort_order").order("created_at"),
-    supabase.from("guests").select("*").eq("wedding_id", weddingId).order("sort_order").order("full_name"),
+    access.photos
+      ? supabase.from("photo_groups").select("*").eq("wedding_id", weddingId).order("sort_order").order("created_at")
+      : Promise.resolve({ data: [] as Tables<"photo_groups">[] }),
+    access.guests
+      ? supabase.from("guests").select("*").eq("wedding_id", weddingId).order("sort_order").order("full_name")
+      : Promise.resolve({ data: [] as Tables<"guests">[] }),
   ]);
   return {
     practical: practical.data,
