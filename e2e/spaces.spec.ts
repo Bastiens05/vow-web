@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { revealPasswordSignup } from "./password-auth";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const password = "VowTest2026!";
@@ -156,7 +157,7 @@ async function signUp(
   if (!page.url().includes("/inscription")) {
     await page.goto("/inscription");
   }
-  await page.getByRole("heading", { name: "Inscription" }).waitFor();
+  await revealPasswordSignup(page, input.role);
   await page.getByLabel("Nom complet").fill(input.name);
   if (!input.emailLocked) await page.getByLabel("E-mail").fill(input.email);
   await page.getByLabel(/^Mot de passe/).fill(password);

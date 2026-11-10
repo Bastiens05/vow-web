@@ -1,11 +1,16 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { messageFromError } from "@/lib/errors";
-import { siteUrl } from "@/lib/env";
+import { isVendorCategory } from "@/lib/domain/categories";
+import { isValidEmail } from "@/lib/domain/auth-routing";
 import { safeNextPath } from "@/lib/domain/paths";
+import { slugify } from "@/lib/domain/slug";
 import { normalizeEmail } from "@/lib/domain/validation";
+import { siteUrl } from "@/lib/env";
+import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
+import { landingPath } from "@/server/auth-landing";
+import { requireSession } from "@/server/session";
 
 export type ActionState = {
   error?: string;
@@ -28,7 +33,7 @@ export async function signIn(_prev: ActionState, formData: FormData): Promise<Ac
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: messageFromError(error) };
-  redirect(next);
+  redirect(await landingPath(supabase, next));
 }
 
 export async function signUp(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -84,6 +89,85 @@ export async function sendMagicLink(_prev: ActionState, formData: FormData): Pro
   });
   if (error) return { error: messageFromError(error) };
   return { success: "Si un compte existe pour cette adresse, un lien de connexion vient d'être envoyé." };
+}
+
+export async function requestEmailCode(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const email = normalizeEmail(String(formData.get("email") ?? ""));
+  const next = safeNextPath(formData.get("next"), "/espace");
+  const role = readRole(formData.get("role"));
+  const create = formData.get("create") === "1";
+  if (!isValidEmail(email)) return { error: "Indiquez un e-mail valide." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: create,
+      emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+      data: role ? { role } : undefined,
+    },
+  });
+  if (error) return { error: otpError(error.message) };
+  return { success: `code:${Date.now()}` };
+}
+
+export async function verifyEmailCode(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const email = normalizeEmail(String(formData.get("email") ?? ""));
+  const token = String(formData.get("token") ?? "").replace(/\D/g, "");
+  const next = safeNextPath(formData.get("next"), "/espace");
+  if (!isValidEmail(email)) return { error: "Indiquez un e-mail valide." };
+  if (!/^\d{6}$/.test(token)) return { error: "Le code comporte 6 chiffres." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) return { error: "Code incorrect ou expiré. Demandez-en un nouveau." };
+  redirect(await landingPath(supabase, next, true));
+}
+
+export async function startOAuth(provider: "google" | "apple", nextPath: string) {
+  const supabase = await createClient();
+  const next = safeNextPath(nextPath, "/espace");
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}` },
+  });
+  if (error || !data.url) return;
+  redirect(data.url);
+}
+
+export async function completeVendor(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const session = await requireSession();
+  if (session.profile.role !== "vendor") redirect("/espace");
+  const businessName = String(formData.get("business_name") ?? "").trim();
+  const category = String(formData.get("category") ?? "");
+  if (businessName.length < 2 || businessName.length > 120) return { error: "Indiquez le nom de votre activité." };
+  if (!isVendorCategory(category)) return { error: "Choisissez votre métier." };
+
+  const supabase = await createClient();
+  if (!session.profile.full_name) {
+    await supabase.from("profiles").update({ full_name: businessName }).eq("id", session.userId);
+  }
+  if (!session.vendor) {
+    const slug = `${slugify(businessName)}-${session.userId.slice(0, 4)}`;
+    const { error } = await supabase.from("vendor_profiles").insert({
+      user_id: session.userId,
+      business_name: businessName,
+      slug,
+      category,
+      city: "",
+    });
+    if (error) return { error: messageFromError(error) };
+  }
+  redirect("/espace");
+}
+
+function otpError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("rate") || lower.includes("once every")) return "Patientez un instant avant de redemander un code.";
+  if (lower.includes("signups not allowed") || lower.includes("user not found") || lower.includes("signups")) {
+    return "Aucun compte pour cette adresse. Créez-le d'abord.";
+  }
+  return "L'envoi du code a échoué. Réessayez.";
 }
 
 export async function signOut() {

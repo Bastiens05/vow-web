@@ -99,6 +99,8 @@ Authentication → Providers : e-mail activé. En production, laissez la confirm
 
 Mot de passe minimum recommandé : 8 caractères. Le formulaire le vérifie déjà.
 
+La connexion commence par un code à 6 chiffres (`signInWithOtp`). Le lien reçu dans le même e-mail ouvre aussi la session. Le mot de passe reste disponible. `Continuer avec Google` et `Continuer avec Apple` ne s'affichent que si `NEXT_PUBLIC_AUTH_GOOGLE` ou `NEXT_PUBLIC_AUTH_APPLE` vaut `true`, et les fournisseurs doivent être activés dans Supabase. En local, le modèle `supabase/templates/magic_link.html` contient le code.
+
 ## Lancer l'application
 
 ```bash
