@@ -156,6 +156,35 @@ export async function listInbox(): Promise<InboxThread[]> {
   return threads;
 }
 
+export async function getCoupleFocus(weddingId: string) {
+  const supabase = await createClient();
+  const [practical, groups, guests, slots, documents, signatures, members] = await Promise.all([
+    supabase.from("wedding_practical").select("postal_address, partner_one_phone, ceremony_address").eq("wedding_id", weddingId).maybeSingle(),
+    supabase.from("photo_groups").select("id").eq("wedding_id", weddingId).limit(1),
+    supabase.from("guests").select("id").eq("wedding_id", weddingId).limit(1),
+    supabase.from("timeline_slots").select("id").eq("wedding_id", weddingId).limit(1),
+    supabase.from("documents").select("id").eq("wedding_id", weddingId).limit(1),
+    supabase.from("signature_requests").select("id").eq("wedding_id", weddingId).eq("status", "pending").limit(1),
+    supabase.from("wedding_members").select("user_id").eq("wedding_id", weddingId).eq("member_role", "vendor"),
+  ]);
+  const vendorIds = (members.data ?? []).map((member) => member.user_id);
+  const { data: profiles } = vendorIds.length
+    ? await supabase.from("vendor_profiles").select("category").in("user_id", vendorIds)
+    : { data: [] as { category: string }[] };
+  const categories = (profiles ?? []).map((profile) => profile.category);
+  const sheet = practical.data;
+  return {
+    hasPractical: Boolean(sheet && (sheet.postal_address || sheet.partner_one_phone || sheet.ceremony_address)),
+    needsPhotos: categories.some((category) => ["photographer", "videographer", "planner"].includes(category)),
+    hasPhotos: (groups.data ?? []).length > 0,
+    needsGuests: categories.some((category) => ["caterer", "venue", "planner"].includes(category)),
+    hasGuests: (guests.data ?? []).length > 0,
+    hasTimeline: (slots.data ?? []).length > 0,
+    hasDocument: (documents.data ?? []).length > 0,
+    pendingSignature: (signatures.data ?? []).length > 0,
+  };
+}
+
 export async function listDocuments(weddingId: string) {
   const supabase = await createClient();
   const { data } = await supabase

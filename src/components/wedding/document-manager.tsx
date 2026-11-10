@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime, formatFileSize } from "@/lib/domain/format";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { SignaturePanel } from "@/components/wedding/signature-panel";
 import { deleteDocument } from "@/server/actions/space";
+import { requestSignature } from "@/server/actions/signatures";
 import type { Tables } from "@/lib/database.types";
 
 export function DocumentManager({
@@ -15,11 +18,17 @@ export function DocumentManager({
   userId,
   documents,
   names,
+  requests,
+  canRequest,
+  canSign,
 }: {
   weddingId: string;
   userId: string;
   documents: Tables<"documents">[];
   names: Record<string, string>;
+  requests: Tables<"signature_requests">[];
+  canRequest: boolean;
+  canSign: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -71,31 +80,68 @@ export function DocumentManager({
         {documents.length === 0 ? (
           <li className="px-4 py-6 text-sm text-muted">Aucun document pour l’instant.</li>
         ) : null}
-        {documents.map((document) => (
-          <li key={document.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-medium">{document.file_name}</p>
-              <p className="mt-1 text-xs text-muted">
-                {formatFileSize(document.size_bytes)} · {names[document.uploaded_by] ?? "Membre"} · {formatDateTime(document.created_at)}
+        {documents.map((document) => {
+          const request = requests.find((item) => item.document_id === document.id);
+          return (
+          <li key={document.id} className="flex flex-col gap-3 px-4 py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium">{document.file_name}</p>
+                <p className="mt-1 text-xs text-muted">
+                  {formatFileSize(document.size_bytes)} · {names[document.uploaded_by] ?? "Membre"} · {formatDateTime(document.created_at)}
+                </p>
+                {request?.status === "signed" ? (
+                  <div className="mt-2">
+                    <Badge>Signé</Badge>
+                  </div>
+                ) : null}
+                {request?.status === "pending" ? <p className="mt-2 text-xs text-gold-deep">Signature demandée</p> : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href={`/api/documents/${document.id}`}
+                  className="inline-flex min-h-11 items-center rounded-full border border-line px-3 text-sm hover:border-gold"
+                >
+                  Télécharger
+                </a>
+                {request?.status === "signed" ? (
+                  <a
+                    href={`/api/documents/${document.id}/certificate`}
+                    className="inline-flex min-h-11 items-center rounded-full border border-line px-3 text-sm"
+                  >
+                    Certificat
+                  </a>
+                ) : null}
+                {canRequest && document.mime_type === "application/pdf" && !request ? (
+                  <form action={requestSignature}>
+                    <input type="hidden" name="document_id" value={document.id} />
+                    <input type="hidden" name="wedding_id" value={weddingId} />
+                    <Button type="submit" variant="secondary">
+                      Demander la signature
+                    </Button>
+                  </form>
+                ) : null}
+                <form action={deleteDocument}>
+                  <input type="hidden" name="id" value={document.id} />
+                  <input type="hidden" name="wedding_id" value={weddingId} />
+                  <Button type="submit" variant="ghost">
+                    Retirer
+                  </Button>
+                </form>
+              </div>
+            </div>
+            {canSign && request?.status === "pending" ? (
+              <SignaturePanel requestId={request.id} weddingId={weddingId} />
+            ) : null}
+            {request?.status === "signed" ? (
+              <p className="text-sm text-muted">
+                Signé par {request.signer_name}
+                {request.signed_at ? ` · ${formatDateTime(request.signed_at)}` : ""}. Signature électronique simple (eIDAS SES).
               </p>
-            </div>
-            <div className="flex gap-2">
-              <a
-                href={`/api/documents/${document.id}`}
-                className="inline-flex items-center rounded-full border border-line px-3 py-2 text-sm hover:border-gold"
-              >
-                Télécharger
-              </a>
-              <form action={deleteDocument}>
-                <input type="hidden" name="id" value={document.id} />
-                <input type="hidden" name="wedding_id" value={weddingId} />
-                <Button type="submit" variant="ghost">
-                  Retirer
-                </Button>
-              </form>
-            </div>
+            ) : null}
           </li>
-        ))}
+          );
+        })}
       </ul>
       <label className="block text-sm">
         Ajouter un fichier

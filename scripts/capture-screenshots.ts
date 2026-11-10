@@ -202,6 +202,95 @@ async function main() {
     await context.close();
   }
 
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, baseURL });
+  const shotPage = await mobile.newPage();
+  await shotPage.goto(`/demande/${demo.slug}`);
+  await shotPage.getByRole("heading", { name: "Atelier Lumière" }).waitFor();
+  await shotPage.screenshot({ path: `${outDir}/mobile-demande.png` });
+  await shotPage.getByLabel("Vos noms").fill("Nina et Paul");
+  await shotPage.getByLabel("E-mail").fill("nina.paul@vow.test");
+  await shotPage.getByLabel("Lieu").fill("Arcins");
+  await shotPage.getByRole("button", { name: "Envoyer la demande" }).click();
+  await shotPage.getByText("Demande envoyée.").waitFor();
+
+  await login(shotPage, demo.vendorEmail);
+  await shotPage.goto("/demandes");
+  await shotPage.getByRole("heading", { name: "Nina et Paul" }).first().waitFor();
+  await shotPage.addStyleTag({ content: "[role=status] { display: none !important; }" });
+  await shotPage.screenshot({ path: `${outDir}/mobile-demandes.png` });
+
+  await shotPage.goto(`/mariage/${demo.weddingId}/deroulement`);
+  await shotPage.getByRole("button", { name: "Suggérer au couple" }).waitFor();
+  await shotPage.screenshot({ path: `${outDir}/mobile-modele.png` });
+
+  await shotPage.context().clearCookies();
+  await login(shotPage, demo.coupleEmail);
+  await shotPage.addStyleTag({ content: "[role=status] { display: none !important; }" });
+  await shotPage.getByText("J-").waitFor();
+  await shotPage.screenshot({ path: `${outDir}/mobile-compte-rebours.png` });
+
+  await shotPage.context().clearCookies();
+  await login(shotPage, demo.vendorEmail);
+  const when = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);
+  await shotPage.goto("/espace/mariages/nouveau");
+  await shotPage.getByLabel("Premier prénom").fill("Ava");
+  await shotPage.getByLabel("Second prénom").fill("Noé");
+  await shotPage.getByLabel("Date du mariage").fill(when);
+  await shotPage.getByRole("button", { name: "Créer le mariage" }).click();
+  await shotPage.getByLabel("E-mail du destinataire").fill(demo.coupleEmail);
+  await shotPage.getByRole("button", { name: "Créer l'invitation" }).click();
+  const invite = await shotPage.locator("code").first().innerText();
+  await shotPage.getByRole("link", { name: "Documents" }).click();
+  await shotPage.getByLabel("Ajouter un fichier").setInputFiles({
+    name: "contrat.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.1\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF"),
+  });
+  await shotPage.getByRole("button", { name: "Demander la signature" }).click();
+  await shotPage.getByText("Signature demandée").waitFor();
+
+  await shotPage.context().clearCookies();
+  await shotPage.goto(new URL(invite.trim()).pathname);
+  await shotPage.getByRole("link", { name: "J'ai déjà un compte" }).click();
+  await shotPage.getByLabel("E-mail").first().fill(demo.coupleEmail);
+  await shotPage.getByLabel("Mot de passe").first().fill(demoPassword);
+  await shotPage.getByRole("button", { name: "Se connecter" }).click();
+  await shotPage.getByRole("button", { name: "Rejoindre le mariage" }).click();
+  await shotPage.getByRole("link", { name: "Documents" }).click();
+  await shotPage.getByLabel("Zone de signature").waitFor();
+  await shotPage.addStyleTag({ content: "[role=status] { display: none !important; }" });
+  await shotPage.screenshot({ path: `${outDir}/mobile-signature.png` });
+  await shotPage.getByLabel("Nom du signataire").fill("Léa Martin");
+  const box = await shotPage.getByLabel("Zone de signature").boundingBox();
+  if (box) {
+    await shotPage.mouse.move(box.x + 20, box.y + 30);
+    await shotPage.mouse.down();
+    await shotPage.mouse.move(box.x + 120, box.y + 60);
+    await shotPage.mouse.up();
+  }
+  await shotPage.getByRole("checkbox", { name: /Je consens/ }).check();
+  await shotPage.getByRole("button", { name: "Signer" }).click();
+  await shotPage.getByText("Signé").first().waitFor();
+  await shotPage.screenshot({ path: `${outDir}/mobile-signe.png` });
+
+  const cron = await shotPage.request.get("/api/cron/reminders");
+  if (!cron.ok()) throw new Error("cron");
+  await shotPage.goto("/alertes");
+  await shotPage.getByText(/Rappel J-30/).first().waitFor();
+  await shotPage.addStyleTag({ content: "[role=status] { display: none !important; }" });
+  await shotPage.screenshot({ path: `${outDir}/mobile-rappel.png` });
+  console.log("day tools shots");
+  await mobile.close();
+
+  const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, baseURL });
+  const wide = await desktop.newPage();
+  await login(wide, demo.coupleEmail);
+  await wide.addStyleTag({ content: "[role=status] { display: none !important; }" });
+  await wide.getByText("J-").waitFor();
+  await wide.screenshot({ path: `${outDir}/desktop-compte-rebours.png` });
+  console.log("desktop-compte-rebours");
+  await desktop.close();
+
   await browser.close();
 }
 
