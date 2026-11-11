@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { revealPasswordSignup } from "./password-auth";
+import { passVendorWelcome, revealPasswordSignup } from "./password-auth";
 
 const password = "VowTest2026!";
 const phone = "06 12 34 56 78";
@@ -16,6 +16,7 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   const fileName = `final-${stamp}.png`;
 
   await signUp(page, { name: "Camille Photo", email: vendorEmail, role: "Prestataire" });
+  await passVendorWelcome(page, `Studio ${stamp}`);
   await page.getByLabel("Nom commercial").fill(`Studio ${stamp}`);
   await page.getByLabel("Ville").fill("Bordeaux");
   await page.getByLabel("Présentation").fill("Reportage de mariage en lumière naturelle, du matin jusqu'au bout de la nuit.");
@@ -94,6 +95,7 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await signUp(catererPage, { name: "Nina Table", email: catererEmail, role: "Prestataire", emailLocked: true });
   await catererPage.waitForURL("**/invitation/**");
   await catererPage.getByRole("button", { name: "Rejoindre le mariage" }).click();
+  await expect(catererPage.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
   await catererPage.goto(`/mariage/${weddingId}/galerie`);
   await expect(catererPage.getByText("réservée au couple")).toBeVisible();
   await expect(catererPage.getByText(fileName)).toHaveCount(0);

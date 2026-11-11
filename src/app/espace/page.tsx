@@ -6,7 +6,7 @@ import { WeddingDirectory } from "@/components/wedding/wedding-directory";
 import { openCoupleDemo } from "@/server/actions/account";
 import { countdownLabel, coupleNextActions, daysUntil } from "@/lib/domain/next-actions";
 import { categoryLabel } from "@/lib/domain/categories";
-import { coupleSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
+import { coupleSteps, firstRunSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
 import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
 import { partitionWeddings } from "@/lib/domain/access";
 import { formatEuros } from "@/lib/domain/money";
@@ -48,6 +48,14 @@ export default async function DashboardPage() {
           hasGuests: signals.hasGuests,
         }),
   );
+  const realWeddings = weddings.filter((wedding) => !wedding.is_demo);
+  const firstRun = isVendor
+    ? firstRunSteps({
+        profileReady: Boolean(session.vendor?.business_name && session.vendor.city.trim()),
+        weddingId: realWeddings[0]?.id ?? null,
+        coupleJoined: realWeddings.some((wedding) => wedding.coupleJoined),
+      })
+    : [];
   const name = isVendor ? session.vendor?.business_name || session.profile.full_name : session.profile.full_name;
   const ledger = isVendor && session.vendor ? await vendorLedger(session.vendor.id) : null;
 
@@ -62,7 +70,7 @@ export default async function DashboardPage() {
             : "Votre mariage. Le jour J, c'est vous qui prévenez les prestataires."
         }
         actions={
-          isVendor ? (
+          isVendor && realWeddings.length > 0 ? (
             <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink>
           ) : null
         }
@@ -125,7 +133,23 @@ export default async function DashboardPage() {
           </ol>
         </section>
       ) : null}
-      {isVendor && steps.length > 0 ? (
+      {isVendor && realWeddings.length === 0 ? (
+        <section className="mb-8">
+          <h2 className="mb-3 text-sm font-medium text-muted">Pour commencer</h2>
+          <ol className="grid gap-2">
+            {firstRun.map((step, index) => (
+              <li key={step.id}>
+                <a href={step.href} className="flex min-h-14 items-center gap-3 rounded-2xl bg-paper px-4">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ivory text-xs font-semibold">
+                    {step.done ? "✓" : index + 1}
+                  </span>
+                  <span className="text-sm font-medium">{step.label}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : isVendor && steps.length > 0 ? (
         <section className="mb-8">
           <h2 className="mb-3 text-sm font-medium text-muted">Prochaines étapes</h2>
           <ol className="grid gap-2">

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { revealPasswordSignup } from "./password-auth";
+import { passVendorWelcome, revealPasswordSignup } from "./password-auth";
 
 const password = "VowTest2026!";
 
@@ -14,6 +14,7 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
   const when = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);
 
   await signUp(page, { name: "Camille Devis", email: vendorEmail, role: "Prestataire" });
+  await passVendorWelcome(page, `Studio ${stamp}`);
   await page.getByLabel("Nom commercial").fill(`Studio ${stamp}`);
   await page.getByLabel("Lien public").fill(slug);
   await page.getByLabel("Ville").fill("Bordeaux");
@@ -99,6 +100,7 @@ test("le couple signe un contrat déposé par le prestataire", async ({ page, br
   const coupleEmail = `couple.${stamp}@vow.test`;
 
   await signUp(page, { name: "Camille Sign", email: vendorEmail, role: "Prestataire" });
+  await passVendorWelcome(page, `Atelier ${stamp}`);
   await page.getByLabel("Nom commercial").fill(`Atelier ${stamp}`);
   await page.getByLabel("Ville").fill("Bordeaux");
   await page.getByLabel("Présentation").fill("Contrats et reportage, simplement.");
@@ -131,7 +133,7 @@ test("le couple signe un contrat déposé par le prestataire", async ({ page, br
   await couplePage.waitForURL("**/inscription**");
   await signUp(couplePage, { name: "Léa Martin", email: coupleEmail, role: "Couple", emailLocked: true });
   await couplePage.getByRole("button", { name: "Rejoindre le mariage" }).click();
-  await couplePage.getByRole("link", { name: "Documents" }).click();
+  await couplePage.getByRole("navigation", { name: "Espace mariés" }).getByRole("link", { name: "Documents", exact: true }).click();
   await couplePage.getByLabel("Nom du signataire").fill("Léa Martin");
   const canvas = couplePage.getByLabel("Zone de signature");
   const box = await canvas.boundingBox();

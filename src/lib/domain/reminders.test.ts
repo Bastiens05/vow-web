@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dueReminderKinds, reminderMilestone } from "./reminders";
+import { dueReminderKinds, reminderKindLabel, reminderMilestone } from "./reminders";
 
 describe("reminderMilestone", () => {
   it("maps the approach windows", () => {
@@ -8,6 +8,14 @@ describe("reminderMilestone", () => {
     expect(reminderMilestone(14)).toBe(14);
     expect(reminderMilestone(0)).toBeNull();
     expect(reminderMilestone(90)).toBeNull();
+  });
+});
+
+describe("reminderKindLabel", () => {
+  it("uses a French sentence instead of the storage key", () => {
+    expect(reminderKindLabel("practical")).toBe("Infos pratiques à compléter");
+    expect(reminderKindLabel("photos")).toBe("Groupes photo à compléter");
+    expect(reminderKindLabel("unknown")).toBe("Rappel");
   });
 });
 

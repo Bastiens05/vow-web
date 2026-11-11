@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { WeddingDirectory } from "@/components/wedding/wedding-directory";
 import { openCoupleDemo } from "@/server/actions/account";
 import { listMyWeddings } from "@/server/data";
@@ -12,6 +12,7 @@ export default async function WeddingsPage() {
   const session = await requireSession();
   const weddings = await listMyWeddings(session.userId);
   const vendor = session.profile.role === "vendor";
+  const real = weddings.filter((wedding) => !wedding.is_demo);
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8">
       <PageHeader
@@ -19,11 +20,18 @@ export default async function WeddingsPage() {
         title="Mariages"
         description={vendor ? "Tous vos mariages, les plus proches d'abord. La démo reste à part." : "Les mariages auxquels vous participez."}
         actions={
-          vendor ? (
+          vendor && real.length > 0 ? (
             <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink>
           ) : null
         }
       />
+      {real.length === 0 ? (
+        <div className="mb-8">
+          <EmptyState title="Aucun mariage pour l'instant">
+            {vendor ? <ButtonLink href="/espace/mariages/nouveau">Créez votre premier mariage</ButtonLink> : <p>Une invitation vous ouvrira l&apos;espace.</p>}
+          </EmptyState>
+        </div>
+      ) : null}
       {vendor ? (
         <form action={openCoupleDemo} className="mb-8">
           <Button type="submit" variant="secondary">

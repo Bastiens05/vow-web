@@ -82,3 +82,30 @@ export function coupleSteps(input: {
 export function openSteps(steps: readonly Step[]): Step[] {
   return steps.filter((step) => !step.done);
 }
+
+export function firstRunSteps(input: {
+  profileReady: boolean;
+  weddingId: string | null;
+  coupleJoined: boolean;
+}): Step[] {
+  return [
+    {
+      id: "activity",
+      label: "Votre activité",
+      href: "/bienvenue",
+      done: input.profileReady,
+    },
+    {
+      id: "wedding",
+      label: "Créez votre premier mariage",
+      href: "/espace/mariages/nouveau",
+      done: Boolean(input.weddingId),
+    },
+    {
+      id: "invite",
+      label: "Invitez le couple",
+      href: input.weddingId ? `/mariage/${input.weddingId}/inviter` : "/espace/mariages/nouveau",
+      done: input.coupleJoined,
+    },
+  ];
+}

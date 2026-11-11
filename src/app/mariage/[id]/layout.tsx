@@ -1,10 +1,13 @@
+import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/domain/categories";
 import { formatLongDate, weddingTitle } from "@/lib/domain/format";
 import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
 import { deleteCoupleDemo, leaveCouplePreview } from "@/server/actions/account";
+import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
+import { requireSession } from "@/server/session";
 
 export default async function WeddingLayout({
   children,
@@ -14,6 +17,15 @@ export default async function WeddingLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await requireSession();
+  const supabase = await createClient();
+  const { data: member } = await supabase
+    .from("wedding_members")
+    .select("user_id")
+    .eq("wedding_id", id)
+    .eq("user_id", session.userId)
+    .maybeSingle();
+  if (!member) redirect("/mariages");
   const space = await getWeddingSpace(id);
   const weddings = await listMyWeddings(space.session.userId);
   const vendor = space.session.profile.role === "vendor";

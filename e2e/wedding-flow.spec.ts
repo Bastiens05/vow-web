@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { revealPasswordSignup } from "./password-auth";
+import { passVendorWelcome, revealPasswordSignup } from "./password-auth";
 
 const password = "VowTest2026!";
 
@@ -14,6 +14,7 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
     email: vendorEmail,
     role: "Prestataire",
   });
+  await passVendorWelcome(page, business);
   await expect(page.getByRole("heading", { name: "Votre page publique" })).toBeVisible();
 
   await page.getByLabel("Nom commercial").fill(business);

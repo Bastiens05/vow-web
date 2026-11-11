@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { BackControl } from "@/components/layout/back-control";
 import { NavMenu } from "@/components/layout/nav-menu";
 import { SpaceSwitcher } from "@/components/layout/space-switcher";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { partitionWeddings } from "@/lib/domain/access";
+import { backTarget, isPublicPath } from "@/lib/domain/chrome";
 import { todayIso } from "@/lib/domain/format";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
 import { getSession, type SessionProfile } from "@/server/session";
@@ -17,13 +19,10 @@ export async function DesktopNav() {
         VOW
       </Link>
       <SpaceSwitcher vendorHref={context.vendorHref} coupleHref={context.coupleHref} />
-      {context.inWedding ? (
-        <Link
-          href={session?.profile.role === "vendor" ? "/mariages" : "/espace"}
-          className="mt-6 px-3 text-sm font-medium"
-        >
-          ← {session?.profile.role === "vendor" ? "Tous les mariages" : "Accueil"}
-        </Link>
+      {context.back ? (
+        <div className="mt-6 px-3">
+          <BackControl fallback={context.back.href} label={context.back.label} />
+        </div>
       ) : null}
       <NavMenu
         role={session?.profile.role ?? null}
@@ -45,19 +44,14 @@ export async function MobileChrome() {
   return (
     <>
       <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-black/10 bg-white/95 px-4 pr-28 backdrop-blur md:hidden">
-        {context.inWedding ? (
-          <Link
-            href={session?.profile.role === "vendor" ? "/mariages" : "/espace"}
-            className="shrink-0 text-sm font-medium"
-          >
-            ← {session?.profile.role === "vendor" ? "Mariages" : "Accueil"}
-          </Link>
+        {context.back ? (
+          <BackControl fallback={context.back.href} label={context.back.label} />
         ) : (
           <Link href={session ? "/espace" : "/"} className="shrink-0 text-base font-semibold tracking-[0.22em]">
             VOW
           </Link>
         )}
-        <p className="truncate text-right text-sm text-muted">{context.inWedding || context.quiet ? "" : name}</p>
+        <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
       </header>
       {context.quiet ? null : (
       <NavMenu
@@ -73,10 +67,25 @@ export async function MobileChrome() {
   );
 }
 
+export function PublicHeader() {
+  return (
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-black/10 bg-white/95 px-4 backdrop-blur">
+      <Link href="/" className="text-base font-semibold tracking-[0.22em]">
+        VOW
+      </Link>
+      <Link href="/connexion" className="inline-flex min-h-11 items-center text-sm font-medium">
+        Connexion
+      </Link>
+    </header>
+  );
+}
+
 async function navContext(session: SessionProfile | null) {
   const path = (await headers()).get("x-vow-path") ?? "";
-  const quiet = /^\/(connexion|inscription|bienvenue|cgu|confidentialite)(\/|$)/.test(path);
-  if (!session) return { primaryWeddingId: null, actingAsCouple: false, inWedding: false, quiet, vendorHref: null, coupleHref: null };
+  const quiet = isPublicPath(path);
+  if (!session) {
+    return { primaryWeddingId: null, actingAsCouple: false, quiet, vendorHref: null, coupleHref: null, back: null };
+  }
   const match = /^\/mariage\/([^/]+)/.exec(path);
   const weddings = await listMyWeddings(session.userId);
   const dated = weddings.map((wedding) => ({
@@ -95,9 +104,9 @@ async function navContext(session: SessionProfile | null) {
   return {
     primaryWeddingId: primary?.id ?? null,
     actingAsCouple,
-    inWedding: Boolean(match),
     quiet,
     vendorHref: session.profile.role === "vendor" ? "/espace" : null,
     coupleHref: coupleWedding ? `/mariage/${coupleWedding.id}` : null,
+    back: backTarget(path, session.profile.role, actingAsCouple),
   };
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AuthFlow } from "@/components/auth/auth-flow";
 import { Alert } from "@/components/ui/alert";
-import { configuredAuthProviders } from "@/lib/auth-providers";
+import { configuredAuthProviders, otpCodeEnabled } from "@/lib/auth-providers";
 import { safeNextPath } from "@/lib/domain/paths";
 
 export const metadata: Metadata = { title: "Connexion" };
@@ -31,6 +31,7 @@ export default async function LoginPage({
         initialEmail={params.email ?? ""}
         google={providers.google}
         apple={providers.apple}
+        otp={otpCodeEnabled()}
       />
     </>
   );
