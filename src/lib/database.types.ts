@@ -886,6 +886,35 @@ export type Database = {
         { recommendation_id: string; kind: string },
         Record<string, never>
       >;
+      vault_items: Table<
+        {
+          id: string;
+          wedding_id: string;
+          owner_id: string;
+          kind: string;
+          label: string;
+          storage_path: string | null;
+          file_name: string | null;
+          mime_type: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          owner_id: string;
+          kind: string;
+          label: string;
+          storage_path?: string | null;
+          file_name?: string | null;
+          mime_type?: string | null;
+        },
+        { storage_path?: string | null; file_name?: string | null; mime_type?: string | null; label?: string }
+      >;
+      vault_shares: Table<
+        { item_id: string; vendor_user_id: string; created_at: string },
+        { item_id: string; vendor_user_id: string },
+        Record<string, never>
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -1037,6 +1066,16 @@ export type Database = {
       };
       redeem_tester_code: { Args: { p_code: string }; Returns: string };
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      undo_timeline_shift: {
+        Args: {
+          p_slot_id: string;
+          p_previous_time: string;
+          p_notification_id: string;
+          p_cascade: boolean;
+          p_minutes: number;
+        };
+        Returns: undefined;
+      };
       wedding_directory: {
         Args: { p_wedding_id: string };
         Returns: {

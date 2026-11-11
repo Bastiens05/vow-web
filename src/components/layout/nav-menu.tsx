@@ -126,11 +126,12 @@ function itemsFor(
     const items: Item[] = [
       { href: "/espace", label: "Accueil", icon: "home" },
       { href: base ? `${base}/jour` : "/espace", label: "Jour J", icon: "clock" },
-      { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "file" },
-      { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
-      { href: base ? `${base}/documents` : "/espace", label: "Documents", icon: "file" },
-      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "spark" },
       { href: base ? `${base}/messages` : "/messages", label: "Messages", icon: "message" },
+      { href: base ? `${base}/bulles` : "/espace", label: "Documents", icon: "file" },
+      { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "spark" },
+      { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
+      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "spark" },
+      { href: base ? `${base}/coffre` : "/espace", label: "Coffre", icon: "file" },
       { href: "/reglages", label: "Réglages", icon: "gear" },
     ];
     if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
@@ -149,7 +150,10 @@ function itemsFor(
     ];
     if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
     items.push({ href: `${base}/deroulement`, label: "Déroulé", icon: "spark" });
-    if (view === "vendor") items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
+    if (view === "vendor") {
+      items.push({ href: `${base}/bulles`, label: "Ma bulle", icon: "spark" });
+      items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
+    }
     return items;
   }
   if (!signedIn) {

@@ -35,7 +35,8 @@ export function backTarget(
     const section = (wedding[2] ?? "").replace(/^\//, "").split("/")[0] ?? "";
     const couple = actingAsCouple || role === "couple";
     if (couple) {
-      if (["jour", "pratique", "equipe", "documents", "budget", "messages"].includes(section)) return null;
+      if (section === "bulle") return { label: "Documents", href: `/mariage/${id}/bulles` };
+      if (["jour", "pratique", "equipe", "documents", "budget", "messages", "bulles", "coffre"].includes(section)) return null;
       if (!section) return { label: "Accueil", href: "/espace" };
       return { label: "Mariage", href: `/mariage/${id}` };
     }

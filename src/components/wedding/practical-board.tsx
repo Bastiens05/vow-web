@@ -17,6 +17,7 @@ export function PracticalBoard({
   showGuests,
   canEditPhotos,
   canEditGuests,
+  showDetails = true,
 }: {
   weddingId: string;
   practical: PracticalRow | null;
@@ -27,10 +28,11 @@ export function PracticalBoard({
   showGuests: boolean;
   canEditPhotos: boolean;
   canEditGuests: boolean;
+  showDetails?: boolean;
 }) {
   return (
     <div className="space-y-8">
-      <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} />
+      {showDetails ? <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} /> : null}
       {showPhotos ? <Groups weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
       {showGuests ? <Guests weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
     </div>

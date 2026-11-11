@@ -41,7 +41,11 @@ async function fanOut(note: { id: string; weddingId: string; body: string }, aut
   revalidatePath("/alertes");
 }
 
-export async function shiftSlot(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
+export async function shiftSlot(
+  weddingId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState & { notificationId?: string }> {
   const session = await requireSession();
   const slotId = String(formData.get("slot_id") ?? "");
   const newTime = String(formData.get("new_time") ?? "");
@@ -56,7 +60,34 @@ export async function shiftSlot(weddingId: string, _prev: ActionState, formData:
   const note = readNote(data);
   if (note) await fanOut(note, session.userId);
   revalidatePath(`/mariage/${weddingId}/deroulement`);
-  return { success: note?.body ?? "Horaire mis à jour." };
+  revalidatePath(`/mariage/${weddingId}/jour`);
+  return {
+    success: note?.body ?? "Horaire mis à jour.",
+    notificationId: note?.id,
+  };
+}
+
+export async function undoShift(input: {
+  weddingId: string;
+  slotId: string;
+  previousTime: string;
+  notificationId: string;
+  cascade: boolean;
+  minutes: number;
+}): Promise<ActionState> {
+  await requireSession();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("undo_timeline_shift", {
+    p_slot_id: input.slotId,
+    p_previous_time: input.previousTime,
+    p_notification_id: input.notificationId,
+    p_cascade: input.cascade,
+    p_minutes: input.minutes,
+  });
+  if (error) return { error: messageFromError(error) };
+  revalidatePath(`/mariage/${input.weddingId}/jour`);
+  revalidatePath("/alertes");
+  return { success: "Décalage annulé." };
 }
 
 export async function sendDayAlert(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {

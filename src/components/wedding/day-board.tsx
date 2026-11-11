@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { addMinutesToTime } from "@/lib/domain/day";
 import { formatSlotTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
-import { sendDayAlert, shiftSlot } from "@/server/actions/day";
+import { shiftSlot, undoShift } from "@/server/actions/day";
 import { markReady } from "@/server/actions/relay";
 import type { SlotView } from "@/server/data";
 
@@ -25,11 +25,16 @@ export function DayBoard({
   const router = useRouter();
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const live = slots.map((slot) => (overrides[slot.id] ? { ...slot, startsAt: overrides[slot.id] ?? slot.startsAt } : slot));
-  const [cascade, setCascade] = useState(true);
+  const [cascade, setCascade] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const alertAction = sendDayAlert.bind(null, weddingId);
-  const [alertState, alertForm, alertPending] = useActionState(alertAction, {});
+  const [undo, setUndo] = useState<{
+    slotId: string;
+    previous: string;
+    notificationId: string;
+    minutes: number;
+    cascade: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -63,6 +68,12 @@ export function DayBoard({
     };
   }, [router, weddingId]);
 
+  useEffect(() => {
+    if (!undo) return;
+    const timer = window.setTimeout(() => setUndo(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [undo]);
+
   async function move(slot: SlotView, minutes: number) {
     const next = addMinutesToTime(slot.startsAt, minutes);
     setError(null);
@@ -85,7 +96,19 @@ export function DayBoard({
     if (result.error) {
       setError(result.error);
       setOverrides({});
+    } else if (result.notificationId) {
+      setUndo({ slotId: slot.id, previous: slot.startsAt.slice(0, 5), notificationId: result.notificationId, minutes, cascade });
     }
+    router.refresh();
+  }
+
+  async function cancelShift() {
+    if (!undo) return;
+    const current = undo;
+    setUndo(null);
+    const result = await undoShift({ weddingId, ...current, previousTime: current.previous });
+    if (result.error) setError(result.error);
+    setOverrides({});
     router.refresh();
   }
 
@@ -93,8 +116,8 @@ export function DayBoard({
     <div className="space-y-6">
       {canControl ? (
         <label className="flex min-h-12 items-center gap-3 text-sm">
-          <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-5 w-5" />
-          Décaler aussi les moments suivants
+          <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-4 w-4 accent-ink" />
+          Décaler aussi la suite
         </label>
       ) : (
         <p className="rounded-2xl bg-paper px-4 py-3 text-sm leading-6">
@@ -107,11 +130,16 @@ export function DayBoard({
       </p>
       <ol className="space-y-4">
         {live.map((slot) => (
-          <li key={slot.id} className="rounded-3xl bg-paper p-4">
+          <li key={slot.id} className="rounded-3xl border border-line bg-paper p-5">
             <p className="text-4xl font-semibold tracking-tight">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
-            <h2 className="mt-1 text-xl font-semibold">{slot.title}</h2>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight">{slot.title}</h2>
             {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : null}
-            {slot.ready ? <p className="mt-2 text-sm font-medium">Prêt</p> : null}
+            {slot.ready ? (
+              <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted">
+                <span className="h-2 w-2 rounded-full bg-ok" aria-hidden />
+                Prêt
+              </p>
+            ) : null}
             {!canControl && slot.assigneeIds.includes(userId) && !slot.ready ? (
               <form action={markReady} className="mt-4">
                 <input type="hidden" name="slot_id" value={slot.id} />
@@ -123,13 +151,19 @@ export function DayBoard({
             ) : null}
             {canControl ? (
               <>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button type="button" disabled={pendingId === slot.id} onClick={() => move(slot, 15)} className="min-h-14">
-                    {pendingId === slot.id ? "…" : "+15 min"}
-                  </Button>
-                  <Button type="button" disabled={pendingId === slot.id} onClick={() => move(slot, 30)} className="min-h-14">
-                    {pendingId === slot.id ? "…" : "+30 min"}
-                  </Button>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[5, 15, 30, 60].map((minutes) => (
+                    <Button
+                      key={minutes}
+                      type="button"
+                      variant="secondary"
+                      disabled={pendingId === slot.id}
+                      onClick={() => move(slot, minutes)}
+                      className="min-h-10 px-3"
+                    >
+                      {pendingId === slot.id ? "…" : `+${minutes} min`}
+                    </Button>
+                  ))}
                 </div>
                 <TimePick weddingId={weddingId} slot={slot} cascade={cascade} onError={setError} />
               </>
@@ -137,32 +171,13 @@ export function DayBoard({
           </li>
         ))}
       </ol>
-      {canControl ? (
-        <form action={alertForm} className="rounded-3xl bg-paper p-4">
-          <label className="block text-sm font-medium">
-            Prévenir les prestataires
-            <textarea
-              name="message"
-              required
-              maxLength={240}
-              placeholder="Le cocktail prend 20 minutes de plus."
-              className="mt-2 min-h-24 w-full rounded-2xl border border-line bg-ivory px-3 py-3 text-base"
-            />
-          </label>
-          {alertState.error ? (
-            <div className="mt-3">
-              <Alert>{alertState.error}</Alert>
-            </div>
-          ) : null}
-          {alertState.success ? (
-            <div className="mt-3">
-              <Alert tone="success">{alertState.success}</Alert>
-            </div>
-          ) : null}
-          <Button type="submit" disabled={alertPending} className="mt-3 min-h-14 w-full" aria-busy={alertPending}>
-            {alertPending ? "Envoi…" : "Envoyer l’alerte"}
-          </Button>
-        </form>
+      {undo ? (
+        <div role="status" className="fixed bottom-28 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#2c2c2e] px-4 py-2 text-sm text-white shadow-lg">
+          Prestataires prévenus
+          <button type="button" className="font-medium underline active:opacity-70" onClick={() => void cancelShift()}>
+            Annuler
+          </button>
+        </div>
       ) : null}
       {canControl ? <PushToggle /> : null}
     </div>
@@ -214,14 +229,17 @@ function TimePick({
 function PushToggle() {
   const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const [status, setStatus] = useState<string | null>(null);
-  const [ios, setIos] = useState(false);
-  useEffect(() => {
-    const apple = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      ("standalone" in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
-    setIos(apple && !standalone);
-  }, []);
+  const ios = useSyncExternalStore(
+    () => () => {},
+    () => {
+      const apple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        ("standalone" in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+      return apple && !standalone;
+    },
+    () => false,
+  );
   if (!key) {
     return (
       <p className="text-sm text-muted">
