@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { RedeemForm, SubscribeButton } from "@/app/abonnement/offer";
-import { PLAN_LABEL, vendorAccess } from "@/lib/domain/billing";
+import { vendorAccess } from "@/lib/domain/billing";
+import { PUBLIC_PLAN, planAllows } from "@/lib/domain/plans";
 import { categoryLabel } from "@/lib/domain/categories";
 import { requireSession } from "@/server/session";
 import { stripeEnabled } from "@/server/stripe";
@@ -23,13 +24,15 @@ export default async function SubscriptionPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 lg:py-12">
       <p className="text-xs font-medium text-gold-deep">Prestataires</p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Un seul plan.</h1>
+      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Essentiel.</h1>
       <p className="mt-3 max-w-xl text-base leading-7 text-muted">
-        Sept jours pour prendre en main l&apos;espace, puis {PLAN_LABEL}. Les mariés ne paient jamais.
+        Sept jours pour prendre en main l&apos;espace, puis {PUBLIC_PLAN.label}. Les mariés ne paient jamais. Aucune commission.
+        Pro et Studio existent pour plus tard. Leurs tarifs ne sont pas affichés.
       </p>
       <section className="mt-8 rounded-3xl border border-line bg-paper p-6">
         <p className="text-sm text-muted">{session.vendor?.business_name ?? "Votre activité"}{trade ? ` · ${trade}` : ""}</p>
-        <p className="mt-3 text-4xl font-semibold tracking-tight">{PLAN_LABEL}</p>
+        <p className="mt-3 text-4xl font-semibold tracking-tight">{PUBLIC_PLAN.label}</p>
+        <p className="mt-1 text-xs text-muted">Votre formule : {session.billing?.plan ?? "essentiel"} · {planAllows(session.billing?.plan ?? "essentiel", "core") ? "l'espace actuel est inclus" : ""}</p>
         <p className="mt-3 text-sm leading-6">
           {access.reason === "trial" && access.daysLeft !== null
             ? `Il vous reste ${access.daysLeft} jour${access.daysLeft > 1 ? "s" : ""} d'essai.`
