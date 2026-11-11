@@ -86,6 +86,7 @@ describe("migration", () => {
       "tech_issues",
       "crew_members",
       "crew_assignments",
+      "delivery_tracks",
       "wedding_music",
     ]);
     for (const table of tables) {
