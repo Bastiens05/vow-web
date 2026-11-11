@@ -43,6 +43,11 @@ export async function removeVaultItem(formData: FormData): Promise<void> {
   revalidatePath("/espace");
 }
 
+export async function shareVaultFromForm(formData: FormData): Promise<void> {
+  const weddingId = String(formData.get("wedding_id") ?? "");
+  await shareVaultItem(weddingId, {}, formData);
+}
+
 export async function shareVaultItem(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireSession();
   const itemId = String(formData.get("item_id") ?? "");

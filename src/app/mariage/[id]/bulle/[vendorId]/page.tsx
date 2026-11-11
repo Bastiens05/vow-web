@@ -10,7 +10,7 @@ import { requestsFor } from "@/lib/domain/vault";
 import { stripeEnabled } from "@/server/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet, getWeddingSpace } from "@/server/data";
-import { shareVaultItem } from "@/server/actions/vault";
+import { shareVaultFromForm } from "@/server/actions/vault";
 
 export const metadata: Metadata = { title: "Prestataire" };
 
@@ -38,7 +38,6 @@ export default async function BubblePage({ params }: { params: Promise<{ id: str
     ? await supabase.from("deposits").select("id, amount_cents, status, due_on").eq("wedding_id", id).eq("vendor_id", profile.id)
     : { data: [] };
   const { data: signatures } = await supabase.from("signature_requests").select("*").eq("wedding_id", id).eq("requested_by", vendorId);
-  const shareAction = shareVaultItem.bind(null, id, {});
 
   return (
     <div className="grid gap-4">
@@ -62,7 +61,8 @@ export default async function BubblePage({ params }: { params: Promise<{ id: str
                   {request.label}
                 </span>
                 {couple && match && !ready ? (
-                  <form action={async (formData) => { await shareAction(formData); }}>
+                  <form action={shareVaultFromForm}>
+                    <input type="hidden" name="wedding_id" value={id} />
                     <input type="hidden" name="item_id" value={match.id} />
                     <input type="hidden" name="vendor_user_id" value={vendorId} />
                     <button type="submit" className="text-sm underline active:opacity-70">Partager</button>

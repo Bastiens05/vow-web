@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { startTransition, useActionState, useRef } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
@@ -43,13 +43,16 @@ export function SignaturePanel({ requestId, weddingId }: { requestId: string; we
     context.stroke();
   }
 
-  async function onSubmit(formData: FormData) {
+  function onSubmit(formData: FormData) {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
-    if (!blob) return;
-    formData.set("signature", new File([blob], "signature.png", { type: "image/png" }));
-    await action(formData);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      formData.set("signature", new File([blob], "signature.png", { type: "image/png" }));
+      startTransition(() => {
+        void action(formData);
+      });
+    }, "image/png");
   }
 
   return (

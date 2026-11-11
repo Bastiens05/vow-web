@@ -8,7 +8,7 @@ import { requestsFor } from "@/lib/domain/vault";
 import { stripeEnabled } from "@/server/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet } from "@/server/data";
-import { shareVaultItem } from "@/server/actions/vault";
+import { shareVaultFromForm } from "@/server/actions/vault";
 
 export async function VendorDossier({
   weddingId,
@@ -48,8 +48,6 @@ export async function VendorDossier({
     ? await supabase.from("deposits").select("id, amount_cents, status").eq("wedding_id", weddingId).eq("vendor_id", profile.id)
     : { data: [] };
   const { data: signatures } = await supabase.from("signature_requests").select("*").eq("wedding_id", weddingId).eq("requested_by", vendorId);
-  const shareAction = shareVaultItem.bind(null, weddingId, {});
-
   return (
     <section id={vendorId} className="grid gap-4">
       <header>
@@ -72,7 +70,8 @@ export async function VendorDossier({
                   {request.label}
                 </span>
                 {couple && match && !ready ? (
-                  <form action={async (formData) => { await shareAction(formData); }}>
+                  <form action={shareVaultFromForm}>
+                    <input type="hidden" name="wedding_id" value={weddingId} />
                     <input type="hidden" name="item_id" value={match.id} />
                     <input type="hidden" name="vendor_user_id" value={vendorId} />
                     <button type="submit" className="text-sm underline">Partager</button>
