@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DayBoard } from "@/components/wedding/day-board";
 import { PhotoQueue } from "@/components/wedding/photo-queue";
 import { JourCache } from "@/components/wedding/jour-cache";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { parisClockMinutes } from "@/lib/domain/day";
+import { featureEnabled } from "@/lib/domain/plans";
 import { todayIso } from "@/lib/domain/format";
 import { parseTemplateSlots } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/server";
@@ -56,6 +58,11 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
           ? "Le programme de votre journée, partagé en direct avec vos prestataires."
           : "Le programme du jour, tenu par les mariés. Vous suivez la version active."}
       </p>
+      {featureEnabled("vocal_briefing") ? (
+        <Link href={`/mariage/${id}/briefing`} className="mt-4 inline-flex rounded-2xl bg-ink px-4 py-3 text-sm text-paper">
+          Écouter le briefing
+        </Link>
+      ) : null}
       <JourCache
         weddingId={id}
         slots={slots.map((slot) => ({ startsAt: slot.startsAt, title: slot.title, place: slot.place }))}

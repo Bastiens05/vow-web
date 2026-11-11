@@ -491,6 +491,21 @@ export type Database = {
         { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
         { thin_cents?: number; include_unsigned?: boolean }
       >;
+      wedding_briefings: Table<
+        { wedding_id: string; pronunciation_note: string; key_people: string },
+        { wedding_id: string; pronunciation_note?: string; key_people?: string },
+        { pronunciation_note?: string; key_people?: string }
+      >;
+      vendor_brief_notes: Table<
+        { wedding_id: string; vendor_id: string; note: string },
+        { wedding_id: string; vendor_id: string; note?: string },
+        { note?: string }
+      >;
+      briefing_listens: Table<
+        { id: string; wedding_id: string; user_id: string; listened_at: string },
+        { wedding_id: string; user_id: string },
+        Record<string, never>
+      >;
       anniversary_templates: Table<
         { id: string; vendor_id: string; title: string; body: string; months_after: number; enabled: boolean; require_review: boolean },
         { vendor_id: string; title: string; body: string; months_after?: number; enabled?: boolean; require_review?: boolean },
