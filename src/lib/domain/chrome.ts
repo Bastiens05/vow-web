@@ -9,7 +9,10 @@ export function isPublicPath(pathname: string): boolean {
     pathname.startsWith("/demande/") ||
     pathname.startsWith("/p/") ||
     pathname.startsWith("/invitation/") ||
-    pathname.startsWith("/desabonnement/")
+    pathname.startsWith("/desabonnement/") ||
+    pathname.startsWith("/rsvp/") ||
+    pathname.startsWith("/m/") ||
+    pathname.startsWith("/equipe/")
   );
 }
 

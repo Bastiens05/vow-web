@@ -40,6 +40,7 @@ Migrations, dans cet ordre, sur un projet vide :
 6. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
 7. `supabase/migrations/20261111010000_daypack.sql` — questionnaire par métier, lieux du jour J, annuaire (téléphone et e-mail seulement si le prestataire les ouvre) et galerie photo / vidéo.
 8. `supabase/migrations/20261111020000_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part.
+9. `supabase/migrations/20261111030000_suite.sql` — équipe (lecture des mariages, facturation au titulaire), calendrier ICS privé, rendez-vous, RSVP, plan de table, budget du couple et page publique des mariés.
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 

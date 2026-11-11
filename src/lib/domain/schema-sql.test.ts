@@ -40,6 +40,18 @@ describe("migration", () => {
       "deliveries",
       "delivery_files",
       "mail_outbox",
+      "vendor_members",
+      "vendor_team_invites",
+      "availability_rules",
+      "appointments",
+      "rsvp_pages",
+      "rsvp_answers",
+      "seating_tables",
+      "seating_assignments",
+      "wedding_budgets",
+      "budget_lines",
+      "wedding_sites",
+      "calendar_feeds",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

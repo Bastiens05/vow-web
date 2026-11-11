@@ -36,7 +36,7 @@ export default async function QuotesPage({
     supabase.from("invoices").select("*").eq("wedding_id", id).order("number"),
     supabase.from("deposits").select("*").eq("wedding_id", id).order("due_on"),
   ]);
-  const canWrite = !space.actingAsCouple && space.role === "vendor" && Boolean(vendorId);
+  const canWrite = space.host && Boolean(vendorId);
   return (
     <div className="grid gap-4">
       <Card>

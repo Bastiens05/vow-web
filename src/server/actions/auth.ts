@@ -68,7 +68,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   if (!data.session) {
     return { success: "Vérifiez votre boîte mail. Le lien confirme votre compte." };
   }
-  if (destination.startsWith("/invitation/")) redirect(destination);
+  if (destination.startsWith("/invitation/") || destination.startsWith("/equipe/")) redirect(destination);
   redirect(await landingPath(supabase, destination, true));
 }
 
