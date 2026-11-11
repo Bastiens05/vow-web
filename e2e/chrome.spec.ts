@@ -30,7 +30,7 @@ test("les onglets n'ont pas de retour vers eux-mêmes, le mariage si", async ({ 
   await login(page, "camille@demo.vow.test");
   await page.goto("/mariages");
   await expect(page.getByRole("heading", { name: "Mariages" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "← Mariages" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "‹ Mariages" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "VOW" })).toBeVisible();
 
   await page.goto("/mariage/44444444-4444-4444-8444-444444444444");
@@ -38,7 +38,7 @@ test("les onglets n'ont pas de retour vers eux-mêmes, le mariage si", async ({ 
   await expect(page.getByRole("heading", { name: "Préparer" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Questions/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Voir le jour J" })).toHaveCount(0);
-  await page.getByRole("button", { name: "← Mariages" }).click();
+  await page.getByRole("button", { name: "‹ Mariages" }).click();
   await expect(page.getByRole("heading", { name: "Mariages" })).toBeVisible();
 });
 

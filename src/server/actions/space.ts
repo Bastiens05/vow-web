@@ -9,16 +9,19 @@ import { requireSession } from "@/server/session";
 
 export async function sendMessage(
   weddingId: string,
+  vendorUserId: string,
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const session = await requireSession();
   const parsed = validateMessage(String(formData.get("body") ?? ""));
   if (!parsed.ok) return { error: parsed.error };
+  if (!vendorUserId) return { error: "Choisissez un prestataire." };
   const supabase = await createClient();
   const { error } = await supabase.from("messages").insert({
     wedding_id: weddingId,
     author_id: session.userId,
+    vendor_user_id: vendorUserId,
     body: parsed.value,
   });
   if (error) return { error: messageFromError(error) };

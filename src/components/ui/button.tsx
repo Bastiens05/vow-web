@@ -5,15 +5,15 @@ import { cn } from "@/lib/cn";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-ink text-white hover:bg-black active:scale-[0.98]",
-  secondary: "border border-line bg-paper text-ink hover:bg-black/[0.03] active:scale-[0.98]",
+  primary: "bg-ink text-ivory hover:opacity-90",
+  secondary: "border border-line bg-paper text-ink hover:bg-ink/[0.04]",
   ghost: "text-muted hover:text-ink",
-  danger: "border border-danger/20 bg-paper text-danger hover:bg-danger-bg",
+  danger: "border border-danger/30 bg-paper text-danger hover:bg-danger-bg",
 };
 
 export function buttonClass(variant: ButtonVariant = "primary", className?: string) {
   return cn(
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
     variants[variant],
     className,
   );

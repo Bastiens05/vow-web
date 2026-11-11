@@ -13,8 +13,8 @@ export function Alert({
       className={cn(
         "rounded-xl px-3 py-2 text-sm leading-6",
         tone === "error" && "bg-danger-bg text-danger",
-        tone === "success" && "bg-[#eef5ea] text-[#2d5a32]",
-        tone === "info" && "bg-[#f6f0e4] text-gold-deep",
+        tone === "success" && "bg-ivory text-ok",
+        tone === "info" && "border border-line bg-paper text-ink",
       )}
     >
       {children}

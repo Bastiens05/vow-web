@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReviewForm } from "@/components/wedding/review-form";
@@ -32,8 +34,8 @@ export default async function WeddingOverviewPage({
   const showInvite = space.host;
   const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites] = await Promise.all([
     vendorIds.length
-      ? supabase.from("vendor_profiles").select("id, business_name, user_id").in("user_id", vendorIds)
-      : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string }[] }),
+      ? supabase.from("vendor_profiles").select("id, business_name, user_id, category").in("user_id", vendorIds)
+      : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string; category: string }[] }),
     supabase.from("reminders").select("id, milestone, kind").eq("wedding_id", id).order("created_at", { ascending: false }),
     supabase.from("questionnaires").select("id").eq("wedding_id", id),
     supabase.from("questionnaire_items").select("answer, questionnaire_id"),
@@ -62,34 +64,59 @@ export default async function WeddingOverviewPage({
   return (
     <div className="grid gap-6">
       <Card>
-        <h2 className="text-lg font-semibold tracking-tight">Membres</h2>
-        <ul className="mt-4 space-y-3">
-          {space.members.map((member) => (
-            <li key={member.userId} className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">{member.fullName}</p>
-                <p className="text-xs text-muted">{member.email}</p>
-              </div>
-              <Badge>
-                {space.actingAsCouple && member.userId === space.session.userId
-                  ? "Essai mariés"
-                  : member.role === "vendor"
-                    ? "Prestataire"
-                    : "Couple"}
-              </Badge>
-            </li>
-          ))}
+        <h2 className="text-lg font-semibold tracking-tight">{space.role === "couple" || space.actingAsCouple ? "Prestataires" : "Membres"}</h2>
+        <ul className="mt-4 space-y-2">
+          {(space.role === "couple" || space.actingAsCouple ? space.members.filter((member) => member.role === "vendor") : space.members).map((member) => {
+            const profile = (vendors.data ?? []).find((vendor) => vendor.user_id === member.userId);
+            const trade = profile?.category && isVendorCategory(profile.category) ? categoryLabel(profile.category) : null;
+            const coupleRow = (space.role === "couple" || space.actingAsCouple) && member.role === "vendor";
+            const body = (
+              <>
+                <div>
+                  <p className="font-medium">{profile?.business_name || member.fullName}</p>
+                  <p className="text-sm text-muted">{coupleRow ? trade || "Métier à préciser" : member.email}</p>
+                </div>
+                {coupleRow ? null : (
+                  <Badge>
+                    {space.actingAsCouple && member.userId === space.session.userId
+                      ? "Essai mariés"
+                      : member.role === "vendor"
+                        ? "Prestataire"
+                        : "Couple"}
+                  </Badge>
+                )}
+              </>
+            );
+            return (
+              <li key={member.userId}>
+                {coupleRow ? (
+                  <Link href={`/mariage/${id}/messages?avec=${member.userId}`} className="flex min-h-14 items-center justify-between gap-3 rounded-2xl px-1 transition active:scale-[0.99]">
+                    {body}
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-between gap-3">{body}</div>
+                )}
+              </li>
+            );
+          })}
         </ul>
+        {space.role === "couple" || space.actingAsCouple ? (
+          space.members.some((member) => member.role === "vendor") ? null : (
+            <p className="mt-3 text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
+          )
+        ) : null}
       </Card>
       <section className="grid gap-5">
+        {space.actingAsCouple || space.role === "couple" ? null : (
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">{space.actingAsCouple ? "Votre rôle" : "Votre métier"}</h2>
-          <p className="mt-1 text-sm text-muted">
-            {space.actingAsCouple ? "Le jour J, vous tenez les horaires." : "Le jour J, le couple tient les horaires."}
-          </p>
+          <h2 className="text-lg font-semibold tracking-tight">Votre métier</h2>
+          <p className="mt-1 text-sm text-muted">Le jour J, le couple tient les horaires.</p>
         </div>
+        )}
         <SettingsGroup title="Préparer">
+          {(questions.data ?? []).length === 0 && (space.role === "couple" || space.actingAsCouple) ? null : (
           <SettingsLink href={`/mariage/${id}/questions`} label="Questions" status={questionStatus(answers)} icon={<QuestionIcon />} />
+          )}
           <SettingsLink href={`/mariage/${id}/pratique`} label={fiche} status={sheetStatus(filled)} icon={<SheetIcon />} />
           <SettingsLink
             href={`/mariage/${id}/carte`}

@@ -234,8 +234,8 @@ export type Database = {
         { accepted_at?: string | null; accepted_by?: string | null }
       >;
       messages: Table<
-        { id: string; wedding_id: string; author_id: string; body: string; created_at: string },
-        { id?: string; wedding_id: string; author_id: string; body: string },
+        { id: string; wedding_id: string; author_id: string; vendor_user_id: string | null; body: string; created_at: string },
+        { id?: string; wedding_id: string; author_id: string; vendor_user_id?: string | null; body: string },
         { body?: string }
       >;
       documents: Table<

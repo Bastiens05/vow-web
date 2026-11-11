@@ -5,7 +5,15 @@ export function canManageTimeline(role: AppRole | null): boolean {
 }
 
 export function canInviteMembers(role: AppRole | null): boolean {
-  return role === "vendor";
+  return role === "vendor" || role === "couple";
+}
+
+export function preferredCoupleWedding<T extends { memberRole: string; created_by: string; is_demo: boolean }>(
+  weddings: T[],
+  userId: string,
+): T | null {
+  const mine = weddings.filter((wedding) => wedding.memberRole === "couple" && !wedding.is_demo);
+  return mine.find((wedding) => wedding.created_by !== userId) ?? mine[0] ?? null;
 }
 
 export type DatedWedding = { weddingDate: string | null; isDemo?: boolean };

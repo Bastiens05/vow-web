@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { pratiqueLabel } from "@/lib/domain/trades";
@@ -27,8 +28,18 @@ export function NavMenu({
   const path = usePathname() ?? "";
   const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
   const inWedding = Boolean(weddingIdFrom(path));
-  const shown =
-    variant !== "tab"
+  const couple = role === "couple" || actingAsCouple;
+  const mobileCouple = couple && variant === "tab";
+  const tabOrder = ["Accueil", "Jour J", "Messages", "Documents"];
+  const primaryTabs = mobileCouple
+    ? tabOrder.flatMap((label) => items.filter((item) => item.label === label))
+    : [];
+  const moreTabs = mobileCouple
+    ? items.filter((item) => !["Accueil", "Jour J", "Messages", "Documents"].includes(item.label))
+    : [];
+  const shown = mobileCouple
+    ? primaryTabs
+    : variant !== "tab"
       ? items
       : inWedding
         ? items.slice(0, 5)
@@ -47,14 +58,51 @@ export function NavMenu({
       aria-label={label}
       className={
         variant === "tab"
-          ? "fixed inset-x-0 bottom-0 z-40 flex border-t border-black/10 bg-white px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
+          ? "fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-paper/80 px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] backdrop-blur pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
           : "mt-8 flex flex-1 flex-col gap-1"
       }
     >
       {shown.map((item) => (
         <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
       ))}
+      {mobileCouple ? <MoreTab items={moreTabs} path={path} /> : null}
     </nav>
+  );
+}
+
+function MoreTab({ items, path }: { items: Item[]; path: string }) {
+  const [open, setOpen] = useState(false);
+  const active = items.some((item) => isActive(path, item.href));
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
+        onClick={() => setOpen(true)}
+      >
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <circle cx="6" cy="12" r="1.2" fill="currentColor" />
+          <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+          <circle cx="18" cy="12" r="1.2" fill="currentColor" />
+        </svg>
+        Plus
+      </button>
+      {open ? (
+        <div className="fixed inset-0 z-50">
+          <button type="button" className="absolute inset-0 bg-black/40" aria-label="Fermer" onClick={() => setOpen(false)} />
+          <div role="dialog" aria-label="Plus" className="absolute inset-x-0 bottom-0 rounded-t-3xl border border-line bg-paper p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
+            <div onClick={() => setOpen(false)} className="grid gap-1">
+              {items.map((item) => (
+                <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant="side" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -72,10 +120,26 @@ function itemsFor(
   actingAsCouple: boolean,
   isAdmin: boolean,
 ): Item[] {
-  const weddingId = weddingIdFrom(path);
-  if (weddingId && signedIn && role) {
+  const weddingId = primaryWeddingId;
+  if ((role === "couple" || actingAsCouple) && signedIn) {
+    const base = weddingId ? `/mariage/${weddingId}` : "";
+    const items: Item[] = [
+      { href: "/espace", label: "Accueil", icon: "home" },
+      { href: base ? `${base}/jour` : "/espace", label: "Jour J", icon: "clock" },
+      { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "file" },
+      { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
+      { href: base ? `${base}/documents` : "/espace", label: "Documents", icon: "file" },
+      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "spark" },
+      { href: base ? `${base}/messages` : "/messages", label: "Messages", icon: "message" },
+      { href: "/reglages", label: "Réglages", icon: "gear" },
+    ];
+    if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
+    return items;
+  }
+  const currentWedding = weddingIdFrom(path);
+  if (currentWedding && signedIn && role) {
     const view = actingAsCouple ? "couple" : role;
-    const base = `/mariage/${weddingId}`;
+    const base = `/mariage/${currentWedding}`;
     const sheet = pratiqueLabel(view, actingAsCouple ? null : category);
     const items: Item[] = [
       { href: base, label: "Aperçu", icon: "home" },

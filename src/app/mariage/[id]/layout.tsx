@@ -32,9 +32,11 @@ export default async function WeddingLayout({
   const space = await getWeddingSpace(id);
   const weddings = await listMyWeddings(space.session.userId);
   const vendor = space.session.profile.role === "vendor";
+  const coupleView = space.role === "couple" || space.actingAsCouple;
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
-      <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-black/5 bg-ivory/95 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-3">
+      {coupleView ? null : (
+      <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-3">
         <WeddingSwitcher
           currentId={id}
           weddings={weddings.map((wedding) => ({
@@ -46,8 +48,9 @@ export default async function WeddingLayout({
         />
         <p className="min-w-0 flex-1 truncate text-sm text-muted">{space.title}</p>
       </div>
+      )}
       {space.wedding.is_demo ? (
-        <div className="mb-6 rounded-2xl border border-gold/40 bg-[#f8f1e4] px-4 py-4">
+        <div className="mb-6 rounded-2xl border border-line bg-paper px-4 py-4">
           <div className="mb-2">
             <Badge>Démo</Badge>
           </div>
@@ -81,13 +84,12 @@ export default async function WeddingLayout({
       <p className="mt-2 text-sm text-muted">
         {[space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
       </p>
+      {coupleView ? null : (
       <p className="mb-8 mt-3 text-sm font-medium">
-        {space.actingAsCouple
-          ? "Espace mariés"
-          : vendor
-            ? `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}`
-            : "Espace mariés"}
+        {vendor ? `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}` : "Espace"}
       </p>
+      )}
+      {coupleView ? <div className="mb-8" /> : null}
       {children}
     </div>
   );

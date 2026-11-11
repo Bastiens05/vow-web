@@ -32,7 +32,7 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-5 py-8 lg:max-w-3xl">
       <PageHeader
-        eyebrow={vendor ? "Espace prestataire" : "Espace mariés"}
+        eyebrow={vendor ? "Espace prestataire" : "Réglages"}
         title="Réglages"
         description="Le compte, l'activité et la sortie."
       />
@@ -78,7 +78,7 @@ export default async function SettingsPage() {
       <Card className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">Calendrier</h2>
         <p className="text-sm leading-6 text-muted">
-          Un lien privé, révocable. Il liste vos mariages, les étapes du jour J et vos rendez-vous. Aucun compte Google n&apos;est requis.
+          Un lien privé, révocable. Il liste {vendor ? "vos mariages" : "votre mariage"}, les étapes du jour J et vos rendez-vous. Aucun compte Google n&apos;est requis.
         </p>
         {feed ? (
           <>

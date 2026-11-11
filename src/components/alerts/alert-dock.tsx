@@ -82,13 +82,16 @@ export function AlertDock({
 
   return (
     <>
-      <Link href="/alertes" className="relative inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-3 text-sm shadow-sm ring-1 ring-black/10" aria-label="Alertes">
-        Alertes
-        {unread > 0 ? (
-          <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] text-white">
-            {unread}
-          </span>
-        ) : null}
+      <Link
+        href="/alertes"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition active:scale-95 hover:bg-ink/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        aria-label={unread > 0 ? `Alertes, ${unread} non lue${unread > 1 ? "s" : ""}` : "Alertes"}
+      >
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2H4.5L6 16Z" />
+          <path d="M10 19a2 2 0 0 0 4 0" />
+        </svg>
+        {unread > 0 ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger" aria-hidden="true" /> : null}
       </Link>
       {toast ? (
         <div
