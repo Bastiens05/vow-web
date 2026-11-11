@@ -19,6 +19,8 @@ export function PracticalBoard({
   canEditPhotos,
   canEditGuests,
   showDetails = true,
+  photosId = "photos",
+  guestsId = "guests",
 }: {
   weddingId: string;
   practical: PracticalRow | null;
@@ -30,12 +32,14 @@ export function PracticalBoard({
   canEditPhotos: boolean;
   canEditGuests: boolean;
   showDetails?: boolean;
+  photosId?: string;
+  guestsId?: string;
 }) {
   return (
     <div className="space-y-8">
       {showDetails ? <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} /> : null}
-      {showPhotos ? <Groups weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
-      {showGuests ? <Guests weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
+      {showPhotos ? <Groups id={photosId} weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
+      {showGuests ? <Guests id={guestsId} weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
     </div>
   );
 }
@@ -95,11 +99,11 @@ function DetailsForm({
   );
 }
 
-function Groups({ weddingId, groups, canEdit }: { weddingId: string; groups: PhotoGroupRow[]; canEdit: boolean }) {
+function Groups({ id, weddingId, groups, canEdit }: { id: string; weddingId: string; groups: PhotoGroupRow[]; canEdit: boolean }) {
   const action = addPhotoGroup.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <section>
+    <section id={id} className="scroll-mt-24">
       <h2 className="text-lg font-semibold tracking-tight">Photos de groupe</h2>
       <p className="mt-1 mb-4 text-sm text-muted">L’ordre de passage, les personnes, une note pour le photographe.</p>
       <ol className="space-y-2">
@@ -144,11 +148,11 @@ function Groups({ weddingId, groups, canEdit }: { weddingId: string; groups: Pho
   );
 }
 
-function Guests({ weddingId, guests, canEdit }: { weddingId: string; guests: GuestRow[]; canEdit: boolean }) {
+function Guests({ id, weddingId, guests, canEdit }: { id: string; weddingId: string; guests: GuestRow[]; canEdit: boolean }) {
   const action = addGuest.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <section>
+    <section id={id} className="scroll-mt-24">
       <h2 className="text-lg font-semibold tracking-tight">Invités</h2>
       <p className="mt-1 mb-4 text-sm text-muted">Table et régime, pour le traiteur et le plan de salle.</p>
       <div className="overflow-x-auto rounded-2xl border border-line">

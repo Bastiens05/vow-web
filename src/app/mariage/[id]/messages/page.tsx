@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InviteVendor } from "@/components/wedding/invite-vendor";
 import { MessageThread } from "@/components/wedding/message-thread";
 import { Card } from "@/components/ui/card";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
@@ -29,7 +30,12 @@ export default async function MessagesPage({
     return (
       <div className="grid gap-3">
         <h2 className="text-3xl font-semibold tracking-tight">Messages</h2>
-        {vendors.length === 0 ? <Card><p className="text-sm text-muted">Aucun prestataire à écrire pour l&apos;instant.</p></Card> : null}
+        {vendors.length === 0 ? (
+          <Card>
+            <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
+            <InviteVendor weddingId={id} />
+          </Card>
+        ) : null}
         {vendors.map((person) => {
           const trade = person.category && isVendorCategory(person.category) ? categoryLabel(person.category) : "Prestataire";
           return (

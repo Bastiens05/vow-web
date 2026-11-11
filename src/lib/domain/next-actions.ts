@@ -47,10 +47,10 @@ export function coupleNextActions(input: {
     actions.push({ id: "practical", label: "Renseigner les infos pratiques", href: `${base}/pratique` });
   }
   if (input.needsPhotos && !input.hasPhotos) {
-    actions.push({ id: "photos", label: "Lister les photos de groupe", href: `${base}/pratique` });
+    actions.push({ id: "photos", label: "Lister les photos de groupe", href: `${base}/documents#photos` });
   }
   if (input.needsGuests && !input.hasGuests) {
-    actions.push({ id: "guests", label: "Noter les invités et les régimes", href: `${base}/pratique` });
+    actions.push({ id: "guests", label: "Noter les invités et les régimes", href: `${base}/documents#guests` });
   }
   if (!input.hasTimeline) {
     actions.push({ id: "timeline", label: "Poser le programme du jour", href: `${base}/jour` });

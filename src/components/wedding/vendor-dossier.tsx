@@ -130,6 +130,8 @@ export async function VendorDossier({
             showGuests={showGuests}
             canEditPhotos={couple && showPhotos}
             canEditGuests={couple && showGuests}
+            photosId={`${vendorId}-photos`}
+            guestsId={`${vendorId}-guests`}
           />
         </Card>
       ) : null}

@@ -24,9 +24,23 @@ export async function addVaultItem(weddingId: string, _prev: ActionState, formDa
     file_name: fileName,
     mime_type: mime,
   });
-  if (error) return { error: "Le coffre n'est pas encore disponible." };
+  if (error) return { error: error.message || "Le coffre n'est pas encore disponible." };
   revalidatePath(`/mariage/${weddingId}/coffre`);
-  return { success: "Document ajouté au coffre." };
+  revalidatePath("/espace");
+  return { success: "Ajouté au coffre" };
+}
+
+export async function removeVaultItem(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const weddingId = String(formData.get("wedding_id") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createClient();
+  const { data } = await supabase.from("vault_items").select("storage_path, owner_id").eq("id", id).eq("wedding_id", weddingId).maybeSingle();
+  if (!data || data.owner_id !== session.userId) return;
+  if (data.storage_path) await supabase.storage.from("wedding-documents").remove([data.storage_path]);
+  await supabase.from("vault_items").delete().eq("id", id).eq("wedding_id", weddingId);
+  revalidatePath(`/mariage/${weddingId}/coffre`);
+  revalidatePath("/espace");
 }
 
 export async function shareVaultItem(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {

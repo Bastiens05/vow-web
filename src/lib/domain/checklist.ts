@@ -96,13 +96,13 @@ export function coupleChecklist(input: {
 }): ChecklistItem[] {
   const base = `/mariage/${input.weddingId}`;
   const items: ChecklistItem[] = [
-    { id: "practical", label: "Infos du lieu", href: `${base}/pratique`, done: input.hasPractical },
+    { id: "practical", label: "Infos du lieu", href: `${base}/pratique#lieu`, done: input.hasPractical },
   ];
   if (input.needsPhotos) {
     items.push({
       id: "photos",
       label: "Lister les photos de groupe",
-      href: input.photoVendorId ? `${base}/documents#${input.photoVendorId}` : `${base}/documents`,
+      href: input.photoVendorId ? `${base}/documents#${input.photoVendorId}-photos` : `${base}/documents#photos`,
       done: input.hasPhotos,
     });
   }
@@ -110,13 +110,13 @@ export function coupleChecklist(input: {
     items.push({
       id: "guests",
       label: "Invités et régimes",
-      href: input.guestVendorId ? `${base}/documents#${input.guestVendorId}` : `${base}/documents`,
+      href: input.guestVendorId ? `${base}/documents#${input.guestVendorId}-guests` : `${base}/documents#guests`,
       done: input.hasGuests,
     });
   }
   items.push(
-    { id: "timeline", label: "Programme du jour", href: `${base}/jour`, done: input.hasTimeline },
-    { id: "vault", label: "Coffre des pièces", href: `${base}/coffre`, done: input.hasVault },
+    { id: "timeline", label: "Programme du jour", href: `${base}/jour#programme`, done: input.hasTimeline },
+    { id: "vault", label: "Coffre des pièces", href: `${base}/coffre#pieces`, done: input.hasVault },
   );
   if (input.pendingSignature) {
     items.unshift({ id: "signature", label: "Signer le contrat", href: `${base}/documents`, done: false });

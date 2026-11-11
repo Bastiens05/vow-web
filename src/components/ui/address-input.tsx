@@ -30,15 +30,12 @@ export function AddressInput({
   className?: string;
 }) {
   const listId = useId();
-  const [text, setText] = useState(value ?? defaultValue);
+  const [draft, setDraft] = useState(defaultValue);
+  const text = value ?? draft;
   const [items, setItems] = useState<AddressSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const picked = useRef(false);
-
-  useEffect(() => {
-    if (value !== undefined) setText(value);
-  }, [value]);
 
   useEffect(() => {
     if (picked.current) {
@@ -46,11 +43,7 @@ export function AddressInput({
       return;
     }
     const query = text.trim();
-    if (query.length < 3 || disabled) {
-      setItems([]);
-      setOpen(false);
-      return;
-    }
+    if (query.length < 3 || disabled) return;
     const handle = window.setTimeout(() => {
       void fetch(`/api/address?q=${encodeURIComponent(query)}`)
         .then((response) => (response.ok ? response.json() : { suggestions: [] }))
@@ -69,8 +62,12 @@ export function AddressInput({
   }, [text, disabled]);
 
   function commit(next: string) {
-    setText(next);
+    setDraft(next);
     onValueChange?.(next);
+    if (next.trim().length < 3) {
+      setItems([]);
+      setOpen(false);
+    }
   }
 
   function choose(item: AddressSuggestion) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/server/actions/auth";
@@ -8,6 +8,15 @@ import { LineIcon } from "@/components/ui/line-icon";
 import type { IconName } from "@/components/ui/nav-link";
 
 type Item = { href: string; label: string; icon: IconName };
+
+function readSidebarCollapsed() {
+  return window.localStorage.getItem("vow-sidebar") === "icons";
+}
+
+function subscribeSidebar(onChange: () => void) {
+  window.addEventListener("vow-sidebar", onChange);
+  return () => window.removeEventListener("vow-sidebar", onChange);
+}
 
 const GROUPS: { caption: string; labels: string[] }[] = [
   { caption: "Mariage", labels: ["Accueil", "Jour J", "Messages", "Documents"] },
@@ -26,16 +35,10 @@ export function CoupleSidebar({
   userName: string;
 }) {
   const path = usePathname() ?? "";
-  const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => {
-    setCollapsed(window.localStorage.getItem("vow-sidebar") === "icons");
-  }, []);
+  const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
   function toggle() {
-    setCollapsed((value) => {
-      const next = !value;
-      window.localStorage.setItem("vow-sidebar", next ? "icons" : "full");
-      return next;
-    });
+    window.localStorage.setItem("vow-sidebar", collapsed ? "full" : "icons");
+    window.dispatchEvent(new Event("vow-sidebar"));
   }
   const settings = items.find((item) => item.label === "Réglages");
   const admin = items.find((item) => item.label === "Admin");

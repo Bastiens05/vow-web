@@ -10,7 +10,7 @@ import { categoryLabel } from "@/lib/domain/categories";
 import { InviteVendor } from "@/components/wedding/invite-vendor";
 import { VendorBubbles } from "@/components/wedding/vendor-bubbles";
 import { publicObjectUrl } from "@/lib/storage";
-import { coupleChecklist, coupleSteps, dedupeTasks, firstRunSteps, openSteps, vendorSteps, type Step } from "@/lib/domain/checklist";
+import { coupleChecklist, coupleSteps, dedupeTasks, firstRunSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
 import { compareWeddingTimes, parisClockMinutes, selectLiveStep } from "@/lib/domain/day";
 import { coupleHeroTitle, formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
@@ -240,8 +240,14 @@ async function CoupleHome({
     ? await supabase.from("vendor_profiles").select("user_id, logo_path").in("user_id", vendors.map((person) => person.user_id))
     : { data: [] as { user_id: string; logo_path: string | null }[] };
   const logos = new Map((logoRows ?? []).map((row) => [row.user_id, row.logo_path ? publicObjectUrl("vendor-media", row.logo_path) : null]));
-  const photo = vendors.find((person) => person.category === "photographer" || person.category === "videographer");
-  const caterer = vendors.find((person) => person.category === "caterer" || person.category === "venue");
+  const photo =
+    vendors.find((person) => person.category === "photographer") ??
+    vendors.find((person) => person.category === "videographer") ??
+    vendors.find((person) => person.category === "planner");
+  const caterer =
+    vendors.find((person) => person.category === "caterer") ??
+    vendors.find((person) => person.category === "venue") ??
+    vendors.find((person) => person.category === "planner");
   const tasks = dedupeTasks([
     ...coupleChecklist({
       weddingId,
