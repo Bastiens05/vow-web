@@ -74,6 +74,7 @@ describe("migration", () => {
       "wedding_profile",
       "profile_field_access",
       "quote_intakes",
+      "brief_sends",
       "wedding_music",
     ]);
     for (const table of tables) {

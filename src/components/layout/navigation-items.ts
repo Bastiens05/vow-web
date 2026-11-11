@@ -43,6 +43,7 @@ export function navigationItems(
       { href: base, label: "Aperçu", icon: "home" },
       { href: `${base}/messages`, label: "Messages", icon: "message" },
       { href: `${base}/jour`, label: "Jour J", icon: "clock" },
+      { href: `${base}/brief`, label: "Brief", icon: "file" },
       { href: `${base}/documents`, label: "Documents", icon: "file" },
     ];
     if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
