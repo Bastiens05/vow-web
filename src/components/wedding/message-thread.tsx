@@ -23,11 +23,21 @@ export function MessageThread({
   const [state, formAction, pending] = useActionState(action, {});
   const [optimistic, setOptimistic] = useState<MessageView[]>([]);
   const bottom = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const draftKey = `vow-draft:${weddingId}:${vendorUserId}`;
   const shown = [...messages, ...optimistic.filter((item) => !messages.some((message) => message.body === item.body && message.mine))];
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" });
   }, [shown.length]);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem(draftKey);
+    if (stored && bodyRef.current && bodyRef.current.value.trim().length === 0) {
+      bodyRef.current.value = stored;
+      sessionStorage.removeItem(draftKey);
+    }
+  }, [draftKey]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -82,6 +92,7 @@ export function MessageThread({
         <label className="sr-only" htmlFor="chat-body">Message</label>
         <textarea
           id="chat-body"
+          ref={bodyRef}
           name="body"
           rows={1}
           required

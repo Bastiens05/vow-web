@@ -3,12 +3,14 @@ import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { AlertDock } from "@/components/alerts/alert-dock";
+import { AssistantDock } from "@/components/assistant/assistant-dock";
+import { preferredCoupleWedding } from "@/lib/domain/access";
+import { assistantEnabled } from "@/lib/domain/assistant";
 import { DesktopNav, MobileChrome, PublicHeader } from "@/components/layout/app-nav";
 import { BillingGate } from "@/components/layout/billing-gate";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { VaultButton } from "@/components/layout/vault-button";
 import { VaultBoard } from "@/components/wedding/vault-board";
-import { preferredCoupleWedding } from "@/lib/domain/access";
 import { VAULT_CHECKLIST } from "@/lib/domain/vault";
 import { createClient } from "@/lib/supabase/server";
 import { latestUnreadAlert, listMyWeddings } from "@/server/data";
@@ -56,6 +58,12 @@ function MobileBarFallback() {
   return <div className="h-14 border-b border-line bg-ivory md:hidden" aria-hidden />;
 }
 
+async function defaultAssistantWedding(userId: string, role: "couple" | "vendor") {
+  const weddings = await listMyWeddings(userId);
+  if (role === "couple") return preferredCoupleWedding(weddings, userId)?.id ?? null;
+  return weddings.find((wedding) => !wedding.is_demo)?.id ?? weddings[0]?.id ?? null;
+}
+
 async function AlertSlot() {
   const session = await getSession();
   if (!session) return null;
@@ -68,6 +76,9 @@ async function AlertSlot() {
           <VaultButton href={`/mariage/${vault.weddingId}/coffre`} missing={vault.missing}>
             <VaultBoard weddingId={vault.weddingId} userId={session.userId} checklist={VAULT_CHECKLIST} stored={vault.stored} />
           </VaultButton>
+        ) : null}
+        {assistantEnabled() ? (
+          <AssistantDock role={session.profile.role} defaultWeddingId={await defaultAssistantWedding(session.userId, session.profile.role)} />
         ) : null}
         <AlertDock
           calm
