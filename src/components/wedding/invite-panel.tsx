@@ -14,9 +14,11 @@ import type { Tables } from "@/lib/database.types";
 export function InvitePanel({
   weddingId,
   invitations,
+  coupleOnly = false,
 }: {
   weddingId: string;
   invitations: Tables<"invitations">[];
+  coupleOnly?: boolean;
 }) {
   const [state, action, pending] = useActionState(createInvitation, {});
   return (
@@ -26,12 +28,16 @@ export function InvitePanel({
         <Field label="E-mail du destinataire">
           <TextInput name="email" type="email" required placeholder="couple@exemple.fr" />
         </Field>
+        {coupleOnly ? (
+          <input type="hidden" name="role" value="couple" />
+        ) : (
         <Field label="Rôle">
           <SelectInput name="role" defaultValue="couple">
             <option value="couple">Couple</option>
             <option value="vendor">Prestataire</option>
           </SelectInput>
         </Field>
+        )}
         {state.error ? (
           <div className="sm:col-span-2">
             <Alert>{state.error}</Alert>

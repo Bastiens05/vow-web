@@ -27,8 +27,9 @@ export function NavMenu({
   const path = usePathname() ?? "";
   const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
   const inWedding = Boolean(weddingIdFrom(path));
+  const couple = role === "couple" || actingAsCouple;
   const shown =
-    variant !== "tab"
+    couple || variant !== "tab"
       ? items
       : inWedding
         ? items.slice(0, 5)
@@ -47,7 +48,7 @@ export function NavMenu({
       aria-label={label}
       className={
         variant === "tab"
-          ? "fixed inset-x-0 bottom-0 z-40 flex border-t border-black/10 bg-white px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
+          ? "fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-paper/80 px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] backdrop-blur pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
           : "mt-8 flex flex-1 flex-col gap-1"
       }
     >
@@ -72,10 +73,26 @@ function itemsFor(
   actingAsCouple: boolean,
   isAdmin: boolean,
 ): Item[] {
-  const weddingId = weddingIdFrom(path);
-  if (weddingId && signedIn && role) {
+  const weddingId = primaryWeddingId;
+  if ((role === "couple" || actingAsCouple) && signedIn) {
+    const base = weddingId ? `/mariage/${weddingId}` : "";
+    const items: Item[] = [
+      { href: "/espace", label: "Accueil", icon: "home" },
+      { href: base ? `${base}/jour` : "/espace", label: "Jour J", icon: "clock" },
+      { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "file" },
+      { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
+      { href: base ? `${base}/documents` : "/espace", label: "Documents", icon: "file" },
+      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "spark" },
+      { href: base ? `${base}/messages` : "/messages", label: "Messages", icon: "message" },
+      { href: "/reglages", label: "Réglages", icon: "gear" },
+    ];
+    if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
+    return items;
+  }
+  const currentWedding = weddingIdFrom(path);
+  if (currentWedding && signedIn && role) {
     const view = actingAsCouple ? "couple" : role;
-    const base = `/mariage/${weddingId}`;
+    const base = `/mariage/${currentWedding}`;
     const sheet = pratiqueLabel(view, actingAsCouple ? null : category);
     const items: Item[] = [
       { href: base, label: "Aperçu", icon: "home" },

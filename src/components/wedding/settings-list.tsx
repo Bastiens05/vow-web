@@ -22,14 +22,28 @@ export function SettingsLink({
   icon: ReactNode;
 }) {
   return (
-    <Link href={href} className="flex min-h-11 items-center gap-3 border-b border-black/10 px-4 py-2 last:border-b-0">
+    <Link href={href} className="flex min-h-12 items-center gap-3 border-b border-line px-4 py-2 transition active:scale-[0.99] last:border-b-0 hover:bg-ink/[0.03]">
       <span className="text-ink/80">{icon}</span>
       <span className="min-w-0 flex-1 text-sm font-medium">{label}</span>
-      <span className="shrink-0 text-sm text-muted">{status}</span>
+      <StatusMark status={status} />
       <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-muted" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
         <path d="m9 6 6 6-6 6" />
       </svg>
     </Link>
+  );
+}
+
+function StatusMark({ status }: { status: string }) {
+  const tone = /complét|payé|prêt/i.test(status) ? "ok" : /à compléter|aucun|aucune/i.test(status) ? "bad" : "muted";
+  const dotOnly = /^(à compléter|complétée|complété)$/i.test(status.trim());
+  return (
+    <span className="inline-flex shrink-0 items-center gap-2">
+      <span
+        className={`h-2 w-2 rounded-full ${tone === "ok" ? "bg-ok" : tone === "bad" ? "bg-danger" : "bg-muted"}`}
+        aria-hidden
+      />
+      <span className={dotOnly ? "sr-only" : "text-sm text-muted"}>{status}</span>
+    </span>
   );
 }
 

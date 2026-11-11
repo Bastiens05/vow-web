@@ -7,10 +7,11 @@ describe("access", () => {
     expect(canInviteMembers("vendor")).toBe(true);
   });
 
-  it("keeps the couple in read and comment mode", () => {
+  it("keeps the couple from editing the timeline and lets them invite their partner", () => {
     expect(canManageTimeline("couple")).toBe(false);
-    expect(canInviteMembers("couple")).toBe(false);
+    expect(canInviteMembers("couple")).toBe(true);
     expect(canManageTimeline(null)).toBe(false);
+    expect(canInviteMembers(null)).toBe(false);
   });
 });
 

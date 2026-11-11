@@ -41,6 +41,14 @@ export function weddingTitle(partnerOne: string, partnerTwo: string): string {
   return `${partnerOne} & ${partnerTwo}`;
 }
 
+export function coupleHeroTitle(partnerOne: string, partnerTwo: string): string {
+  const one = partnerOne.trim();
+  const two = partnerTwo.trim();
+  if (!one) return "Votre mariage";
+  if (!two || two === "À venir" || two === "Couple") return `Mariage de ${one}`;
+  return `Mariage de ${one} et ${two}`;
+}
+
 export type TimelineSlotLike = {
   startsAt: string;
   sortOrder: number;

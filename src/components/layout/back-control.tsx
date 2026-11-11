@@ -7,7 +7,7 @@ export function BackControl({ fallback, label }: { fallback: string; label: stri
   return (
     <button
       type="button"
-      className="shrink-0 text-sm font-medium"
+      className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-sm font-medium transition active:scale-[0.98] hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       onClick={() => {
         const referrer = document.referrer;
         const sameOrigin = referrer.startsWith(window.location.origin);

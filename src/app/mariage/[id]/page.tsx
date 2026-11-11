@@ -62,9 +62,9 @@ export default async function WeddingOverviewPage({
   return (
     <div className="grid gap-6">
       <Card>
-        <h2 className="text-lg font-semibold tracking-tight">Membres</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{space.role === "couple" || space.actingAsCouple ? "Prestataires" : "Membres"}</h2>
         <ul className="mt-4 space-y-3">
-          {space.members.map((member) => (
+          {(space.role === "couple" || space.actingAsCouple ? space.members.filter((member) => member.role === "vendor") : space.members).map((member) => (
             <li key={member.userId} className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-medium">{member.fullName}</p>
@@ -80,16 +80,23 @@ export default async function WeddingOverviewPage({
             </li>
           ))}
         </ul>
+        {space.role === "couple" || space.actingAsCouple ? (
+          space.members.some((member) => member.role === "vendor") ? null : (
+            <p className="mt-3 text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
+          )
+        ) : null}
       </Card>
       <section className="grid gap-5">
+        {space.actingAsCouple || space.role === "couple" ? null : (
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">{space.actingAsCouple ? "Votre rôle" : "Votre métier"}</h2>
-          <p className="mt-1 text-sm text-muted">
-            {space.actingAsCouple ? "Le jour J, vous tenez les horaires." : "Le jour J, le couple tient les horaires."}
-          </p>
+          <h2 className="text-lg font-semibold tracking-tight">Votre métier</h2>
+          <p className="mt-1 text-sm text-muted">Le jour J, le couple tient les horaires.</p>
         </div>
+        )}
         <SettingsGroup title="Préparer">
+          {(questions.data ?? []).length === 0 && (space.role === "couple" || space.actingAsCouple) ? null : (
           <SettingsLink href={`/mariage/${id}/questions`} label="Questions" status={questionStatus(answers)} icon={<QuestionIcon />} />
+          )}
           <SettingsLink href={`/mariage/${id}/pratique`} label={fiche} status={sheetStatus(filled)} icon={<SheetIcon />} />
           <SettingsLink
             href={`/mariage/${id}/carte`}

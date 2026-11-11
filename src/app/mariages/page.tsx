@@ -18,7 +18,7 @@ export default async function WeddingsPage() {
       <PageHeader
         eyebrow={vendor ? "Espace prestataire" : "Espace mariés"}
         title="Mariages"
-        description={vendor ? "Tous vos mariages, les plus proches d'abord. La démo reste à part." : "Les mariages auxquels vous participez."}
+        description={vendor ? "Tous vos mariages, les plus proches d'abord. La démo reste à part." : "Votre mariage."}
         actions={
           vendor && real.length > 0 ? (
             <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink>

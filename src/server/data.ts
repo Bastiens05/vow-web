@@ -117,13 +117,11 @@ export type MessageView = {
   mine: boolean;
 };
 
-export async function listMessages(weddingId: string, userId: string): Promise<MessageView[]> {
+export async function listMessages(weddingId: string, userId: string, vendorUserId?: string): Promise<MessageView[]> {
   const supabase = await createClient();
-  const { data: messages } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("wedding_id", weddingId)
-    .order("created_at", { ascending: true });
+  let query = supabase.from("messages").select("*").eq("wedding_id", weddingId).order("created_at", { ascending: true });
+  if (vendorUserId) query = query.eq("vendor_user_id", vendorUserId);
+  const { data: messages } = await query;
   const authorIds = [...new Set((messages ?? []).map((message) => message.author_id))];
   const { data: profiles } = authorIds.length
     ? await supabase.from("profiles").select("id, full_name").in("id", authorIds)

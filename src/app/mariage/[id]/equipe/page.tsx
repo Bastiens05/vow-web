@@ -9,18 +9,22 @@ export const metadata: Metadata = { title: "Équipe" };
 
 export default async function DirectoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await getWeddingSpace(id);
+  const space = await getWeddingSpace(id);
+  const couple = space.role === "couple" || space.actingAsCouple;
   const supabase = await createClient();
   const { data } = await supabase.rpc("wedding_directory", { p_wedding_id: id });
-  const people = data ?? [];
+  const people = (data ?? []).filter((person) => (couple ? person.member_role === "vendor" : true));
   return (
     <div className="grid gap-4">
       <Card>
-        <h2 className="text-3xl font-semibold tracking-tight">Équipe</h2>
+        <h2 className="text-3xl font-semibold tracking-tight">{couple ? "Prestataires" : "Équipe"}</h2>
         <p className="mt-1 text-sm text-muted">
-          Chacun voit qui travaille sur ce mariage. Le téléphone et l&apos;e-mail n&apos;apparaissent que si le prestataire les a ouverts.
+          {couple
+            ? "Les prestataires de votre mariage, avec leur métier et un moyen de les joindre."
+            : "Chacun voit qui travaille sur ce mariage. Le téléphone et l'e-mail n'apparaissent que si le prestataire les a ouverts."}
         </p>
       </Card>
+      {people.length === 0 ? <Card><p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p></Card> : null}
       {people.map((person) => {
         const trade = person.category && isVendorCategory(person.category) ? categoryLabel(person.category) : null;
         return (
@@ -40,7 +44,7 @@ export default async function DirectoryPage({ params }: { params: Promise<{ id: 
                 {person.email}
               </a>
             ) : null}
-            <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-11 items-center text-sm underline">
+            <Link href={`/mariage/${id}/messages?avec=${person.user_id}`} className="inline-flex min-h-11 items-center text-sm underline">
               Écrire
             </Link>
           </Card>

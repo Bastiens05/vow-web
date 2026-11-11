@@ -1,16 +1,45 @@
 @import "tailwindcss";
 
+:root {
+  --vow-bg: #ffffff;
+  --vow-paper: #ffffff;
+  --vow-ink: #0a0a0a;
+  --vow-muted: #6e6e73;
+  --vow-line: #e6e6ea;
+  --vow-accent: #0a0a0a;
+  --vow-ok: #1f7a4d;
+  --vow-danger: #b42318;
+  --vow-danger-bg: #fdecec;
+  --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vow-bg: #000000;
+    --vow-paper: #0c0c0e;
+    --vow-ink: #f5f5f7;
+    --vow-muted: #a1a1a6;
+    --vow-line: #2c2c2e;
+    --vow-accent: #f5f5f7;
+    --vow-ok: #3dd68c;
+    --vow-danger: #ff6b6b;
+    --vow-danger-bg: #2a1212;
+    --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  }
+}
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --color-ivory: #f5f5f7;
-  --color-paper: #ffffff;
-  --color-ink: #1d1d1f;
-  --color-muted: #6e6e73;
-  --color-line: #e6e6ea;
-  --color-gold: #1d1d1f;
-  --color-gold-deep: #8a6a32;
-  --color-danger: #9b2c2c;
-  --color-danger-bg: #fdecec;
+  --color-ivory: var(--vow-bg);
+  --color-paper: var(--vow-paper);
+  --color-ink: var(--vow-ink);
+  --color-muted: var(--vow-muted);
+  --color-line: var(--vow-line);
+  --color-gold: var(--vow-accent);
+  --color-gold-deep: var(--vow-muted);
+  --color-ok: var(--vow-ok);
+  --color-danger: var(--vow-danger);
+  --color-danger-bg: var(--vow-danger-bg);
 }
 
 html {
@@ -18,8 +47,8 @@ html {
 }
 
 body {
-  background: var(--color-ivory);
-  color: var(--color-ink);
+  background: var(--vow-bg);
+  color: var(--vow-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
 }
@@ -40,8 +69,8 @@ a {
 }
 
 .auth-screen {
-  background: #f5f5f7;
-  color: #1d1d1f;
+  background: var(--vow-bg);
+  color: var(--vow-ink);
 }
 
 .auth-aside {
@@ -60,19 +89,34 @@ a {
   border-radius: 999px;
   font-size: 1.05rem;
   font-weight: 560;
-  transition: transform 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
 }
 
 .auth-choice,
 .auth-primary {
-  background: #1d1d1f;
-  color: white;
+  background: var(--vow-ink);
+  color: var(--vow-bg);
+}
+
+.auth-choice:hover,
+.auth-primary:hover,
+.auth-chip:hover {
+  opacity: 0.92;
 }
 
 .auth-choice:active,
 .auth-primary:active,
-.auth-chip:active {
+.auth-chip:active,
+.auth-quiet:active {
   transform: scale(0.98);
+}
+
+.auth-choice:focus-visible,
+.auth-primary:focus-visible,
+.auth-quiet:focus-visible,
+.auth-chip:focus-visible {
+  outline: 2px solid var(--vow-ink);
+  outline-offset: 3px;
 }
 
 .auth-primary:disabled,
@@ -87,16 +131,17 @@ a {
 
 .auth-chip {
   min-height: 2.75rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: white;
+  border: 1px solid var(--vow-line);
+  background: var(--vow-paper);
+  color: var(--vow-ink);
   padding: 0 0.9rem;
   font-size: 0.95rem;
 }
 
 .auth-chip-on {
-  background: #1d1d1f;
-  color: white;
-  border-color: #1d1d1f;
+  background: var(--vow-ink);
+  color: var(--vow-bg);
+  border-color: var(--vow-ink);
 }
 
 @keyframes auth-in {
@@ -113,22 +158,22 @@ a {
     display: grid;
     min-height: 100dvh;
     grid-template-columns: minmax(22rem, 0.9fr) minmax(26rem, 1.1fr);
-    background: #f5f5f7;
+    background: var(--vow-bg);
   }
 
   .auth-aside {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background: #1d1d1f;
+    background: #0a0a0a;
     color: #f5f5f7;
     padding: 3rem;
   }
 
   .auth-screen {
     max-width: none;
-    background: #f5f5f7;
-    color: #1d1d1f;
+    background: var(--vow-bg);
+    color: var(--vow-ink);
   }
 }
 

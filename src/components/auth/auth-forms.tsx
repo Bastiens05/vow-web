@@ -87,7 +87,7 @@ export function SignupForm({
           ] as const).map(([value, label]) => (
             <label
               key={value}
-              className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-paper px-3 py-2.5 text-sm has-[:checked]:border-gold has-[:checked]:bg-[#f8f1e4]"
+              className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-paper px-3 py-2.5 text-sm has-[:checked]:border-ink has-[:checked]:bg-ivory"
             >
               <input
                 type="radio"
@@ -95,7 +95,7 @@ export function SignupForm({
                 value={value}
                 defaultChecked={lockedRole ? lockedRole === value : value === "vendor"}
                 disabled={Boolean(lockedRole && lockedRole !== value)}
-                className="accent-[#c5a059]"
+                className="accent-ink"
                 required
               />
               {label}

@@ -4,7 +4,7 @@ import { BackControl } from "@/components/layout/back-control";
 import { NavMenu } from "@/components/layout/nav-menu";
 import { SpaceSwitcher } from "@/components/layout/space-switcher";
 import { SignOutButton } from "@/components/layout/sign-out-button";
-import { partitionWeddings } from "@/lib/domain/access";
+import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { backTarget, isPublicPath } from "@/lib/domain/chrome";
 import { todayIso } from "@/lib/domain/format";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
@@ -44,7 +44,7 @@ export async function MobileChrome() {
   const name = session?.vendor?.business_name || session?.profile.full_name || "";
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-black/10 bg-white/95 px-4 pr-28 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-paper/80 px-4 pr-28 backdrop-blur md:hidden">
         {context.back ? (
           <BackControl fallback={context.back.href} label={context.back.label} />
         ) : (
@@ -71,7 +71,7 @@ export async function MobileChrome() {
 
 export function PublicHeader() {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-black/10 bg-white/95 px-4 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-paper/80 px-4 backdrop-blur">
       <Link href="/" className="text-base font-semibold tracking-[0.22em]">
         VOW
       </Link>
@@ -97,14 +97,14 @@ async function navContext(session: SessionProfile | null) {
   }));
   const { upcoming, past } = partitionWeddings(dated, todayIso());
   const primary = upcoming.find((wedding) => !wedding.isDemo) ?? upcoming[0] ?? past[0] ?? null;
-  const coupleWedding = dated.find((wedding) => wedding.memberRole === "couple");
+  const coupleWedding = preferredCoupleWedding(dated, session.userId);
   let actingAsCouple = false;
   if (match) {
     const space = await getWeddingSpace(match[1]);
     actingAsCouple = space.actingAsCouple;
   }
   return {
-    primaryWeddingId: primary?.id ?? null,
+    primaryWeddingId: session.profile.role === "couple" ? (coupleWedding?.id ?? null) : (primary?.id ?? null),
     actingAsCouple,
     quiet,
     vendorHref: session.profile.role === "vendor" ? "/espace" : null,

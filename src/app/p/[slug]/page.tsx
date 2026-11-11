@@ -38,7 +38,7 @@ export default async function PublicVendorPage({ params }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       {!vendor.published ? (
-        <p className="mb-6 rounded-xl bg-[#f6f0e4] px-3 py-2 text-sm text-gold-deep">
+        <p className="mb-6 rounded-xl border border-line bg-paper px-3 py-2 text-sm">
           Cette vitrine n&apos;est pas publiée. Vous seul la voyez.
         </p>
       ) : null}

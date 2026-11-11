@@ -21,8 +21,10 @@ export default async function AlertsPage() {
   const notes = data ?? [];
   return (
     <div className="mx-auto w-full max-w-lg px-5 py-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Alertes</h1>
-      <p className="mt-2 text-sm text-muted">Ce qui a bougé sur vos mariages.</p>
+      <h1 className="text-4xl font-semibold tracking-tight">Alertes</h1>
+      <p className="mt-2 text-sm text-muted">
+        {session.profile.role === "couple" ? "Les dernières nouvelles de votre mariage." : "Ce qui a bougé sur vos mariages."}
+      </p>
       <ul className="mt-6 space-y-3">
         {notes.length === 0 ? (
           <li>

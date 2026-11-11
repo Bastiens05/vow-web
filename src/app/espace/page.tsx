@@ -7,8 +7,8 @@ import { openCoupleDemo } from "@/server/actions/account";
 import { countdownLabel, coupleNextActions, daysUntil } from "@/lib/domain/next-actions";
 import { categoryLabel } from "@/lib/domain/categories";
 import { coupleSteps, firstRunSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
-import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
-import { partitionWeddings } from "@/lib/domain/access";
+import { coupleHeroTitle, formatLongDate, todayIso } from "@/lib/domain/format";
+import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
 import { moderateReview } from "@/server/actions/ledger";
@@ -25,7 +25,10 @@ export default async function DashboardPage() {
     todayIso(),
   );
   const isVendor = session.profile.role === "vendor";
-  const primary = upcoming.find((wedding) => !wedding.isDemo) ?? upcoming[0] ?? past[0] ?? null;
+  const coupleWedding = preferredCoupleWedding(weddings, session.userId);
+  const primary = isVendor
+    ? (upcoming.find((wedding) => !wedding.isDemo) ?? upcoming[0] ?? past[0] ?? null)
+    : coupleWedding;
   const signals = await getDashboardSignals(primary ? [primary.id] : []);
   const focus = !isVendor && primary ? await getCoupleFocus(primary.id) : null;
   const countdown = primary ? daysUntil(primary.wedding_date, todayIso()) : null;
@@ -71,20 +74,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
-      <PageHeader
-        eyebrow={isVendor ? `Espace prestataire${session.vendor ? ` · ${categoryLabel(session.vendor.category)}` : ""}` : "Espace mariés"}
-        title={name || "Votre espace"}
-        description={
-          isVendor
-            ? "Vos mariages et votre vitrine. Le jour J, le couple tient les horaires."
-            : "Votre mariage. Le jour J, c'est vous qui prévenez les prestataires."
-        }
-        actions={
-          isVendor && realWeddings.length > 0 ? (
-            <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink>
-          ) : null
-        }
-      />
+      {isVendor ? (
+        <PageHeader
+          eyebrow={`Espace prestataire${session.vendor ? ` · ${categoryLabel(session.vendor.category)}` : ""}`}
+          title={name || "Votre espace"}
+          description="Vos mariages et votre vitrine. Le jour J, le couple tient les horaires."
+          actions={realWeddings.length > 0 ? <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink> : null}
+        />
+      ) : primary ? (
+        <header className="mb-10">
+          <p className="text-5xl font-semibold tracking-tight sm:text-7xl">{countdownLabel(countdown)}</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+            {coupleHeroTitle(primary.partner_one_name, primary.partner_two_name)}
+          </h1>
+          <p className="mt-3 text-base text-muted">{formatLongDate(primary.wedding_date)}</p>
+        </header>
+      ) : (
+        <header className="mb-10">
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Votre mariage</h1>
+          <p className="mt-3 max-w-xl text-base text-muted">L&apos;espace est vide. Une invitation vous y fait entrer.</p>
+        </header>
+      )}
       {ledger ? (
         <section className="mb-8 grid gap-3 sm:grid-cols-3">
           <Card>
@@ -130,18 +140,15 @@ export default async function DashboardPage() {
         </form>
       ) : null}
       {!isVendor && primary ? (
-        <section className="mb-8">
-          <p className="text-sm text-gold-deep">{weddingTitle(primary.partner_one_name, primary.partner_two_name)}</p>
-          <p className="mt-1 text-5xl font-semibold tracking-tight">{countdownLabel(countdown)}</p>
-          <p className="mt-1 text-sm text-muted">{formatLongDate(primary.wedding_date)}</p>
-          <h2 className="mb-3 mt-6 text-sm font-medium text-muted">À faire</h2>
-          {actions.length === 0 ? <p className="text-sm text-muted">Rien d&apos;urgent pour le moment.</p> : null}
-          <ol className="grid gap-2">
+        <section className="mb-10">
+          <h2 className="text-sm font-medium text-muted">À faire</h2>
+          {actions.length === 0 ? <p className="mt-3 text-sm text-muted">Rien d&apos;urgent pour le moment.</p> : null}
+          <ol className="mt-4 grid gap-3">
             {actions.map((action, index) => (
               <li key={action.id}>
-                <a href={action.href} className="flex min-h-14 items-center gap-3 rounded-2xl bg-paper px-4">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ivory text-xs font-semibold">{index + 1}</span>
-                  <span className="text-sm font-medium">{action.label}</span>
+                <a href={action.href} className="flex min-h-16 items-center gap-4 rounded-2xl border border-line bg-paper px-4 shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">{index + 1}</span>
+                  <span className="text-base font-medium">{action.label}</span>
                 </a>
               </li>
             ))}
@@ -193,7 +200,7 @@ export default async function DashboardPage() {
           </EmptyState>
         </div>
       ) : null}
-      <WeddingDirectory weddings={weddings} />
+      {isVendor ? <WeddingDirectory weddings={weddings} /> : null}
     </div>
   );
 }
