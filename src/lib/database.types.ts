@@ -857,6 +857,7 @@ export type Database = {
           tester_until: string | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          plan: "essentiel" | "pro" | "studio";
           updated_at: string;
         },
         {
@@ -864,6 +865,7 @@ export type Database = {
           status?: "trialing" | "active" | "expired" | "tester";
           trial_ends_at: string;
           tester_until?: string | null;
+          plan?: "essentiel" | "pro" | "studio";
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         },
@@ -871,6 +873,7 @@ export type Database = {
           status?: "trialing" | "active" | "expired" | "tester";
           trial_ends_at?: string;
           tester_until?: string | null;
+          plan?: "essentiel" | "pro" | "studio";
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         }
