@@ -44,6 +44,7 @@ export function DayBoard({
     cascade: boolean;
   } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [shiftingId, setShiftingId] = useState<string | null>(null);
   const [offerTemplate, setOfferTemplate] = useState(false);
 
   useEffect(() => {
@@ -139,12 +140,6 @@ export function DayBoard({
           ) : null}
         </div>
       ) : null}
-      {canControl && live.length > 0 ? (
-        <label className="flex min-h-11 items-center gap-3 text-sm text-muted">
-          <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-4 w-4 accent-ink" />
-          Décaler aussi la suite
-        </label>
-      ) : null}
       {error ? <Alert>{error}</Alert> : null}
       {live.length > 0 ? (
         <p className="text-sm text-muted">
@@ -154,13 +149,22 @@ export function DayBoard({
       {live.length > 0 ? <ol className="relative ml-1 border-l border-line">
         {live.map((slot) => {
           const concerned = slot.assigneeIds.map((id) => names.get(id)).filter((name): name is string => Boolean(name));
+          const shifting = shiftingId === slot.id;
           return (
           <li key={slot.id} className="relative pb-8 pl-6">
             <span className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full bg-ink" aria-hidden />
-            <p className="text-3xl font-semibold tracking-tight tabular-nums">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
-            <h3 className="mt-1 text-xl font-semibold tracking-tight">{slot.title}</h3>
-            {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : <p className="text-sm text-muted">Lieu à préciser</p>}
-            <p className="mt-2 text-sm">{concerned.length > 0 ? concerned.join(", ") : "Aucun prestataire"}</p>
+            {canControl ? (
+              <button
+                type="button"
+                className="block w-full text-left"
+                aria-expanded={shifting}
+                onClick={() => setShiftingId((current) => (current === slot.id ? null : slot.id))}
+              >
+                <StepSummary slot={slot} concerned={concerned} />
+              </button>
+            ) : (
+              <StepSummary slot={slot} concerned={concerned} />
+            )}
             {slot.ready ? (
               <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted">
                 <span className="h-2 w-2 rounded-full bg-ok" aria-hidden />
@@ -178,27 +182,45 @@ export function DayBoard({
             ) : null}
             {canControl ? (
               <>
-                <button type="button" className="mt-3 text-sm underline active:opacity-70" onClick={() => setEditingId((current) => (current === slot.id ? null : slot.id))}>
-                  {editingId === slot.id ? "Fermer" : "Modifier"}
-                </button>
+                <div className="mt-3 flex gap-4">
+                  <button
+                    type="button"
+                    className="text-sm text-muted underline active:opacity-70"
+                    aria-expanded={shifting}
+                    onClick={() => setShiftingId((current) => (current === slot.id ? null : slot.id))}
+                  >
+                    Décaler
+                  </button>
+                  <button type="button" className="text-sm text-muted underline active:opacity-70" onClick={() => setEditingId((current) => (current === slot.id ? null : slot.id))}>
+                    {editingId === slot.id ? "Fermer" : "Modifier"}
+                  </button>
+                </div>
                 {editingId === slot.id ? (
                   <StepEditor weddingId={weddingId} slot={slot} vendors={vendors} />
                 ) : null}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {[5, 15, 30, 60].map((minutes) => (
-                    <Button
-                      key={minutes}
-                      type="button"
-                      variant="secondary"
-                      disabled={pendingId === slot.id}
-                      onClick={() => move(slot, minutes)}
-                      className="min-h-10 px-3"
-                    >
-                      {pendingId === slot.id ? "…" : `+${minutes} min`}
-                    </Button>
-                  ))}
-                </div>
-                <TimePick weddingId={weddingId} slot={slot} cascade={cascade} onError={setError} />
+                {shifting ? (
+                  <div className="mt-4 space-y-3">
+                    <label className="flex items-center gap-2 text-sm text-muted">
+                      <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-4 w-4 accent-ink" />
+                      Décaler aussi la suite
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[5, 15, 30, 60].map((minutes) => (
+                        <Button
+                          key={minutes}
+                          type="button"
+                          variant="secondary"
+                          disabled={pendingId === slot.id}
+                          onClick={() => move(slot, minutes)}
+                          className="min-h-10 px-3"
+                        >
+                          {pendingId === slot.id ? "…" : `+${minutes} min`}
+                        </Button>
+                      ))}
+                    </div>
+                    <TimePick weddingId={weddingId} slot={slot} cascade={cascade} onError={setError} />
+                  </div>
+                ) : null}
               </>
             ) : null}
           </li>
@@ -216,6 +238,17 @@ export function DayBoard({
       ) : null}
       {canControl ? <PushToggle /> : null}
     </div>
+  );
+}
+
+function StepSummary({ slot, concerned }: { slot: SlotView; concerned: string[] }) {
+  return (
+    <>
+      <p className="text-3xl font-semibold tracking-tight tabular-nums">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
+      <h3 className="mt-1 text-xl font-semibold tracking-tight">{slot.title}</h3>
+      {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : <p className="text-sm text-muted">Lieu à préciser</p>}
+      <p className="mt-2 text-sm">{concerned.length > 0 ? concerned.join(", ") : "Aucun prestataire"}</p>
+    </>
   );
 }
 
@@ -341,9 +374,9 @@ function TimePick({
         name="new_time"
         required
         aria-label={`Nouvel horaire pour ${slot.title}`}
-        className="min-h-14 flex-1 rounded-full border border-line bg-ivory px-4 text-base"
+        className="min-h-10 flex-1 rounded-full border border-line bg-paper px-4 text-sm"
       />
-      <Button type="submit" variant="secondary" disabled={pending} className="min-h-14">
+      <Button type="submit" variant="secondary" disabled={pending} className="min-h-10 px-4">
         {pending ? "…" : "Heure"}
       </Button>
     </form>

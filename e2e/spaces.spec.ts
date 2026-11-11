@@ -74,7 +74,9 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
 
   await couplePage.goto(`/mariage/${weddingId}/jour`);
-  await expect(couplePage.getByRole("button", { name: "+30 min" }).first()).toBeVisible();
+  await expect(couplePage.getByRole("button", { name: "+30 min" })).toHaveCount(0);
+  await couplePage.getByRole("button", { name: "Décaler", exact: true }).first().click();
+  await expect(couplePage.getByRole("button", { name: "+30 min" })).toBeVisible();
   await expect(couplePage.getByText("Décaler aussi la suite")).toBeVisible();
   await expect(couplePage.getByRole("button", { name: "Envoyer l’alerte" })).toHaveCount(0);
 
