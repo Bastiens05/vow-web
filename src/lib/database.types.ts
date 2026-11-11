@@ -930,6 +930,42 @@ export type Database = {
         },
         { storage_path?: string | null; file_name?: string | null; mime_type?: string | null; label?: string }
       >;
+      quote_intakes: Table<
+        {
+          id: string;
+          wedding_id: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          business_name: string;
+          category: string;
+          email: string;
+          phone: string;
+          amount_cents: number | null;
+          status: string;
+          created_at: string;
+        },
+        {
+          wedding_id: string;
+          storage_path: string;
+          file_name: string;
+          mime_type?: string;
+          business_name?: string;
+          category?: string;
+          email?: string;
+          phone?: string;
+          amount_cents?: number | null;
+          status?: string;
+        },
+        {
+          business_name?: string;
+          category?: string;
+          email?: string;
+          phone?: string;
+          amount_cents?: number | null;
+          status?: string;
+        }
+      >;
       wedding_profile: Table<
         { wedding_id: string; facts: Json; updated_at: string },
         { wedding_id: string; facts?: Json; updated_at?: string },
