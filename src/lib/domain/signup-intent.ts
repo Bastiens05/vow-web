@@ -1,4 +1,5 @@
 import { isVendorCategory, type VendorCategory } from "@/lib/domain/categories";
+import { isWeddingVolume, type WeddingVolume } from "@/lib/domain/volume";
 
 export type SignupIntent = {
   role: "vendor" | "couple" | null;
@@ -9,6 +10,7 @@ export type SignupIntent = {
   phone: string;
   website: string;
   instagram: string;
+  weddingsPerYear: WeddingVolume | "";
   partnerOne: string;
   partnerTwo: string;
   weddingDate: string;
@@ -21,6 +23,7 @@ function text(form: FormData, key: string, max: number): string {
 
 export function readSignupIntent(form: FormData, role: "vendor" | "couple" | null): SignupIntent {
   const categoryRaw = text(form, "category", 40);
+  const volumeRaw = text(form, "weddings_per_year", 8);
   return {
     role,
     fullName: text(form, "full_name", 120),
@@ -30,6 +33,7 @@ export function readSignupIntent(form: FormData, role: "vendor" | "couple" | nul
     phone: text(form, "phone", 40),
     website: text(form, "website", 200),
     instagram: text(form, "instagram", 80).replace(/^@/, ""),
+    weddingsPerYear: isWeddingVolume(volumeRaw) ? volumeRaw : "",
     partnerOne: text(form, "partner_one", 80),
     partnerTwo: text(form, "partner_two", 80),
     weddingDate: text(form, "wedding_date", 10),
@@ -56,6 +60,7 @@ export function intentMetadata(intent: SignupIntent): Record<string, string> {
     data.phone = intent.phone;
     data.website = intent.website;
     data.instagram = intent.instagram;
+    if (intent.weddingsPerYear) data.weddings_per_year = intent.weddingsPerYear;
     if (!data.full_name) data.full_name = intent.businessName;
   }
   if (coupleIntentReady(intent)) {
@@ -80,6 +85,7 @@ export function intentFromMetadata(metadata: Record<string, unknown> | null | un
     "phone",
     "website",
     "instagram",
+    "weddings_per_year",
     "partner_one",
     "partner_two",
     "wedding_date",

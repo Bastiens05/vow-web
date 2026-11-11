@@ -19,6 +19,7 @@ export async function materializeSignup(supabase: Client, userId: string, intent
         contact_phone: intent.phone,
         website: intent.website,
         instagram: intent.instagram,
+        weddings_per_year: intent.weddingsPerYear,
       });
     }
   }

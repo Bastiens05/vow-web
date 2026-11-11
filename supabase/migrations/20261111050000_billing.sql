@@ -52,6 +52,14 @@ alter table public.vendor_profiles
 alter table public.vendor_profiles
   add constraint vendor_profiles_instagram_len check (char_length(instagram) <= 80);
 
+alter table public.vendor_profiles
+  add column weddings_per_year text not null default '';
+
+alter table public.vendor_profiles
+  add constraint vendor_profiles_weddings_per_year check (
+    weddings_per_year in ('', '1-10', '11-25', '26-50', '50+')
+  );
+
 create or replace function public.is_admin()
 returns boolean
 language sql

@@ -74,6 +74,7 @@ export type Database = {
           contact_phone: string;
           website: string;
           instagram: string;
+          weddings_per_year: string;
           starting_price_cents: number | null;
           currency: string;
           published: boolean;
@@ -97,6 +98,7 @@ export type Database = {
           contact_phone?: string;
           website?: string;
           instagram?: string;
+          weddings_per_year?: string;
           starting_price_cents?: number | null;
           currency?: string;
           published?: boolean;
@@ -116,6 +118,7 @@ export type Database = {
           contact_phone?: string;
           website?: string;
           instagram?: string;
+          weddings_per_year?: string;
           starting_price_cents?: number | null;
           currency?: string;
           published?: boolean;

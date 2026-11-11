@@ -14,7 +14,7 @@ export default async function AdminPage() {
   if (!session.isAdmin) redirect("/espace");
   const supabase = await createClient();
   const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }] = await Promise.all([
-    supabase.from("vendor_profiles").select("id, business_name, category, city, user_id").order("business_name"),
+    supabase.from("vendor_profiles").select("id, business_name, category, city, user_id, weddings_per_year").order("business_name"),
     supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
     supabase.from("profiles").select("id, email, full_name"),
     supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, access_until").order("created_at", { ascending: false }),
@@ -34,6 +34,7 @@ export default async function AdminPage() {
               <th className="px-4 py-3 font-medium">Activité</th>
               <th className="px-4 py-3 font-medium">E-mail</th>
               <th className="px-4 py-3 font-medium">Métier</th>
+              <th className="px-4 py-3 font-medium">Mariages / an</th>
               <th className="px-4 py-3 font-medium">Accès</th>
             </tr>
           </thead>
@@ -56,6 +57,7 @@ export default async function AdminPage() {
                   </td>
                   <td className="px-4 py-3">{person?.email}</td>
                   <td className="px-4 py-3">{categoryLabel(vendor.category as VendorCategory)}</td>
+                  <td className="px-4 py-3">{vendor.weddings_per_year || "—"}</td>
                   <td className="px-4 py-3">{accessLabel(access.reason, access.daysLeft, bill?.tester_until ?? null)}</td>
                 </tr>
               );

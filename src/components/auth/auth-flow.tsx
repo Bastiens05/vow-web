@@ -8,6 +8,7 @@ import { LoginForm, SignupForm } from "@/components/auth/auth-forms";
 import { OtpInput } from "@/components/auth/otp-input";
 import { isValidEmail } from "@/lib/domain/auth-routing";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
+import { WEDDING_VOLUMES, type WeddingVolume } from "@/lib/domain/volume";
 import { requestEmailCode, startOAuth, verifyEmailCode, type ActionState } from "@/server/actions/auth";
 
 type Step = "choose" | "vendor" | "couple" | "email" | "code" | "password";
@@ -53,6 +54,7 @@ export function AuthFlow({
   const [partnerTwo, setPartnerTwo] = useState("");
   const [weddingDate, setWeddingDate] = useState("");
   const [testerCode, setTesterCode] = useState("");
+  const [weddingsPerYear, setWeddingsPerYear] = useState<WeddingVolume | "">("");
   const [token, setToken] = useState("");
   const [seconds, setSeconds] = useState(0);
   const submitted = useRef("");
@@ -147,6 +149,23 @@ export function AuthFlow({
           </div>
           <FieldLike label="Nom de l'activité" name="business_name" value={businessName} onChange={setBusinessName} autoComplete="organization" />
           <FieldLike label="Ville" name="city" value={city} onChange={setCity} autoComplete="address-level2" />
+          <fieldset className="grid gap-2">
+            <legend className="text-sm">Combien de mariages faites-vous par an ?</legend>
+            <p className="text-xs text-muted">Facultatif.</p>
+            <div className="flex flex-wrap gap-2">
+              {WEDDING_VOLUMES.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={value === weddingsPerYear ? "auth-chip auth-chip-on" : "auth-chip"}
+                  onClick={() => setWeddingsPerYear(weddingsPerYear === value ? "" : value)}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <input type="hidden" name="weddings_per_year" value={weddingsPerYear} />
+          </fieldset>
           <FieldLike label="Téléphone" name="phone" value={phone} onChange={setPhone} autoComplete="tel" optional />
           <FieldLike label="Instagram" name="instagram" value={instagram} onChange={setInstagram} autoComplete="off" optional />
           <FieldLike label="Site web" name="website" value={website} onChange={setWebsite} autoComplete="url" optional />
@@ -282,6 +301,7 @@ export function AuthFlow({
                 phone,
                 instagram,
                 website,
+                weddings_per_year: weddingsPerYear,
                 partner_one: partnerOne,
                 partner_two: partnerTwo,
                 wedding_date: weddingDate,
