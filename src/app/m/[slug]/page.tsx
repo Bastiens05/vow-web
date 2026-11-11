@@ -28,7 +28,7 @@ export default async function CoupleSitePage({ params }: { params: Promise<{ slu
       {site.note ? <p className="mt-8 text-lg leading-8">{site.note}</p> : null}
       {site.programme ? <pre className="mt-8 whitespace-pre-wrap font-sans text-base leading-7">{site.programme}</pre> : null}
       {site.rsvp ? (
-        <Link href={`/rsvp/${site.rsvp}`} className="mt-10 inline-flex min-h-12 items-center rounded-full bg-ink px-5 text-sm text-white">
+        <Link href={`/rsvp/${site.rsvp}`} className="mt-10 inline-flex min-h-12 items-center rounded-full bg-ink px-5 text-sm text-ivory">
           Répondre à l&apos;invitation
         </Link>
       ) : null}

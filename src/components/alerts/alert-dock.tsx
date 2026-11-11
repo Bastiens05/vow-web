@@ -96,7 +96,7 @@ export function AlertDock({
       {toast ? (
         <div
           role="status"
-          className="fixed inset-x-4 bottom-24 z-50 rounded-2xl bg-ink px-4 py-4 text-sm leading-6 text-white shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
+          className="fixed inset-x-4 bottom-24 z-50 rounded-2xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
         >
           {toast}
         </div>

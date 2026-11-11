@@ -21,7 +21,7 @@ export function OtpInput({
       disabled={disabled}
       aria-label="Code à 6 chiffres"
       placeholder="000000"
-      className="auth-field w-full rounded-2xl border border-black/10 bg-white px-4 py-4 text-center text-3xl tracking-[0.45em] text-ink outline-none transition focus:border-ink"
+      className="auth-field w-full rounded-2xl border border-line bg-paper px-4 py-4 text-center text-3xl tracking-[0.45em] text-ink outline-none transition focus:border-ink"
     />
   );
 }
