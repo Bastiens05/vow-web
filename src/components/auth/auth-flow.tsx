@@ -201,7 +201,7 @@ export function AuthFlow({
               required
               value={weddingDate}
               onChange={(event) => setWeddingDate(event.target.value)}
-              className="auth-field min-h-14 rounded-2xl border border-black/10 bg-white px-4 text-lg outline-none focus:border-ink"
+              className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
             />
           </label>
           <FieldLike label="Ville" name="city" value={city} onChange={setCity} autoComplete="address-level2" optional />
@@ -239,7 +239,7 @@ export function AuthFlow({
               value={email}
               readOnly={Boolean(initialEmail)}
               onChange={(event) => setEmail(event.target.value)}
-              className="auth-field min-h-14 rounded-2xl border border-black/10 bg-white px-4 text-lg outline-none focus:border-ink"
+              className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
             />
           </label>
           {sent.error ? <Alert>{sent.error}</Alert> : null}
@@ -363,7 +363,7 @@ function FieldLike({
         required={!optional}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="auth-field min-h-14 rounded-2xl border border-black/10 bg-white px-4 text-lg outline-none focus:border-ink"
+        className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
       />
     </label>
   );

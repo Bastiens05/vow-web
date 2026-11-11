@@ -11,6 +11,8 @@
   --vow-danger: #b42318;
   --vow-danger-bg: #fdecec;
   --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+  --vow-band: #0a0a0a;
+  --vow-on-band: #f5f5f7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,10 +42,19 @@
   --color-ok: var(--vow-ok);
   --color-danger: var(--vow-danger);
   --color-danger-bg: var(--vow-danger-bg);
+  --color-band: var(--vow-band);
+  --color-on-band: var(--vow-on-band);
 }
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
 }
 
 body {
@@ -126,7 +137,7 @@ a {
 
 .auth-quiet {
   background: transparent;
-  color: #6e6e73;
+  color: var(--vow-muted);
 }
 
 .auth-chip {

@@ -59,7 +59,7 @@ export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId:
             autoComplete="organization"
             required
             minLength={2}
-            className="auth-field min-h-14 rounded-2xl border border-black/10 bg-white px-4 text-lg outline-none focus:border-ink"
+            className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
             placeholder="Atelier Lumière"
           />
         </label>
@@ -70,7 +70,7 @@ export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId:
             autoComplete="address-level2"
             required
             minLength={2}
-            className="auth-field min-h-14 rounded-2xl border border-black/10 bg-white px-4 text-lg outline-none focus:border-ink"
+            className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
             placeholder="Bordeaux"
           />
         </label>

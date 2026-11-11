@@ -70,7 +70,7 @@ export function SeatBoard({
                   event.dataTransfer.setData("text/plain", guest.id);
                   setDragging(guest.id);
                 }}
-                className="flex min-h-11 cursor-grab items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white px-4"
+                className="flex min-h-11 cursor-grab items-center justify-between gap-3 rounded-2xl border border-line bg-paper px-4 text-ink"
               >
                 <span className="text-sm">
                   {guest.fullName}

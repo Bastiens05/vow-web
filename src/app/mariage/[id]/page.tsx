@@ -184,7 +184,7 @@ export default async function WeddingOverviewPage({
                   aria-label={space.wedding.reminders_enabled ? "Rappels activés" : "Rappels coupés"}
                   className={`relative h-7 w-12 shrink-0 rounded-full ${space.wedding.reminders_enabled ? "bg-ink" : "bg-black/15"}`}
                 >
-                  <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white ${space.wedding.reminders_enabled ? "left-5" : "left-0.5"}`} />
+                  <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-ivory ${space.wedding.reminders_enabled ? "left-5" : "left-0.5"}`} />
                 </button>
               </form>
             ) : null}

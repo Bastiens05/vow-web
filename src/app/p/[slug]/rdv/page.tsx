@@ -25,7 +25,7 @@ export default async function PublicBookingPage({
       <form className="mt-6" method="get">
         <label className="grid gap-2 text-sm">
           Jour
-          <input type="date" name="jour" defaultValue={day} className="min-h-11 rounded-xl border border-line bg-white px-3" />
+          <input type="date" name="jour" defaultValue={day} className="min-h-11 rounded-xl border border-line bg-paper px-3 text-ink" />
         </label>
         <button className="mt-3 min-h-11 text-sm underline" type="submit">
           Voir les créneaux

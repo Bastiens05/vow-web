@@ -31,32 +31,32 @@ const features = [
 export function Landing() {
   return (
     <div>
-      <section className="bg-ink text-white">
+      <section className="bg-band text-on-band">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
-            <p className="text-xs font-semibold tracking-[0.28em] text-white/60">VOW</p>
-            <h1 className="mt-5 max-w-xl text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
+            <p className="text-xs font-semibold tracking-[0.28em] text-on-band/60">VOW</p>
+            <h1 className="mt-5 max-w-xl text-5xl font-semibold tracking-tight text-on-band sm:text-6xl lg:text-7xl">
               Du premier contact au jour J.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-white/70">
+            <p className="mt-6 max-w-xl text-lg leading-8 text-on-band/70">
               Un seul espace pour les prestataires de mariage. La vitrine, le couple, le déroulé, et les outils que les
               agendas ne font pas.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/inscription?role=vendor"
-                className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-ink"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-on-band px-5 text-sm font-medium text-band"
               >
                 Je suis prestataire
               </Link>
               <Link
                 href="/inscription?role=couple"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 px-5 text-sm font-medium text-white"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-on-band/30 px-5 text-sm font-medium text-on-band"
               >
                 Nous nous marions
               </Link>
             </div>
-            <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-white/60">
+            <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-on-band/60">
               J&apos;ai déjà un compte
             </Link>
           </div>
@@ -90,19 +90,19 @@ export function Landing() {
 
 function RelayCard() {
   return (
-    <div className="rounded-[2rem] bg-white p-6 text-ink shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
-      <p className="text-xs font-medium text-gold-deep">Jour J · aperçu</p>
+    <div className="rounded-[2rem] bg-white p-6 text-[#0a0a0a] shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
+      <p className="text-xs font-medium text-[#6e6e73]">Jour J · aperçu</p>
       <p className="mt-2 text-2xl font-semibold tracking-tight">Le relais avance.</p>
       <ol className="mt-6 space-y-3">
-        <li className="flex items-center justify-between rounded-2xl bg-ivory px-4 py-3">
+        <li className="flex items-center justify-between rounded-2xl bg-[#f5f5f7] px-4 py-3">
           <span>Préparatifs</span>
           <span className="text-xs font-medium">Prêt</span>
         </li>
-        <li className="flex items-center justify-between rounded-2xl bg-ink px-4 py-3 text-white">
+        <li className="flex items-center justify-between rounded-2xl bg-[#0a0a0a] px-4 py-3 text-[#f5f5f7]">
           <span>Cérémonie</span>
           <span className="text-xs">À vous</span>
         </li>
-        <li className="flex items-center justify-between rounded-2xl bg-ivory px-4 py-3 text-muted">
+        <li className="flex items-center justify-between rounded-2xl bg-[#f5f5f7] px-4 py-3 text-[#6e6e73]">
           <span>Cocktail</span>
           <span className="text-xs">Ensuite</span>
         </li>
@@ -114,7 +114,7 @@ function RelayCard() {
 function Relay() {
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="rounded-full bg-ink px-3 py-1 text-white">Préparatifs</span>
+      <span className="rounded-full bg-ink px-3 py-1 text-ivory">Préparatifs</span>
       <span className="text-muted">→</span>
       <span className="rounded-full border border-line px-3 py-1">Cérémonie</span>
       <span className="text-muted">→</span>
@@ -127,7 +127,7 @@ function Rain() {
   return (
     <div className="grid grid-cols-2 gap-2 text-sm">
       <div className="rounded-2xl bg-ivory px-3 py-4 text-muted">Soleil</div>
-      <div className="rounded-2xl bg-ink px-3 py-4 text-white">Pluie</div>
+      <div className="rounded-2xl bg-ink px-3 py-4 text-ivory">Pluie</div>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export function SpaceSwitcher({
   if (!vendorHref || !coupleHref) return null;
   return (
     <div className="mb-4 flex gap-2 px-3">
-      <Link href="/espace?switch=1" className="rounded-full bg-ink px-3 py-2 text-xs text-white" onClick={() => rememberSpace("vendor")}>
+      <Link href="/espace?switch=1" className="rounded-full bg-ink px-3 py-2 text-xs text-ivory" onClick={() => rememberSpace("vendor")}>
         Prestataire
       </Link>
       <Link href={coupleHref} className="rounded-full border border-line px-3 py-2 text-xs" onClick={() => rememberSpace("couple")}>
