@@ -46,7 +46,7 @@ export function coupleNextActions(input: {
     actions.push({ id: "guests", label: "Noter les invités et les régimes", href: `${base}/pratique` });
   }
   if (!input.hasTimeline) {
-    actions.push({ id: "timeline", label: "Relire le déroulé du jour", href: `${base}/deroulement` });
+    actions.push({ id: "timeline", label: "Poser le programme du jour", href: `${base}/jour` });
   }
   if (!input.hasDocument && !input.pendingSignature) {
     actions.push({ id: "document", label: "Déposer un document", href: `${base}/documents` });

@@ -68,6 +68,8 @@ describe("migration", () => {
       "vendor_billing",
       "tester_codes",
       "tester_redemptions",
+      "vault_items",
+      "vault_shares",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

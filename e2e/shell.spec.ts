@@ -78,7 +78,8 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
   await expect(page.getByText("Démo").first()).toBeVisible();
   const demoPath = new URL(page.url()).pathname.replace(/\/$/, "");
   await page.goto(`${demoPath}/jour`);
-  await expect(page.getByRole("button", { name: "+30 min" }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Décaler", exact: true }).first().click();
+  await expect(page.getByRole("button", { name: "+30 min" })).toBeVisible();
 
   const stillDenied = await vendor.rpc("shift_timeline_slot", {
     p_slot_id: slotId,

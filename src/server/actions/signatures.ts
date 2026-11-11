@@ -71,7 +71,17 @@ export async function signDocument(_prev: ActionState, formData: FormData): Prom
     await supabase.storage.from("wedding-documents").remove([path]);
     return { error: messageFromError(error) };
   }
+  await supabase.from("vault_items").insert({
+    wedding_id: weddingId,
+    owner_id: session.userId,
+    kind: "contract",
+    label: "Contrat signé",
+    storage_path: path,
+    file_name: "signature.png",
+    mime_type: "image/png",
+  });
   revalidatePath(`/mariage/${weddingId}/documents`);
+  revalidatePath(`/mariage/${weddingId}/coffre`);
   return { success: "Contrat signé." };
 }
 

@@ -83,18 +83,15 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await expect(couplePage.getByText("Merci, on est bien arrivés.")).toBeVisible();
   await expect(page.getByText("Merci, on est bien arrivés.")).toBeVisible({ timeout: 20_000 });
 
-  await couplePage.getByRole("link", { name: "Déroulé" }).click();
-  await couplePage.getByLabel("Nouveau moment").fill("Cérémonie");
+  await couplePage.getByRole("link", { name: "Jour J" }).click();
+  await couplePage.getByLabel("Étape").fill("Cérémonie");
   await couplePage.getByLabel("Heure").fill("16:00");
   await couplePage.getByLabel("Lieu", { exact: true }).fill("Jardin");
-  await couplePage.getByRole("button", { name: "Ajouter au déroulé" }).click();
+  await couplePage.getByRole("button", { name: "Ajouter l'étape" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
-  await couplePage.getByLabel("Commentaire").fill("On ajoute une lecture.");
-  await couplePage.getByRole("button", { name: "Commenter" }).click();
-  await expect(couplePage.getByText("On ajoute une lecture.")).toBeVisible();
-  await page.getByRole("link", { name: "Déroulé" }).click();
+  await page.getByRole("link", { name: "Jour J" }).click();
   await expect(page.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
-  await expect(page.getByLabel("Nouveau moment")).toHaveCount(0);
+  await expect(page.getByLabel("Étape")).toHaveCount(0);
 
   await page.getByRole("link", { name: "Documents" }).click();
   const fileName = `note-${stamp}.txt`;

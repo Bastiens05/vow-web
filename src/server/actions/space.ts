@@ -67,6 +67,7 @@ export async function addTimelineSlot(
   });
   if (error) return { error: messageFromError(error) };
   revalidatePath(`/mariage/${weddingId}/deroulement`);
+  revalidatePath(`/mariage/${weddingId}/jour`);
   return { success: "Moment ajouté." };
 }
 
@@ -97,6 +98,7 @@ export async function updateTimelineSlot(
     .eq("wedding_id", weddingId);
   if (error) return { error: messageFromError(error) };
   revalidatePath(`/mariage/${weddingId}/deroulement`);
+  revalidatePath(`/mariage/${weddingId}/jour`);
   return { success: "Moment mis à jour." };
 }
 
@@ -107,6 +109,7 @@ export async function deleteTimelineSlot(formData: FormData) {
   const supabase = await createClient();
   await supabase.from("timeline_slots").delete().eq("id", id).eq("wedding_id", weddingId);
   revalidatePath(`/mariage/${weddingId}/deroulement`);
+  revalidatePath(`/mariage/${weddingId}/jour`);
 }
 
 export async function addTimelineComment(

@@ -40,10 +40,11 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
   const weddingId = new URL(page.url()).pathname.split("/")[2] ?? "";
   const link = await page.locator("code").first().innerText();
 
-  await page.getByRole("link", { name: "Déroulé" }).click();
+  await page.getByRole("link", { name: "Jour J" }).click();
+  await page.getByRole("button", { name: "Cérémonie laïque + vin d'honneur + dîner" }).click();
   await page.getByRole("button", { name: "Suggérer au couple" }).click();
-  await expect(page.getByText("Suggestion envoyée : Photographe")).toBeVisible();
-  await expect(page.getByLabel("Nouveau moment")).toHaveCount(0);
+  await expect(page.getByText("Suggestion envoyée : Cérémonie laïque + vin d'honneur + dîner")).toBeVisible();
+  await expect(page.getByLabel("Étape")).toHaveCount(0);
 
   const vendor = await asUser(vendorEmail);
   const blocked = await vendor.from("timeline_slots").insert({
@@ -69,9 +70,9 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
   await signUp(couplePage, { name: "Nina Martin", email: coupleEmail, role: "Couple", emailLocked: true });
   await couplePage.getByRole("button", { name: "Rejoindre le mariage" }).click();
   await expect(couplePage.getByRole("heading", { name: "Nina & Paul" })).toBeVisible();
-  await couplePage.getByRole("link", { name: "Déroulé" }).click();
+  await couplePage.getByRole("link", { name: "Jour J" }).click();
   await couplePage.getByRole("button", { name: "Appliquer" }).click();
-  await expect(couplePage.getByRole("heading", { name: "Préparatifs photo" })).toBeVisible();
+  await expect(couplePage.getByRole("heading", { name: "Cérémonie laïque" })).toBeVisible();
 
   const slots = await vendor.from("timeline_slots").select("id, title").eq("wedding_id", weddingId);
   const slotId = slots.data?.[0]?.id ?? "";

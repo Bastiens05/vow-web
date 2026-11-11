@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { builtinTemplate, suggestedTemplateId } from "./timeline-templates";
 
 describe("timeline templates", () => {
-  it("suggests the trade template and falls back to the general day", () => {
-    expect(suggestedTemplateId("photographer")).toBe("photographer");
-    expect(suggestedTemplateId("caterer")).toBe("caterer");
-    expect(suggestedTemplateId(null)).toBe("general");
-    expect(builtinTemplate("general")?.slots[1]?.title).toBe("Accueil des invités");
-    expect(builtinTemplate("dj")?.label).toBe("DJ");
+  it("suggests a day shape the couple can read", () => {
+    expect(suggestedTemplateId("photographer")).toBe("laique");
+    expect(suggestedTemplateId("caterer")).toBe("soiree");
+    expect(suggestedTemplateId(null)).toBe("laique");
+    expect(builtinTemplate("laique")?.label).toBe("Cérémonie laïque + vin d'honneur + dîner");
+    expect(builtinTemplate("laique")?.slots.map((slot) => slot.title)).toContain("Vin d'honneur");
+    expect(builtinTemplate("soiree")?.slots.at(-1)?.title).toBe("Soirée dansante");
   });
 });
