@@ -90,6 +90,7 @@ describe("migration", () => {
       "vendor_credentials",
       "credential_shares",
       "credential_links",
+      "proven_references",
       "wedding_music",
     ]);
     for (const table of tables) {

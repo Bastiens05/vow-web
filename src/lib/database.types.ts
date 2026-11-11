@@ -491,6 +491,11 @@ export type Database = {
         { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
         { thin_cents?: number; include_unsigned?: boolean }
       >;
+      proven_references: Table<
+        { id: string; vendor_id: string; wedding_id: string | null; month: string; venue_name: string; town: string; review: string; couple_public_name: string | null; published: boolean; confirmed: boolean },
+        { vendor_id: string; month: string; venue_name: string; town?: string; review?: string; couple_public_name?: string | null; published?: boolean; confirmed?: boolean; wedding_id?: string | null },
+        { month?: string; venue_name?: string; town?: string; review?: string; couple_public_name?: string | null; published?: boolean; confirmed?: boolean }
+      >;
       vendor_credentials: Table<
         { id: string; vendor_id: string; kind: string; storage_path: string; file_name: string; expires_on: string | null; share_globally: boolean },
         { vendor_id: string; kind: string; storage_path: string; file_name: string; expires_on?: string | null; share_globally?: boolean },
