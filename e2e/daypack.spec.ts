@@ -80,7 +80,8 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await page.getByLabel("Titre").fill("Photos finales");
   await page.getByLabel("Fichier").setInputFiles({ name: fileName, mimeType: "image/png", buffer: png });
   await page.getByRole("button", { name: "Déposer" }).click();
-  await expect(page.getByText(fileName)).toBeVisible();
+  const storedName = fileName.replace(/\.png$/, ".jpg");
+  await expect(page.getByText(storedName)).toBeVisible();
   const downloadHref = await page.getByRole("link", { name: "Télécharger" }).getAttribute("href");
 
   await page.goto(`/mariage/${weddingId}/inviter`);
@@ -98,7 +99,7 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await expect(catererPage.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
   await catererPage.goto(`/mariage/${weddingId}/galerie`);
   await expect(catererPage.getByText("réservée au couple")).toBeVisible();
-  await expect(catererPage.getByText(fileName)).toHaveCount(0);
+  await expect(catererPage.getByText(storedName)).toHaveCount(0);
   if (downloadHref) {
     const denied = await catererPage.request.get(downloadHref);
     expect(denied.status()).toBe(404);

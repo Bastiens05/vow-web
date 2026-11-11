@@ -9,6 +9,7 @@ import { normalizeEmail } from "@/lib/domain/validation";
 import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { deliverOutbox } from "@/server/product-mail";
 import { requireSession } from "@/server/session";
 
 function clientIp(headerStore: Headers): string {
@@ -48,6 +49,7 @@ export async function submitQuote(_prev: ActionState, formData: FormData): Promi
     p_ip: clientIp(headerStore),
   });
   if (error) return { error: messageFromError(error) };
+  await deliverOutbox();
   return { success: "Demande envoyée. Le prestataire la retrouve dans VOW." };
 }
 

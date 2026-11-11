@@ -21,6 +21,14 @@ export const listMyWeddings = cache(async (userId: string): Promise<WeddingCard[
     if (!wedding) return [];
     return [{ ...wedding, memberRole: row.member_role, coupleJoined: false }];
   });
+  const { data: staffIds } = await supabase.rpc("staff_wedding_ids");
+  const missing = (staffIds ?? []).filter((id) => !cards.some((card) => card.id === id));
+  if (missing.length > 0) {
+    const { data: extra } = await supabase.from("weddings").select("*").in("id", missing);
+    for (const wedding of extra ?? []) {
+      cards.push({ ...wedding, memberRole: "vendor", coupleJoined: false });
+    }
+  }
   if (cards.length === 0) return [];
   const { data: couples } = await supabase
     .from("wedding_members")
@@ -46,6 +54,7 @@ export type WeddingSpace = {
   wedding: Tables<"weddings">;
   role: AppRole;
   actingAsCouple: boolean;
+  host: boolean;
   members: MemberView[];
   title: string;
 };
@@ -70,7 +79,8 @@ export const getWeddingSpace = cache(async (weddingId: string): Promise<WeddingS
   if (!wedding) notFound();
   const rows = (membersResult.data ?? []) as unknown as MemberWithProfile[];
   const mine = rows.find((row) => row.user_id === session.userId);
-  if (!mine) notFound();
+  const { data: staff } = mine ? { data: false } : await supabase.rpc("is_wedding_staff", { p_wedding: weddingId });
+  if (!mine && !staff) notFound();
   const members: MemberView[] = rows.map((row) => {
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
     return {
@@ -81,15 +91,18 @@ export const getWeddingSpace = cache(async (weddingId: string): Promise<WeddingS
     };
   });
 
-  const actingAsCouple =
-    mine.member_role === "couple" ||
-    (wedding.is_demo && wedding.couple_preview && wedding.created_by === session.userId);
+  const actingAsCouple = Boolean(
+    mine &&
+      (mine.member_role === "couple" ||
+        (wedding.is_demo && wedding.couple_preview && wedding.created_by === session.userId)),
+  );
 
   return {
     session,
     wedding,
-    role: mine.member_role,
+    role: mine?.member_role ?? "vendor",
     actingAsCouple,
+    host: Boolean(mine && mine.member_role === "vendor" && !actingAsCouple),
     members,
     title: weddingTitle(wedding.partner_one_name, wedding.partner_two_name),
   };

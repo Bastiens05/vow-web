@@ -188,6 +188,14 @@ function TimePick({
 function PushToggle() {
   const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const [status, setStatus] = useState<string | null>(null);
+  const [ios, setIos] = useState(false);
+  useEffect(() => {
+    const apple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      ("standalone" in navigator && Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
+    setIos(apple && !standalone);
+  }, []);
   if (!key) {
     return (
       <p className="text-sm text-muted">
@@ -197,6 +205,11 @@ function PushToggle() {
   }
   return (
     <div>
+      {ios ? (
+        <p className="mb-3 text-sm leading-6 text-muted">
+          Sur iPhone, ajoutez VOW à l&apos;écran d&apos;accueil : Partager, puis Sur l&apos;écran d&apos;accueil. Les notifications n&apos;arrivent qu&apos;ensuite.
+        </p>
+      ) : null}
       <Button
         type="button"
         variant="secondary"

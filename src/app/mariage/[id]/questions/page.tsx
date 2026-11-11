@@ -27,7 +27,7 @@ export default async function QuestionsPage({ params }: { params: Promise<{ id: 
     : { data: [] };
   const vendorId = space.session.vendor?.id;
   const mine = (forms ?? []).find((form) => form.vendor_id === vendorId);
-  const canPrepare = !space.actingAsCouple && space.role === "vendor" && Boolean(vendorId);
+  const canPrepare = space.host && Boolean(vendorId);
   const category = space.session.vendor?.category;
   return (
     <div className="grid gap-4">

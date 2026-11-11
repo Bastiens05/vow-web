@@ -31,6 +31,8 @@ export async function saveNotificationPrefs(_prev: ActionState, formData: FormDa
     .update({
       notify_in_app: formData.get("notify_in_app") === "on",
       notify_push: formData.get("notify_push") === "on",
+      notify_email: formData.get("notify_email") === "on",
+      notify_reminders: formData.get("notify_reminders") === "on",
     })
     .eq("id", session.userId);
   if (error) return { error: messageFromError(error) };

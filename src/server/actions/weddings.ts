@@ -6,8 +6,10 @@ import type { Json } from "@/lib/database.types";
 import { messageFromError } from "@/lib/errors";
 import { generateInvitationToken } from "@/lib/domain/token";
 import { normalizeEmail, validateWedding } from "@/lib/domain/validation";
+import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { magicInvitationUrl, sendInvitationEmail } from "@/server/product-mail";
 import { requireSession } from "@/server/session";
 
 function readRole(value: FormDataEntryValue | null): "vendor" | "couple" | null {
@@ -63,8 +65,21 @@ export async function createInvitation(_prev: ActionState, formData: FormData): 
   if (error) return { error: messageFromError(error) };
   const token = readToken(data);
   if (!token) return { error: "L'invitation n'a pas pu être créée." };
+  const { data: wedding } = await supabase
+    .from("weddings")
+    .select("partner_one_name, partner_two_name")
+    .eq("id", weddingId)
+    .maybeSingle();
+  const title = wedding ? `${wedding.partner_one_name} & ${wedding.partner_two_name}` : "Votre mariage";
+  const fallback = `${siteUrl()}/invitation/${token}`;
+  const url = await magicInvitationUrl({ email, role, token, fallback });
+  await sendInvitationEmail({ to: email, title, url, role });
   revalidatePath(`/mariage/${weddingId}/inviter`);
-  return { success: "Invitation créée. Copiez le lien ci-dessous." };
+  return {
+    success: url === fallback
+      ? "Invitation créée. Copiez le lien ci-dessous. L'e-mail part si l'envoi est configuré."
+      : "Invitation envoyée. Le lien magique ouvre le mariage. Il reste aussi affiché ci-dessous.",
+  };
 }
 
 function readToken(value: Json | null): string | null {

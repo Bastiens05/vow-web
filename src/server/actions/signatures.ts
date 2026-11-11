@@ -7,6 +7,7 @@ import { messageFromError } from "@/lib/errors";
 import { safeFileName } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { sendCoupleMail } from "@/server/product-mail";
 import { requireSession } from "@/server/session";
 
 export async function requestSignature(formData: FormData): Promise<void> {
@@ -26,6 +27,13 @@ export async function requestSignature(formData: FormData): Promise<void> {
     wedding_id: weddingId,
     requested_by: session.userId,
     document_sha256: sha256,
+  });
+  await sendCoupleMail(supabase, weddingId, {
+    subject: `Contrat à signer · ${document.file_name}`,
+    heading: "Un contrat à signer",
+    body: `${document.file_name} attend votre signature dans le mariage.`,
+    buttonLabel: "Ouvrir le document",
+    path: `/mariage/${weddingId}/documents`,
   });
   revalidatePath(`/mariage/${weddingId}/documents`);
 }

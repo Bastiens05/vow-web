@@ -39,6 +39,8 @@ Migrations, dans cet ordre, sur un projet vide :
 5. `supabase/migrations/20261110240000_day_tools.sql` — demandes de devis (`leads`, `submit_quote_request`), modèles de déroulé (le couple les applique, le prestataire les suggère), rappels J-60/J-30/J-14 (`run_due_reminders`) et signatures électroniques simples (`signature_requests`, `record_signature`). L'insertion et la modification de `timeline_slots` sont réservées au couple, y compris via `is_wedding_couple` pour l'essai démo.
 6. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
 7. `supabase/migrations/20261111010000_daypack.sql` — questionnaire par métier, lieux du jour J, annuaire (téléphone et e-mail seulement si le prestataire les ouvre) et galerie photo / vidéo.
+8. `supabase/migrations/20261111020000_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part.
+9. `supabase/migrations/20261111030000_suite.sql` — équipe (lecture des mariages, facturation au titulaire), calendrier ICS privé, rendez-vous, RSVP, plan de table, budget du couple et page publique des mariés.
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 
@@ -102,6 +104,16 @@ Authentication → Providers : e-mail activé. En production, laissez la confirm
 Mot de passe minimum recommandé : 8 caractères. Le formulaire le vérifie déjà.
 
 La connexion envoie un lien (`{{ .ConfirmationURL }}` du modèle par défaut). Il passe par Supabase puis revient sur `/auth/callback`, qui ouvre la session. `/auth/confirm` accepte aussi un `token_hash` si le modèle le construit ainsi. Dans le tableau Supabase, les URL autorisées doivent inclure exactement `https://<site>/auth/callback` et `https://<site>/auth/confirm`. Si « Confirm email » est actif, l'inscription affiche « Vérifiez votre boîte mail ». Le champ de code à 6 chiffres n'apparaît que si `NEXT_PUBLIC_AUTH_OTP_CODE=true` et que le modèle contient `{{ .Token }}`. Le mot de passe reste disponible. Google et Apple ne s'affichent que si `NEXT_PUBLIC_AUTH_GOOGLE` ou `NEXT_PUBLIC_AUTH_APPLE` vaut `true`.
+
+Les e-mails de l'application (invitation, rappel, acompte, demande de devis, devis, facture, contrat, alerte Jour J) passent par l'API HTTP de Resend. `RESEND_API_KEY` et `EMAIL_FROM` doivent être tous les deux définis. Sinon l'envoi est ignoré et le comportement actuel (lien à copier, alerte dans l'application) reste en place. Les rappels respectent le réglage « Rappels avant le mariage » et le lien de désinscription en bas du message. Les invitations utilisent un lien magique Supabase quand `SUPABASE_SERVICE_ROLE_KEY` est présent : le destinataire arrive dans le mariage. Sans cette clé, le bouton ouvre la page d'invitation.
+
+Pour que les e-mails d'authentification Supabase partent aussi par Resend, et pour pouvoir afficher `{{ .Token }}` :
+
+1. Créer un domaine vérifié dans Resend, et une clé API.
+2. Supabase → Authentication → Emails → SMTP Settings : activer le SMTP personnalisé.
+3. Hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = la clé API Resend, expéditeur = la même adresse que `EMAIL_FROM`.
+4. Dans le modèle « Magic link » (et « Confirm signup » si besoin), ajouter `{{ .Token }}` à côté de `{{ .ConfirmationURL }}`.
+5. Alors seulement, poser `NEXT_PUBLIC_AUTH_OTP_CODE=true`. Le champ à 6 chiffres apparaît. Sans `{{ .Token }}` dans le modèle, laisser la variable vide.
 
 ## Lancer l'application
 

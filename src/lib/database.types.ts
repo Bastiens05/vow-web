@@ -32,6 +32,9 @@ export type Database = {
           email: string;
           notify_in_app: boolean;
           notify_push: boolean;
+          notify_email: boolean;
+          notify_reminders: boolean;
+          email_token: string;
           created_at: string;
           updated_at: string;
         },
@@ -42,10 +45,20 @@ export type Database = {
           email?: string;
           notify_in_app?: boolean;
           notify_push?: boolean;
+          notify_email?: boolean;
+          notify_reminders?: boolean;
+          email_token?: string;
           created_at?: string;
           updated_at?: string;
         },
-        { full_name?: string; notify_in_app?: boolean; notify_push?: boolean; updated_at?: string }
+        {
+          full_name?: string;
+          notify_in_app?: boolean;
+          notify_push?: boolean;
+          notify_email?: boolean;
+          notify_reminders?: boolean;
+          updated_at?: string;
+        }
       >;
       vendor_profiles: Table<
         {
@@ -593,6 +606,35 @@ export type Database = {
         { id?: string; wedding_id: string; vendor_id: string; title: string; expires_at?: string | null },
         { title?: string; expires_at?: string | null }
       >;
+      mail_outbox: Table<
+        {
+          id: string;
+          kind: string;
+          to_email: string;
+          subject: string;
+          heading: string;
+          body: string;
+          button_label: string;
+          button_url: string;
+          unsubscribe_token: string | null;
+          created_at: string;
+          sent_at: string | null;
+        },
+        {
+          id?: string;
+          kind: string;
+          to_email: string;
+          subject: string;
+          heading: string;
+          body: string;
+          button_label: string;
+          button_url: string;
+          unsubscribe_token?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+        },
+        { sent_at?: string | null }
+      >;
       delivery_files: Table<
         {
           id: string;
@@ -612,6 +654,66 @@ export type Database = {
           size_bytes: number;
         },
         { file_name?: string }
+      >;
+      vendor_members: Table<
+        { vendor_id: string; user_id: string; team_role: string; created_at: string },
+        { vendor_id: string; user_id: string; team_role?: string },
+        { team_role?: string }
+      >;
+      vendor_team_invites: Table<
+        { id: string; vendor_id: string; email: string; token: string; expires_at: string; accepted_at: string | null; created_at: string },
+        { vendor_id: string; email: string; token: string },
+        { accepted_at?: string | null }
+      >;
+      availability_rules: Table<
+        { id: string; vendor_id: string; weekday: number; start_time: string; end_time: string },
+        { vendor_id: string; weekday: number; start_time: string; end_time: string },
+        { start_time?: string; end_time?: string }
+      >;
+      appointments: Table<
+        { id: string; vendor_id: string; wedding_id: string | null; full_name: string; email: string; starts_at: string; note: string; status: string; ics_token: string; created_at: string },
+        { vendor_id: string; wedding_id?: string | null; full_name: string; email: string; starts_at: string; note?: string },
+        { status?: string }
+      >;
+      rsvp_pages: Table<
+        { wedding_id: string; token: string; enabled: boolean },
+        { wedding_id: string; token: string; enabled?: boolean },
+        { enabled?: boolean; token?: string }
+      >;
+      rsvp_answers: Table<
+        { id: string; wedding_id: string; full_name: string; attending: boolean; diet: string; created_at: string },
+        { wedding_id: string; full_name: string; attending: boolean; diet?: string },
+        { diet?: string }
+      >;
+      seating_tables: Table<
+        { id: string; wedding_id: string; name: string; capacity: number; sort_order: number },
+        { wedding_id: string; name: string; capacity?: number; sort_order?: number },
+        { name?: string; capacity?: number }
+      >;
+      seating_assignments: Table<
+        { guest_id: string; table_id: string },
+        { guest_id: string; table_id: string },
+        { table_id?: string }
+      >;
+      wedding_budgets: Table<
+        { wedding_id: string; total_cents: number },
+        { wedding_id: string; total_cents?: number },
+        { total_cents?: number }
+      >;
+      budget_lines: Table<
+        { id: string; wedding_id: string; label: string; amount_cents: number; sort_order: number },
+        { wedding_id: string; label: string; amount_cents: number; sort_order?: number },
+        { label?: string; amount_cents?: number }
+      >;
+      wedding_sites: Table<
+        { wedding_id: string; slug: string; published: boolean; place: string; programme: string; note: string },
+        { wedding_id: string; slug: string; published?: boolean; place?: string; programme?: string; note?: string },
+        { slug?: string; published?: boolean; place?: string; programme?: string; note?: string }
+      >;
+      calendar_feeds: Table<
+        { user_id: string; token: string; revoked_at: string | null },
+        { user_id: string; token: string },
+        { token?: string; revoked_at?: string | null }
       >;
     };
     Views: Record<string, never>;
@@ -694,6 +796,44 @@ export type Database = {
       run_deposit_reminders: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      unsubscribe_reminders: {
+        Args: { p_token: string };
+        Returns: boolean;
+      };
+      enqueue_product_mail: {
+        Args: { p_site: string };
+        Returns: number;
+      };
+      is_wedding_staff: { Args: { p_wedding: string }; Returns: boolean };
+      staff_wedding_ids: { Args: Record<string, never>; Returns: string[] };
+      accept_team_invite: { Args: { p_token: string }; Returns: string };
+      open_slots: { Args: { p_slug: string; p_day: string }; Returns: { starts_at: string }[] };
+      book_appointment: {
+        Args: { p_slug: string; p_name: string; p_email: string; p_starts: string; p_note: string; p_wedding: string | null };
+        Returns: string;
+      };
+      submit_rsvp: { Args: { p_token: string; p_name: string; p_attending: boolean; p_diet: string }; Returns: boolean };
+      ensure_calendar_feed: { Args: Record<string, never>; Returns: string };
+      rotate_calendar_feed: { Args: Record<string, never>; Returns: string };
+      calendar_events: { Args: { p_token: string }; Returns: Json };
+      appointment_event: { Args: { p_token: string }; Returns: Json };
+      public_site: { Args: { p_slug: string }; Returns: Json };
+      claim_mail_outbox: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          kind: string;
+          to_email: string;
+          subject: string;
+          heading: string;
+          body: string;
+          button_label: string;
+          button_url: string;
+          unsubscribe_token: string | null;
+          created_at: string;
+          sent_at: string | null;
+        }[];
       };
       wedding_directory: {
         Args: { p_wedding_id: string };

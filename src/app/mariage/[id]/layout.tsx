@@ -25,7 +25,10 @@ export default async function WeddingLayout({
     .eq("wedding_id", id)
     .eq("user_id", session.userId)
     .maybeSingle();
-  if (!member) redirect("/mariages");
+  if (!member) {
+    const { data: staff } = await supabase.rpc("is_wedding_staff", { p_wedding: id });
+    if (!staff) redirect("/mariages");
+  }
   const space = await getWeddingSpace(id);
   const weddings = await listMyWeddings(space.session.userId);
   const vendor = space.session.profile.role === "vendor";

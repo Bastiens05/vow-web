@@ -37,7 +37,12 @@ export function GalleryManager({
       setError("Choisissez un fichier.");
       return;
     }
-    const check = validateUpload(file, "delivery");
+    const prepared = file.type.startsWith("image/") ? await compressImage(file) : file;
+    if (prepared.type.startsWith("image/") && prepared.size > 8 * 1024 * 1024) {
+      setError("La photo dépasse 8 Mo après compression. VOW ne garde pas les originaux pleine résolution.");
+      return;
+    }
+    const check = validateUpload(prepared, "delivery");
     if (!check.ok) {
       setError(check.error);
       return;
@@ -45,9 +50,9 @@ export function GalleryManager({
     setPending(true);
     setError(null);
     const supabase = createClient();
-    const path = `${weddingId}/${userId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-    const uploaded = await supabase.storage.from("wedding-gallery").upload(path, file, {
-      contentType: file.type,
+    const path = `${weddingId}/${userId}/${crypto.randomUUID()}-${safeFileName(prepared.name)}`;
+    const uploaded = await supabase.storage.from("wedding-gallery").upload(path, prepared, {
+      contentType: prepared.type,
       upsert: false,
     });
     if (uploaded.error) {
@@ -74,9 +79,9 @@ export function GalleryManager({
     const inserted = await supabase.from("delivery_files").insert({
       delivery_id: delivery.data.id,
       storage_path: path,
-      file_name: file.name.slice(0, 180),
-      mime_type: file.type || "application/octet-stream",
-      size_bytes: file.size,
+      file_name: prepared.name.slice(0, 180),
+      mime_type: prepared.type || "application/octet-stream",
+      size_bytes: prepared.size,
     });
     if (inserted.error) {
       await supabase.from("deliveries").delete().eq("id", delivery.data.id);
@@ -93,7 +98,9 @@ export function GalleryManager({
   return (
     <Card>
       <h2 className="text-lg font-semibold">Déposer les fichiers</h2>
-      <p className="mt-1 text-sm text-muted">Le couple les télécharge ici. Une date vide laisse le lien ouvert.</p>
+      <p className="mt-1 text-sm leading-6 text-muted">
+        Les photos sont réduites ici, dans le navigateur (côté le plus long 1 600 px). VOW ne stocke pas les fichiers pleine résolution. Vidéo et PDF restent dans la limite de 50 Mo.
+      </p>
       <form onSubmit={onSubmit} className="mt-3 grid gap-3">
         <Field label="Titre">
           <TextInput name="title" required placeholder="Photos finales" />
@@ -109,4 +116,23 @@ export function GalleryManager({
       </form>
     </Card>
   );
+}
+
+async function compressImage(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  const max = 1600;
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) return file;
+  context.drawImage(bitmap, 0, 0, width, height);
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
+  bitmap.close();
+  if (!blob) return file;
+  const base = file.name.replace(/\.[^.]+$/, "") || "photo";
+  return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
 }

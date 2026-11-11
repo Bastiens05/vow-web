@@ -6,6 +6,7 @@ export function pushConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
       process.env.VAPID_PRIVATE_KEY &&
+      process.env.VAPID_SUBJECT &&
       process.env.SUPABASE_SERVICE_ROLE_KEY &&
       process.env.NEXT_PUBLIC_SUPABASE_URL,
   );
@@ -22,7 +23,9 @@ export async function notifyWedding(
   const privateKey = process.env.VAPID_PRIVATE_KEY;
   if (!url || !key || !publicKey || !privateKey) return;
 
-  setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:bonjour@vow.app", publicKey, privateKey);
+  const subject = process.env.VAPID_SUBJECT;
+  if (!subject) return;
+  setVapidDetails(subject, publicKey, privateKey);
   const admin = createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data: prefs } = await admin.from("profiles").select("id, notify_push").in("id", userIds);
   const allowed = new Set((prefs ?? []).filter((row) => row.notify_push).map((row) => row.id));

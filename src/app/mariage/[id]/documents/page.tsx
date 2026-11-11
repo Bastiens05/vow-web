@@ -25,7 +25,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
         documents={documents}
         names={names}
         requests={requests ?? []}
-        canRequest={!space.actingAsCouple && space.role === "vendor"}
+        canRequest={space.host}
         canSign={space.actingAsCouple}
       />
     </Card>

@@ -18,7 +18,7 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
   const supabase = await createClient();
   const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
   const showGallery = canDeliver(space.actingAsCouple ? "couple" : space.role, space.session.vendor?.category ?? null);
-  const showInvite = !space.actingAsCouple && space.role === "vendor";
+  const showInvite = space.host;
   const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites] = await Promise.all([
     vendorIds.length
       ? supabase.from("vendor_profiles").select("id, business_name, user_id").in("user_id", vendorIds)
@@ -104,6 +104,15 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
             <SettingsLink href={`/mariage/${id}/galerie`} label="Galerie" status={countLabel(galleryCount, "fichier", "fichiers")} icon={<CameraIcon />} />
           ) : null}
         </SettingsGroup>
+        {space.actingAsCouple || space.role === "couple" ? (
+          <SettingsGroup title="Mariage">
+            <SettingsLink href={`/mariage/${id}/rsvp`} label="Réponses des invités" status="RSVP" icon={<PeopleIcon />} />
+            <SettingsLink href={`/mariage/${id}/tables`} label="Plan de table" status="Tables" icon={<PeopleIcon />} />
+            <SettingsLink href={`/mariage/${id}/budget`} label="Budget" status="Privé" icon={<InvoiceIcon />} />
+            <SettingsLink href={`/mariage/${id}/site`} label="Page des mariés" status="Site" icon={<InviteIcon />} />
+            <SettingsLink href={`/mariage/${id}/rdv`} label="Rendez-vous" status="Créneaux" icon={<MapIcon />} />
+          </SettingsGroup>
+        ) : null}
         <SettingsGroup title="Équipe">
           <SettingsLink
             href={`/mariage/${id}/equipe`}
