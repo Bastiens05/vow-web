@@ -11,8 +11,7 @@
   --vow-danger: #b42318;
   --vow-danger-bg: #fdecec;
   --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
-  --vow-band: #0a0a0a;
-  --vow-on-band: #f5f5f7;
+  --vow-mist: #f5f5f7;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +26,7 @@
     --vow-danger: #ff6b6b;
     --vow-danger-bg: #2a1212;
     --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    --vow-mist: #141416;
   }
 }
 
@@ -42,8 +42,7 @@
   --color-ok: var(--vow-ok);
   --color-danger: var(--vow-danger);
   --color-danger-bg: var(--vow-danger-bg);
-  --color-band: var(--vow-band);
-  --color-on-band: var(--vow-on-band);
+  --color-mist: var(--vow-mist);
 }
 
 html {
@@ -176,8 +175,9 @@ a {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background: #0a0a0a;
-    color: #f5f5f7;
+    background: var(--vow-bg);
+    color: var(--vow-ink);
+    border-right: 1px solid var(--vow-line);
     padding: 3rem;
   }
 

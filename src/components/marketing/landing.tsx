@@ -31,32 +31,32 @@ const features = [
 export function Landing() {
   return (
     <div>
-      <section className="bg-band text-on-band">
+      <section className="bg-ivory text-ink">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
-            <p className="text-xs font-semibold tracking-[0.28em] text-on-band/60">VOW</p>
-            <h1 className="mt-5 max-w-xl text-5xl font-semibold tracking-tight text-on-band sm:text-6xl lg:text-7xl">
+            <p className="text-xs font-semibold tracking-[0.28em] text-muted">VOW</p>
+            <h1 className="mt-5 max-w-xl text-5xl font-semibold tracking-tight text-ink sm:text-6xl lg:text-7xl">
               Du premier contact au jour J.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-on-band/70">
+            <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
               Un seul espace pour les prestataires de mariage. La vitrine, le couple, le déroulé, et les outils que les
               agendas ne font pas.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/inscription?role=vendor"
-                className="inline-flex min-h-12 items-center justify-center rounded-full bg-on-band px-5 text-sm font-medium text-band"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-medium text-ivory"
               >
                 Je suis prestataire
               </Link>
               <Link
                 href="/inscription?role=couple"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-on-band/30 px-5 text-sm font-medium text-on-band"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/20 px-5 text-sm font-medium text-ink"
               >
                 Nous nous marions
               </Link>
             </div>
-            <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-on-band/60">
+            <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-muted">
               J&apos;ai déjà un compte
             </Link>
           </div>
@@ -90,19 +90,19 @@ export function Landing() {
 
 function RelayCard() {
   return (
-    <div className="rounded-[2rem] bg-white p-6 text-[#0a0a0a] shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
-      <p className="text-xs font-medium text-[#6e6e73]">Jour J · aperçu</p>
+    <div className="rounded-[2rem] border border-line bg-mist p-6 text-ink">
+      <p className="text-xs font-medium text-muted">Jour J · aperçu</p>
       <p className="mt-2 text-2xl font-semibold tracking-tight">Le relais avance.</p>
       <ol className="mt-6 space-y-3">
-        <li className="flex items-center justify-between rounded-2xl bg-[#f5f5f7] px-4 py-3">
+        <li className="flex items-center justify-between rounded-2xl bg-ivory px-4 py-3">
           <span>Préparatifs</span>
           <span className="text-xs font-medium">Prêt</span>
         </li>
-        <li className="flex items-center justify-between rounded-2xl bg-[#0a0a0a] px-4 py-3 text-[#f5f5f7]">
+        <li className="flex items-center justify-between rounded-2xl bg-ink px-4 py-3 text-ivory">
           <span>Cérémonie</span>
           <span className="text-xs">À vous</span>
         </li>
-        <li className="flex items-center justify-between rounded-2xl bg-[#f5f5f7] px-4 py-3 text-[#6e6e73]">
+        <li className="flex items-center justify-between rounded-2xl bg-ivory px-4 py-3 text-muted">
           <span>Cocktail</span>
           <span className="text-xs">Ensuite</span>
         </li>
