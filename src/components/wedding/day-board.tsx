@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextInput } from "@/components/ui/field";
 import { ProgrammeStart } from "@/components/wedding/programme-start";
 import { addMinutesToTime } from "@/lib/domain/day";
@@ -264,7 +265,7 @@ function AddStep({ weddingId }: { weddingId: string }) {
         <TextInput name="starts_at" type="time" required />
       </Field>
       <Field label="Lieu">
-        <TextInput name="place" placeholder="Jardin" />
+        <AddressInput name="place" placeholder="Jardin" weddingId={weddingId} />
       </Field>
       {state.error ? (
         <div className="sm:col-span-2">
@@ -303,7 +304,7 @@ function StepEditor({
         <TextInput name="starts_at" type="time" required defaultValue={formatSlotTime(slot.startsAt)} />
       </Field>
       <Field label="Lieu">
-        <TextInput name="place" defaultValue={slot.place} />
+        <AddressInput name="place" defaultValue={slot.place} weddingId={weddingId} />
       </Field>
       <Field label={`Prestataire pour ${slot.title}`}>
         <select

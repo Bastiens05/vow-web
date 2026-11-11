@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { AuthDesktopFrame } from "@/components/auth/auth-frame";
+import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { LogoField } from "@/components/account/settings-forms";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
@@ -65,13 +66,12 @@ export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId:
         </label>
         <label className="grid gap-2 text-sm">
           Ville
-          <input
+          <AddressInput
             name="city"
-            autoComplete="address-level2"
             required
-            minLength={2}
-            className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
+            mode="city"
             placeholder="Bordeaux"
+            className="auth-field min-h-14 rounded-2xl px-4 text-lg"
           />
         </label>
         {state.error ? <Alert>{state.error}</Alert> : null}

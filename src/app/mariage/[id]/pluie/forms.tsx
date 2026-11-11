@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextInput } from "@/components/ui/field";
 import { addRainSlot, addRainStop, saveWeather } from "@/server/actions/relay";
 
@@ -18,7 +19,7 @@ export function RainForms({ weddingId }: { weddingId: string }) {
           <TextInput name="label" required placeholder="Cocktail" />
         </Field>
         <Field label="Adresse">
-          <TextInput name="address" required placeholder="Orangerie, château" />
+          <AddressInput name="address" required placeholder="Orangerie, château" weddingId={weddingId} />
         </Field>
         {stopState.error ? <Alert>{stopState.error}</Alert> : null}
         {stopState.success ? <Alert tone="success">{stopState.success}</Alert> : null}
@@ -35,7 +36,7 @@ export function RainForms({ weddingId }: { weddingId: string }) {
           <TextInput name="starts_at" type="time" required />
         </Field>
         <Field label="Où">
-          <TextInput name="place" />
+          <AddressInput name="place" weddingId={weddingId} placeholder="Orangerie" />
         </Field>
         {slotState.error ? <Alert>{slotState.error}</Alert> : null}
         {slotState.success ? <Alert tone="success">{slotState.success}</Alert> : null}

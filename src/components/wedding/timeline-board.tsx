@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
 import { formatSlotTime } from "@/lib/domain/format";
 import { assignStep } from "@/server/actions/relay";
@@ -76,7 +77,7 @@ export function TimelineBoard({
             <TextInput name="starts_at" type="time" required />
           </Field>
           <Field label="Lieu">
-            <TextInput name="place" placeholder="Jardin" />
+            <AddressInput name="place" placeholder="Jardin" weddingId={weddingId} />
           </Field>
           <Field label="Notes">
             <TextInput name="notes" placeholder="Entrée par l'allée des tilleuls" />
@@ -117,7 +118,7 @@ function SlotEditor({ weddingId, slot }: { weddingId: string; slot: SlotView }) 
           <TextInput name="starts_at" type="time" required defaultValue={formatSlotTime(slot.startsAt)} />
         </Field>
         <Field label="Lieu">
-          <TextInput name="place" defaultValue={slot.place} />
+          <AddressInput name="place" defaultValue={slot.place} weddingId={weddingId} />
         </Field>
         <Field label="Notes">
           <TextInput name="notes" defaultValue={slot.notes} />

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
 import { addGuest, addPhotoGroup, deleteGuest, deletePhotoGroup, savePractical } from "@/server/actions/sheets";
 import type { GuestRow, PhotoGroupRow, PracticalRow } from "@/server/data";
@@ -60,14 +61,14 @@ function DetailsForm({
       </Field>
       <div className="sm:col-span-2">
         <Field label="Adresse postale">
-          <TextArea name="postal_address" defaultValue={practical?.postal_address ?? ""} disabled={!canEdit} className="min-h-20" />
+          <AddressInput name="postal_address" defaultValue={practical?.postal_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
         </Field>
       </div>
       <Field label="Adresse de la cérémonie">
-        <TextArea name="ceremony_address" defaultValue={practical?.ceremony_address ?? ""} disabled={!canEdit} className="min-h-20" />
+        <AddressInput name="ceremony_address" defaultValue={practical?.ceremony_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
       </Field>
       <Field label="Adresse de la réception">
-        <TextArea name="reception_address" defaultValue={practical?.reception_address ?? ""} disabled={!canEdit} className="min-h-20" />
+        <AddressInput name="reception_address" defaultValue={practical?.reception_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
       </Field>
       <div className="sm:col-span-2">
         <Field label="Contacts utiles" hint="Témoins, parents, régisseur. Un par ligne.">
