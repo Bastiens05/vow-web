@@ -336,9 +336,11 @@ export type Database = {
           notes: string;
           sort_order: number;
           created_at: string;
+          called_at: string | null;
+          place: string;
         },
-        { id?: string; wedding_id: string; title: string; people?: string; notes?: string; sort_order?: number },
-        { title?: string; people?: string; notes?: string; sort_order?: number }
+        { id?: string; wedding_id: string; title: string; people?: string; notes?: string; sort_order?: number; called_at?: string | null; place?: string },
+        { title?: string; people?: string; notes?: string; sort_order?: number; called_at?: string | null; place?: string }
       >;
       guests: Table<
         {
