@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import type { Json } from "@/lib/database.types";
+import { personalShiftNote, type ShiftChange } from "@/lib/domain/shift-note";
 import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { sendProductEmail } from "@/server/mail";
 import { sendMemberMail } from "@/server/product-mail";
 import { notifyWedding } from "@/server/push";
 import { requireSession } from "@/server/session";
@@ -17,8 +19,37 @@ function readNote(value: Json | null): { id: string; weddingId: string; body: st
   return { id: value.notification_id, weddingId: value.wedding_id, body: value.body };
 }
 
-async function fanOut(note: { id: string; weddingId: string; body: string }, authorId: string) {
+function readChanges(value: Json | null): ShiftChange[] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const raw = value.changes;
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    if (typeof row.user_id !== "string" || typeof row.title !== "string" || typeof row.new_time !== "string") return [];
+    return [{ userId: row.user_id, title: row.title, newTime: row.new_time }];
+  });
+}
+
+async function fanOut(note: { id: string; weddingId: string; body: string }, authorId: string, changes: ShiftChange[]) {
   const supabase = await createClient();
+  const byUser = new Map<string, ShiftChange[]>();
+  for (const change of changes) {
+    const list = byUser.get(change.userId) ?? [];
+    list.push(change);
+    byUser.set(change.userId, list);
+  }
+  if (byUser.size > 0) {
+    for (const [userId, rows] of byUser) {
+      const body = personalShiftNote(rows);
+      await supabase.rpc("notify_shift_personal", { p_wedding: note.weddingId, p_user: userId, p_body: body });
+      await notifyWedding([userId], { title: "VOW · Jour J", body, url: `/mariage/${note.weddingId}/jour` });
+      const { data: profile } = await supabase.from("profiles").select("email, notify_email").eq("id", userId).maybeSingle();
+      if (profile?.notify_email && profile.email) {
+        await sendProductEmail({ to: profile.email, subject: "Jour J · vos horaires", text: body });
+      }
+    }
+  } else {
   const { data: members } = await supabase
     .from("wedding_members")
     .select("user_id")
@@ -37,6 +68,7 @@ async function fanOut(note: { id: string; weddingId: string; body: string }, aut
     buttonLabel: "Voir le jour J",
     path: `/mariage/${note.weddingId}/jour`,
   });
+  }
   revalidatePath(`/mariage/${note.weddingId}/jour`);
   revalidatePath("/alertes");
 }
@@ -58,7 +90,7 @@ export async function shiftSlot(
   });
   if (error) return { error: messageFromError(error) };
   const note = readNote(data);
-  if (note) await fanOut(note, session.userId);
+  if (note) await fanOut(note, session.userId, readChanges(data));
   revalidatePath(`/mariage/${weddingId}/deroulement`);
   revalidatePath(`/mariage/${weddingId}/jour`);
   return {
@@ -100,7 +132,7 @@ export async function sendDayAlert(weddingId: string, _prev: ActionState, formDa
   });
   if (error) return { error: messageFromError(error) };
   const note = readNote(data);
-  if (note) await fanOut(note, session.userId);
+  if (note) await fanOut(note, session.userId, []);
   return { success: "Les prestataires sont prévenus." };
 }
 

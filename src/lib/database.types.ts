@@ -995,6 +995,7 @@ export type Database = {
         Returns: string;
       };
       my_profile_slice: { Args: { p_wedding: string }; Returns: Json };
+      notify_shift_personal: { Args: { p_wedding: string; p_user: string; p_body: string }; Returns: string };
       create_invitation: {
         Args: {
           p_wedding_id: string;
