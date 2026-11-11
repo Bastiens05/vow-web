@@ -44,6 +44,10 @@ a {
   color: #1d1d1f;
 }
 
+.auth-aside {
+  display: none;
+}
+
 .auth-step {
   animation: auth-in 280ms ease;
 }
@@ -104,7 +108,31 @@ a {
   }
 }
 
-@media (prefers-color-scheme: dark) {
+@media (min-width: 1024px) {
+  .auth-shell {
+    display: grid;
+    min-height: 100dvh;
+    grid-template-columns: minmax(22rem, 0.9fr) minmax(26rem, 1.1fr);
+    background: #f5f5f7;
+  }
+
+  .auth-aside {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #1d1d1f;
+    color: #f5f5f7;
+    padding: 3rem;
+  }
+
+  .auth-screen {
+    max-width: none;
+    background: #f5f5f7;
+    color: #1d1d1f;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 1023px) {
   .auth-screen {
     background: #000;
     color: #f5f5f7;

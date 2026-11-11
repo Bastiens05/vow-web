@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
+import { AuthDesktopFrame } from "@/components/auth/auth-frame";
 import { Alert } from "@/components/ui/alert";
 import { LogoField } from "@/components/account/settings-forms";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
@@ -12,8 +13,10 @@ export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId:
   const [state, action, pending] = useActionState(completeVendor, {});
   if (logo) {
     return (
-      <div className="auth-screen auth-step mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col px-5 py-10">
-        <p className="text-sm font-semibold tracking-[0.28em]">VOW</p>
+      <AuthDesktopFrame>
+      <div className="auth-screen auth-step flex min-h-[calc(100dvh-3.5rem)] w-full flex-col px-5 py-10 md:min-h-dvh md:justify-center lg:min-h-dvh lg:px-16">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:flex-none">
+        <p className="text-sm font-semibold tracking-[0.28em] lg:sr-only">VOW</p>
         <h1 className="mt-6 text-4xl font-semibold tracking-tight">Votre logo</h1>
         <p className="mt-2 text-base leading-7 text-muted">Facultatif. Vous pourrez le changer plus tard.</p>
         <div className="mt-8">
@@ -23,11 +26,15 @@ export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId:
           Continuer
         </Link>
       </div>
+      </div>
+      </AuthDesktopFrame>
     );
   }
   return (
-    <div className="auth-screen auth-step mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col px-5 py-10">
-      <p className="text-sm font-semibold tracking-[0.28em]">VOW</p>
+    <AuthDesktopFrame>
+    <div className="auth-screen auth-step flex min-h-[calc(100dvh-3.5rem)] w-full flex-col px-5 py-10 md:min-h-dvh md:justify-center lg:min-h-dvh lg:px-16">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:flex-none">
+      <p className="text-sm font-semibold tracking-[0.28em] lg:sr-only">VOW</p>
       <h1 className="mt-6 text-4xl font-semibold tracking-tight">Votre activité</h1>
       <p className="mt-2 text-base leading-7 text-muted">Le nom, le métier et la ville. Le reste viendra après.</p>
       <form action={action} className="mt-8 grid gap-4">
@@ -78,5 +85,7 @@ export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId:
         <Link href="/confidentialite" className="underline">Confidentialité</Link>
       </p>
     </div>
+    </div>
+    </AuthDesktopFrame>
   );
 }

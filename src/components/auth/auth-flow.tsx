@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { AuthDesktopFrame } from "@/components/auth/auth-frame";
 import { Alert } from "@/components/ui/alert";
 import { LoginForm, SignupForm } from "@/components/auth/auth-forms";
 import { OtpInput } from "@/components/auth/otp-input";
@@ -18,6 +19,7 @@ export function AuthFlow({
   google,
   apple,
   otp = false,
+  notice,
 }: {
   mode: "login" | "signup";
   nextPath: string;
@@ -26,6 +28,7 @@ export function AuthFlow({
   google: boolean;
   apple: boolean;
   otp?: boolean;
+  notice?: ReactNode;
 }) {
   const [step, setStep] = useState<Step>(mode === "signup" && !lockedRole ? "choose" : "email");
   const [role, setRole] = useState<"vendor" | "couple" | null>(lockedRole ?? null);
@@ -67,8 +70,11 @@ export function AuthFlow({
           : "Votre e-mail";
 
   return (
-    <div className="auth-screen auth-step mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-md flex-col px-5 py-10 md:min-h-dvh md:justify-center">
-      <p className="text-sm font-semibold tracking-[0.28em]">VOW</p>
+    <AuthDesktopFrame>
+      <div className="auth-screen auth-step flex min-h-[calc(100dvh-3.5rem)] w-full flex-col px-5 py-10 md:min-h-dvh md:justify-center lg:min-h-dvh lg:px-16">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:flex-none">
+      {notice ? <div className="mb-6">{notice}</div> : null}
+      <p className="text-sm font-semibold tracking-[0.28em] lg:sr-only">VOW</p>
       <h1 className="mt-6 text-4xl font-semibold tracking-tight">{title}</h1>
       <p className="mt-2 text-base leading-7 text-muted">
         {step === "choose"
@@ -178,7 +184,9 @@ export function AuthFlow({
           Confidentialité
         </Link>
       </p>
-    </div>
+        </div>
+      </div>
+    </AuthDesktopFrame>
   );
 
   function pick(value: "vendor" | "couple") {

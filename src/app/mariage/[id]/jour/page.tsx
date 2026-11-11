@@ -17,7 +17,7 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
     : { data: [] };
   const fallback = rainStops?.[0];
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-6">
+    <div className="mx-auto w-full max-w-lg px-4 py-6 lg:max-w-none">
       {rain?.active ? (
         <p className="mb-4 rounded-2xl bg-[#f8f1e4] px-4 py-3 text-sm">
           Plan pluie activé{fallback ? ` : ${fallback.label} — ${fallback.address}` : ""}.
