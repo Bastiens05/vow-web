@@ -17,12 +17,14 @@ export function ChromeFrame({
   alerts: ReactNode;
   children: ReactNode;
 }) {
-  const pub = isPublicPath(usePathname() ?? "");
+  const path = usePathname() ?? "";
+  const pub = isPublicPath(path);
+  const authDesk = path === "/connexion" || path === "/inscription" || path === "/bienvenue";
   if (pub) {
     return (
       <>
-        {publicHeader}
-        <main className="min-w-0">{children}</main>
+        <div className={authDesk ? "lg:hidden" : undefined}>{publicHeader}</div>
+        <main className={authDesk ? "min-w-0 lg:min-h-dvh" : "min-w-0"}>{children}</main>
       </>
     );
   }

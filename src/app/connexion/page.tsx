@@ -13,26 +13,21 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const providers = configuredAuthProviders();
+  const notice =
+    params.error === "lien" ? (
+      <Alert>Le lien a expiré ou n&apos;est plus valide.</Alert>
+    ) : params.error === "config" ? (
+      <Alert>Supabase n&apos;est pas configuré sur ce serveur.</Alert>
+    ) : null;
   return (
-    <>
-      {params.error === "lien" ? (
-        <div className="mx-auto max-w-md px-5 pt-6">
-          <Alert>Le lien a expiré ou n&apos;est plus valide.</Alert>
-        </div>
-      ) : null}
-      {params.error === "config" ? (
-        <div className="mx-auto max-w-md px-5 pt-6">
-          <Alert>Supabase n&apos;est pas configuré sur ce serveur.</Alert>
-        </div>
-      ) : null}
-      <AuthFlow
-        mode="login"
-        nextPath={safeNextPath(params.next)}
-        initialEmail={params.email ?? ""}
-        google={providers.google}
-        apple={providers.apple}
-        otp={otpCodeEnabled()}
-      />
-    </>
+    <AuthFlow
+      mode="login"
+      nextPath={safeNextPath(params.next)}
+      initialEmail={params.email ?? ""}
+      google={providers.google}
+      apple={providers.apple}
+      otp={otpCodeEnabled()}
+      notice={notice}
+    />
   );
 }

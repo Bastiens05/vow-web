@@ -30,7 +30,7 @@ export default async function SettingsPage() {
   const webcal = feed.replace(/^https?:/, "webcal:");
   const google = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`;
   return (
-    <div className="mx-auto w-full max-w-lg space-y-4 px-5 py-8">
+    <div className="mx-auto w-full max-w-lg space-y-4 px-5 py-8 lg:max-w-3xl">
       <PageHeader
         eyebrow={vendor ? "Espace prestataire" : "Espace mariés"}
         title="Réglages"
