@@ -71,6 +71,8 @@ describe("migration", () => {
       "vault_items",
       "vault_shares",
       "assistant_usage",
+      "wedding_profile",
+      "profile_field_access",
       "wedding_music",
     ]);
     for (const table of tables) {

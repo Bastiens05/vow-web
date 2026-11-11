@@ -930,6 +930,16 @@ export type Database = {
         },
         { storage_path?: string | null; file_name?: string | null; mime_type?: string | null; label?: string }
       >;
+      wedding_profile: Table<
+        { wedding_id: string; facts: Json; updated_at: string },
+        { wedding_id: string; facts?: Json; updated_at?: string },
+        { facts?: Json; updated_at?: string }
+      >;
+      profile_field_access: Table<
+        { field_key: string; category: string },
+        { field_key: string; category: string },
+        Record<string, never>
+      >;
       vault_shares: Table<
         { item_id: string; vendor_user_id: string; created_at: string },
         { item_id: string; vendor_user_id: string },
@@ -948,6 +958,7 @@ export type Database = {
         };
         Returns: string;
       };
+      my_profile_slice: { Args: { p_wedding: string }; Returns: Json };
       create_invitation: {
         Args: {
           p_wedding_id: string;

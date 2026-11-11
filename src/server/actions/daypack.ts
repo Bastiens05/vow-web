@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { factsFromJson, missingQuestions } from "@/lib/domain/profile";
 import { questionTemplate } from "@/lib/domain/questions";
 import { isVendorCategory } from "@/lib/domain/categories";
 import { messageFromError } from "@/lib/errors";
@@ -12,8 +13,12 @@ export async function applyQuestionTemplate(weddingId: string, formData: FormDat
   if (String(formData.get("wedding_id") ?? "") !== weddingId) return;
   const session = await requireSession();
   if (!session.vendor || !isVendorCategory(session.vendor.category)) return;
-  const prompts = questionTemplate(session.vendor.category);
   const supabase = await createClient();
+  const { data: slice } = await supabase.rpc("my_profile_slice", { p_wedding: weddingId });
+  const prompts = missingQuestions(questionTemplate(session.vendor.category), factsFromJson(slice))
+    .filter((row) => !row.known)
+    .map((row) => row.prompt);
+  if (prompts.length === 0) return;
   const { data: created, error } = await supabase
     .from("questionnaires")
     .insert({
