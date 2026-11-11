@@ -930,6 +930,11 @@ export type Database = {
         },
         { storage_path?: string | null; file_name?: string | null; mime_type?: string | null; label?: string }
       >;
+      brief_sends: Table<
+        { wedding_id: string; user_id: string; sent_on: string },
+        { wedding_id: string; user_id: string; sent_on: string },
+        Record<string, never>
+      >;
       quote_intakes: Table<
         {
           id: string;
@@ -996,6 +1001,8 @@ export type Database = {
       };
       my_profile_slice: { Args: { p_wedding: string }; Returns: Json };
       notify_shift_personal: { Args: { p_wedding: string; p_user: string; p_body: string }; Returns: string };
+      due_day_briefs: { Args: { p_day: string }; Returns: { wedding_id: string; user_id: string; email: string }[] };
+      mark_brief_sent: { Args: { p_wedding: string; p_user: string; p_day: string }; Returns: undefined };
       create_invitation: {
         Args: {
           p_wedding_id: string;
