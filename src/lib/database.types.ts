@@ -491,6 +491,21 @@ export type Database = {
         { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
         { thin_cents?: number; include_unsigned?: boolean }
       >;
+      anniversary_templates: Table<
+        { id: string; vendor_id: string; title: string; body: string; months_after: number; enabled: boolean; require_review: boolean },
+        { vendor_id: string; title: string; body: string; months_after?: number; enabled?: boolean; require_review?: boolean },
+        { title?: string; body?: string; months_after?: number; enabled?: boolean; require_review?: boolean }
+      >;
+      anniversary_queue: Table<
+        { id: string; template_id: string; wedding_id: string; send_on: string; status: string },
+        { template_id: string; wedding_id: string; send_on: string; status?: string },
+        { send_on?: string; status?: string }
+      >;
+      marketing_optouts: Table<
+        { id: string; email: string; vendor_id: string | null; created_at: string },
+        { email: string; vendor_id?: string | null },
+        Record<string, never>
+      >;
       proven_references: Table<
         { id: string; vendor_id: string; wedding_id: string | null; month: string; venue_name: string; town: string; review: string; couple_public_name: string | null; published: boolean; confirmed: boolean },
         { vendor_id: string; month: string; venue_name: string; town?: string; review?: string; couple_public_name?: string | null; published?: boolean; confirmed?: boolean; wedding_id?: string | null },
