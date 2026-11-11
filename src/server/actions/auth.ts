@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isVendorCategory } from "@/lib/domain/categories";
 import { isValidEmail } from "@/lib/domain/auth-routing";
 import { safeNextPath } from "@/lib/domain/paths";
+import { coupleIntentReady, intentMetadata, readSignupIntent, vendorIntentReady } from "@/lib/domain/signup-intent";
 import { slugify } from "@/lib/domain/slug";
 import { normalizeEmail } from "@/lib/domain/validation";
 import { otpCodeEnabled } from "@/lib/auth-providers";
@@ -12,6 +13,7 @@ import { siteUrl } from "@/lib/env";
 import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import { landingPath } from "@/server/auth-landing";
+import { materializeSignup } from "@/server/signup-materialize";
 import { requireSession } from "@/server/session";
 
 export type ActionState = {
@@ -41,8 +43,9 @@ export async function signIn(_prev: ActionState, formData: FormData): Promise<Ac
 export async function signUp(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
-  const fullName = String(formData.get("full_name") ?? "").trim();
   const role = readRole(formData.get("role"));
+  const intent = readSignupIntent(formData, role);
+  const fullName = intent.fullName || intent.businessName || intent.partnerOne;
   const requested = safeNextPath(formData.get("next"), "");
 
   if (fullName.length < 2) return { error: "Indiquez votre nom." };
@@ -51,8 +54,14 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   }
   if (password.length < 8) return { error: "Le mot de passe doit contenir au moins 8 caractères." };
   if (!role) return { error: "Choisissez un type de compte : prestataire ou couple." };
+  if (role === "vendor" && (intent.businessName || intent.category) && !vendorIntentReady(intent)) {
+    return { error: "Indiquez le métier, le nom de l'activité et la ville." };
+  }
+  if (role === "couple" && (intent.partnerOne || intent.partnerTwo || intent.weddingDate) && !coupleIntentReady(intent)) {
+    return { error: "Indiquez les deux prénoms et la date du mariage." };
+  }
 
-  const destination = requested.startsWith("/invitation/") ? requested : "/espace";
+  const destination = requested.startsWith("/invitation/") || requested.startsWith("/equipe/") ? requested : "/espace";
 
   const supabase = await createClient();
   await rememberAuthNext(destination);
@@ -61,14 +70,18 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     password,
     options: {
       emailRedirectTo: `${siteUrl()}/auth/callback`,
-      data: { role, full_name: fullName },
+      data: { ...intentMetadata({ ...intent, fullName, role }), role, full_name: fullName },
     },
   });
   if (error) return { error: messageFromError(error) };
-  if (!data.session) {
+  if (!data.session || !data.user) {
     return { success: "Vérifiez votre boîte mail. Le lien confirme votre compte." };
   }
-  if (destination.startsWith("/invitation/") || destination.startsWith("/equipe/")) redirect(destination);
+  if (!destination.startsWith("/invitation/") && !destination.startsWith("/equipe/")) {
+    await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
+  } else {
+    redirect(destination);
+  }
   redirect(await landingPath(supabase, destination, true));
 }
 
@@ -94,17 +107,25 @@ export async function requestEmailCode(_prev: ActionState, formData: FormData): 
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const next = safeNextPath(formData.get("next"), "/espace");
   const role = readRole(formData.get("role"));
+  const intent = readSignupIntent(formData, role);
   const create = formData.get("create") === "1";
   if (!isValidEmail(email)) return { error: "Indiquez un e-mail valide." };
+  if (create && role === "vendor" && (intent.businessName || intent.category) && !vendorIntentReady(intent)) {
+    return { error: "Indiquez le métier, le nom de l'activité et la ville." };
+  }
+  if (create && role === "couple" && (intent.partnerOne || intent.partnerTwo || intent.weddingDate) && !coupleIntentReady(intent)) {
+    return { error: "Indiquez les deux prénoms et la date du mariage." };
+  }
 
   const supabase = await createClient();
   await rememberAuthNext(next);
+  const metadata = intentMetadata(intent);
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
       shouldCreateUser: create,
       emailRedirectTo: `${siteUrl()}/auth/callback`,
-      data: role ? { role } : undefined,
+      data: Object.keys(metadata).length ? metadata : undefined,
     },
   });
   if (error) return { error: otpError(error.message, otpCodeEnabled()) };

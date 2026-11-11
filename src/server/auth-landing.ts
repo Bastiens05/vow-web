@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { landingFor } from "@/lib/domain/auth-routing";
+import { intentFromMetadata } from "@/lib/domain/signup-intent";
+import { materializeSignup } from "@/server/signup-materialize";
 
 export async function landingPath(
   supabase: SupabaseClient<Database>,
@@ -23,6 +25,10 @@ export async function landingPath(
     if (typeof token === "string" && /^[a-f0-9]{64}$/.test(token)) {
       const { data, error } = await supabase.rpc("accept_invitation", { p_token: token });
       if (!error && data) return `/mariage/${data}`;
+    }
+    const metadata = userData.user?.user_metadata;
+    if (metadata && typeof metadata === "object") {
+      await materializeSignup(supabase, userId, intentFromMetadata(metadata as Record<string, unknown>));
     }
   }
 

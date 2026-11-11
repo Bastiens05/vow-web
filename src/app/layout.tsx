@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import { AlertDock } from "@/components/alerts/alert-dock";
 import { DesktopNav, MobileChrome, PublicHeader } from "@/components/layout/app-nav";
+import { BillingGate } from "@/components/layout/billing-gate";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { latestUnreadAlert } from "@/server/data";
 import { getSession } from "@/server/session";
@@ -38,7 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Suspense>
           }
         >
-          {children}
+          <BillingGate>{children}</BillingGate>
         </ChromeFrame>
       </body>
     </html>

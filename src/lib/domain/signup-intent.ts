@@ -1,0 +1,93 @@
+import { isVendorCategory, type VendorCategory } from "@/lib/domain/categories";
+
+export type SignupIntent = {
+  role: "vendor" | "couple" | null;
+  fullName: string;
+  businessName: string;
+  category: VendorCategory | null;
+  city: string;
+  phone: string;
+  website: string;
+  instagram: string;
+  partnerOne: string;
+  partnerTwo: string;
+  weddingDate: string;
+  testerCode: string;
+};
+
+function text(form: FormData, key: string, max: number): string {
+  return String(form.get(key) ?? "").trim().slice(0, max);
+}
+
+export function readSignupIntent(form: FormData, role: "vendor" | "couple" | null): SignupIntent {
+  const categoryRaw = text(form, "category", 40);
+  return {
+    role,
+    fullName: text(form, "full_name", 120),
+    businessName: text(form, "business_name", 120),
+    category: isVendorCategory(categoryRaw) ? categoryRaw : null,
+    city: text(form, "city", 120),
+    phone: text(form, "phone", 40),
+    website: text(form, "website", 200),
+    instagram: text(form, "instagram", 80).replace(/^@/, ""),
+    partnerOne: text(form, "partner_one", 80),
+    partnerTwo: text(form, "partner_two", 80),
+    weddingDate: text(form, "wedding_date", 10),
+    testerCode: text(form, "tester_code", 64),
+  };
+}
+
+export function vendorIntentReady(intent: SignupIntent): boolean {
+  return Boolean(intent.category && intent.businessName.length >= 2 && intent.city.length >= 2);
+}
+
+export function coupleIntentReady(intent: SignupIntent): boolean {
+  return Boolean(intent.partnerOne.length >= 2 && intent.partnerTwo.length >= 2 && /^\d{4}-\d{2}-\d{2}$/.test(intent.weddingDate));
+}
+
+export function intentMetadata(intent: SignupIntent): Record<string, string> {
+  const data: Record<string, string> = {};
+  if (intent.role) data.role = intent.role;
+  if (intent.fullName) data.full_name = intent.fullName;
+  if (vendorIntentReady(intent) && intent.category) {
+    data.business_name = intent.businessName;
+    data.category = intent.category;
+    data.city = intent.city;
+    data.phone = intent.phone;
+    data.website = intent.website;
+    data.instagram = intent.instagram;
+    if (!data.full_name) data.full_name = intent.businessName;
+  }
+  if (coupleIntentReady(intent)) {
+    data.partner_one = intent.partnerOne;
+    data.partner_two = intent.partnerTwo;
+    data.wedding_date = intent.weddingDate;
+    data.city = intent.city;
+    if (!data.full_name) data.full_name = intent.partnerOne;
+  }
+  if (intent.testerCode) data.tester_code = intent.testerCode;
+  return data;
+}
+
+export function intentFromMetadata(metadata: Record<string, unknown> | null | undefined): SignupIntent {
+  const form = new FormData();
+  const source = metadata ?? {};
+  for (const key of [
+    "full_name",
+    "business_name",
+    "category",
+    "city",
+    "phone",
+    "website",
+    "instagram",
+    "partner_one",
+    "partner_two",
+    "wedding_date",
+    "tester_code",
+  ]) {
+    const value = source[key];
+    if (typeof value === "string") form.set(key, value);
+  }
+  const role = source.role === "vendor" || source.role === "couple" ? source.role : null;
+  return readSignupIntent(form, role);
+}

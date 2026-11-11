@@ -73,6 +73,7 @@ export type Database = {
           contact_email: string;
           contact_phone: string;
           website: string;
+          instagram: string;
           starting_price_cents: number | null;
           currency: string;
           published: boolean;
@@ -95,6 +96,7 @@ export type Database = {
           contact_email?: string;
           contact_phone?: string;
           website?: string;
+          instagram?: string;
           starting_price_cents?: number | null;
           currency?: string;
           published?: boolean;
@@ -113,6 +115,7 @@ export type Database = {
           contact_email?: string;
           contact_phone?: string;
           website?: string;
+          instagram?: string;
           starting_price_cents?: number | null;
           currency?: string;
           published?: boolean;
@@ -820,6 +823,61 @@ export type Database = {
         { wedding_id: string; from_user_id: string; vendor_id: string; token: string },
         Record<string, never>
       >;
+      admins: Table<{ user_id: string; created_at: string }, { user_id: string; created_at?: string }, { user_id?: string }>;
+      vendor_billing: Table<
+        {
+          vendor_id: string;
+          status: "trialing" | "active" | "expired" | "tester";
+          trial_ends_at: string;
+          tester_until: string | null;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          updated_at: string;
+        },
+        {
+          vendor_id: string;
+          status?: "trialing" | "active" | "expired" | "tester";
+          trial_ends_at: string;
+          tester_until?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+        },
+        {
+          status?: "trialing" | "active" | "expired" | "tester";
+          trial_ends_at?: string;
+          tester_until?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+        }
+      >;
+      tester_codes: Table<
+        {
+          id: string;
+          label: string;
+          code_hash: string;
+          max_uses: number;
+          use_count: number;
+          expires_at: string | null;
+          access_until: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          label: string;
+          code_hash: string;
+          max_uses: number;
+          use_count?: number;
+          expires_at?: string | null;
+          access_until?: string | null;
+        },
+        {
+          label?: string;
+          max_uses?: number;
+          use_count?: number;
+          expires_at?: string | null;
+          access_until?: string | null;
+        }
+      >;
       recommendation_events: Table<
         { id: string; recommendation_id: string; kind: string; created_at: string },
         { recommendation_id: string; kind: string },
@@ -966,6 +1024,16 @@ export type Database = {
       set_venue_point: { Args: { p_wedding: string; p_lat: number; p_lng: number }; Returns: undefined };
       record_reco_click: { Args: { p_token: string }; Returns: string | null };
       attribute_quote: { Args: { p_lead: string; p_token: string }; Returns: undefined };
+      create_couple_wedding: {
+        Args: { p_partner_one: string; p_partner_two: string; p_wedding_date: string; p_city: string };
+        Returns: string;
+      };
+      create_tester_code: {
+        Args: { p_label: string; p_code: string; p_max_uses: number; p_expires: string | null; p_access_until: string | null };
+        Returns: string;
+      };
+      redeem_tester_code: { Args: { p_code: string }; Returns: string };
+      is_admin: { Args: Record<string, never>; Returns: boolean };
       wedding_directory: {
         Args: { p_wedding_id: string };
         Returns: {
