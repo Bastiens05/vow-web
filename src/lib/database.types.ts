@@ -491,6 +491,16 @@ export type Database = {
         { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
         { thin_cents?: number; include_unsigned?: boolean }
       >;
+      crew_members: Table<
+        { id: string; vendor_id: string; name: string; role: string; phone: string; email: string; rate_cents: number; rate_kind: string; notes: string; active: boolean },
+        { vendor_id: string; name: string; role?: string; phone?: string; email?: string; rate_cents?: number; rate_kind?: string; notes?: string; active?: boolean },
+        { name?: string; role?: string; phone?: string; email?: string; rate_cents?: number; rate_kind?: string; notes?: string; active?: boolean }
+      >;
+      crew_assignments: Table<
+        { id: string; wedding_id: string; member_id: string; role: string; status: string; planned_minutes: number; paid: boolean },
+        { wedding_id: string; member_id: string; role?: string; status?: string; planned_minutes?: number; paid?: boolean },
+        { role?: string; status?: string; planned_minutes?: number; paid?: boolean }
+      >;
       tech_templates: Table<
         { vendor_id: string; fields: Json },
         { vendor_id: string; fields?: Json },
