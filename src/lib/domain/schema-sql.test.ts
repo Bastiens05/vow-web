@@ -79,6 +79,10 @@ describe("migration", () => {
       "cashflow_snapshots",
       "vendor_cash_settings",
       "cash_notices",
+      "tech_templates",
+      "wedding_tech",
+      "venue_capabilities",
+      "tech_issues",
       "wedding_music",
     ]);
     for (const table of tables) {
