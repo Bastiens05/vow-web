@@ -1,7 +1,7 @@
 export type AppRole = "vendor" | "couple";
 
 export function canManageTimeline(role: AppRole | null): boolean {
-  return role === "vendor";
+  return role === "couple";
 }
 
 export function canInviteMembers(role: AppRole | null): boolean {

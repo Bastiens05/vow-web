@@ -149,7 +149,6 @@ function itemsFor(
       { href: `${base}/documents`, label: "Documents", icon: "file" },
     ];
     if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
-    items.push({ href: `${base}/deroulement`, label: "Déroulé", icon: "spark" });
     if (view === "vendor") {
       items.push({ href: `${base}/bulles`, label: "Ma bulle", icon: "spark" });
       items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });

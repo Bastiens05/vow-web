@@ -34,7 +34,11 @@ export async function assignStep(formData: FormData) {
   const weddingId = String(formData.get("wedding_id") ?? "");
   const slotId = String(formData.get("slot_id") ?? "");
   const userId = String(formData.get("user_id") ?? "");
+  const previous = formData.getAll("previous_user_id").map(String);
   const supabase = await createClient();
+  for (const id of previous) {
+    if (id && id !== userId) await supabase.rpc("clear_timeline_step", { p_slot: slotId, p_user: id });
+  }
   if (userId) await supabase.rpc("assign_timeline_step", { p_slot: slotId, p_user: userId });
   revalidatePath(`/mariage/${weddingId}/deroulement`);
   revalidatePath(`/mariage/${weddingId}/jour`);

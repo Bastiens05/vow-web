@@ -13,115 +13,51 @@ export type TimelineTemplate = {
   slots: TemplateSlot[];
 };
 
-const general: TemplateSlot[] = [
-  { title: "Préparatifs", startsAt: "14:00", place: "Suite", notes: "" },
-  { title: "Accueil des invités", startsAt: "15:30", place: "Entrée", notes: "" },
-  { title: "Cérémonie", startsAt: "16:00", place: "", notes: "" },
-  { title: "Cocktail", startsAt: "17:30", place: "", notes: "" },
-  { title: "Dîner", startsAt: "20:00", place: "Salle", notes: "" },
-  { title: "Ouverture du bal", startsAt: "23:00", place: "Piste", notes: "" },
-];
-
 export const BUILTIN_TEMPLATES: TimelineTemplate[] = [
-  { id: "general", label: "Journée type", slots: general },
   {
-    id: "photographer",
-    label: "Photographe",
+    id: "laique",
+    label: "Cérémonie laïque + vin d'honneur + dîner",
     slots: [
-      { title: "Préparatifs photo", startsAt: "13:30", place: "Suite", notes: "Lumière naturelle, détails, portraits." },
-      { title: "Cérémonie", startsAt: "16:00", place: "", notes: "Arrivée, vœux, sortie." },
-      { title: "Photos de groupe", startsAt: "17:00", place: "Jardin", notes: "Familles puis amis." },
-      { title: "Cocktail", startsAt: "17:30", place: "", notes: "Reportage libre." },
-      { title: "Dîner et ouverture du bal", startsAt: "20:00", place: "Salle", notes: "Entrée, discours, première danse." },
-    ],
-  },
-  {
-    id: "videographer",
-    label: "Vidéaste",
-    slots: [
-      { title: "Préparatifs", startsAt: "13:30", place: "Suite", notes: "" },
-      { title: "Cérémonie", startsAt: "16:00", place: "", notes: "Deux axes, son de la cérémonie." },
-      { title: "Cocktail", startsAt: "17:30", place: "", notes: "" },
-      { title: "Discours", startsAt: "21:00", place: "Salle", notes: "" },
-      { title: "Ouverture du bal", startsAt: "23:00", place: "Piste", notes: "" },
-    ],
-  },
-  {
-    id: "caterer",
-    label: "Traiteur",
-    slots: [
-      { title: "Mise en place", startsAt: "15:00", place: "Cuisine", notes: "" },
-      { title: "Cocktail dînatoire", startsAt: "17:30", place: "", notes: "Pièces cocktail." },
-      { title: "Entrée en salle", startsAt: "20:00", place: "Salle", notes: "" },
-      { title: "Plat", startsAt: "21:00", place: "Salle", notes: "" },
-      { title: "Pièce montée", startsAt: "23:30", place: "Salle", notes: "" },
-    ],
-  },
-  {
-    id: "dj",
-    label: "DJ",
-    slots: [
-      { title: "Installation et balances", startsAt: "15:00", place: "Salle", notes: "" },
-      { title: "Cocktail", startsAt: "17:30", place: "", notes: "Fond sonore." },
-      { title: "Entrée en salle", startsAt: "20:00", place: "Salle", notes: "" },
-      { title: "Ouverture du bal", startsAt: "23:00", place: "Piste", notes: "" },
-      { title: "Fin de soirée", startsAt: "02:00", place: "Piste", notes: "" },
-    ],
-  },
-  {
-    id: "venue",
-    label: "Lieu",
-    slots: [
-      { title: "Ouverture du lieu", startsAt: "12:00", place: "", notes: "Remise des clés." },
-      { title: "Cérémonie", startsAt: "16:00", place: "Jardin", notes: "" },
-      { title: "Cocktail", startsAt: "17:30", place: "Orangerie", notes: "" },
+      { title: "Préparatifs", startsAt: "14:00", place: "Suite", notes: "" },
+      { title: "Cérémonie laïque", startsAt: "16:00", place: "Jardin", notes: "" },
+      { title: "Vin d'honneur", startsAt: "17:00", place: "Orangerie", notes: "" },
       { title: "Dîner", startsAt: "20:00", place: "Salle", notes: "" },
-      { title: "Fermeture", startsAt: "04:00", place: "", notes: "" },
+      { title: "Ouverture du bal", startsAt: "22:30", place: "Piste", notes: "" },
     ],
   },
   {
-    id: "planner",
-    label: "Wedding planner",
-    slots: general.map((slot) => ({ ...slot, notes: slot.notes || "Point avec les prestataires." })),
-  },
-  {
-    id: "florist",
-    label: "Fleuriste",
+    id: "mairie",
+    label: "Mairie le matin + réception l'après-midi",
     slots: [
-      { title: "Livraison des bouquets", startsAt: "11:00", place: "Suite", notes: "" },
-      { title: "Installation cérémonie", startsAt: "14:00", place: "Jardin", notes: "" },
-      { title: "Installation des tables", startsAt: "16:30", place: "Salle", notes: "" },
+      { title: "Préparatifs", startsAt: "09:00", place: "Maison", notes: "" },
+      { title: "Cérémonie civile", startsAt: "11:00", place: "Mairie", notes: "" },
+      { title: "Vin d'honneur", startsAt: "12:30", place: "Jardin", notes: "" },
+      { title: "Déjeuner", startsAt: "13:30", place: "Salle", notes: "" },
     ],
   },
   {
-    id: "beauty",
-    label: "Coiffure et maquillage",
+    id: "soiree",
+    label: "Cérémonie civile + cocktail + soirée",
     slots: [
-      { title: "Maquillage mariée", startsAt: "10:00", place: "Suite", notes: "" },
-      { title: "Coiffure", startsAt: "12:00", place: "Suite", notes: "" },
-      { title: "Retouches", startsAt: "15:30", place: "Suite", notes: "" },
-    ],
-  },
-  {
-    id: "officiant",
-    label: "Officiant",
-    slots: [
-      { title: "Brief avec le couple", startsAt: "15:00", place: "", notes: "" },
-      { title: "Cérémonie", startsAt: "16:00", place: "", notes: "Entrée, textes, vœux, sortie." },
+      { title: "Cérémonie civile", startsAt: "15:00", place: "Mairie", notes: "" },
+      { title: "Photos", startsAt: "16:00", place: "Jardin", notes: "" },
+      { title: "Cocktail", startsAt: "17:30", place: "Terrasse", notes: "" },
+      { title: "Dîner", startsAt: "20:00", place: "Salle", notes: "" },
+      { title: "Soirée dansante", startsAt: "22:30", place: "Piste", notes: "" },
     ],
   },
 ];
 
 const TRADE_TEMPLATE: Partial<Record<VendorCategory, string>> = {
-  photographer: "photographer",
-  videographer: "videographer",
-  caterer: "caterer",
-  dj: "dj",
-  venue: "venue",
-  planner: "planner",
-  florist: "florist",
-  beauty: "beauty",
-  officiant: "officiant",
+  photographer: "laique",
+  videographer: "laique",
+  caterer: "soiree",
+  dj: "soiree",
+  venue: "soiree",
+  planner: "laique",
+  florist: "laique",
+  beauty: "laique",
+  officiant: "laique",
 };
 
 export function builtinTemplate(id: string): TimelineTemplate | null {
@@ -129,6 +65,23 @@ export function builtinTemplate(id: string): TimelineTemplate | null {
 }
 
 export function suggestedTemplateId(category: VendorCategory | null): string {
-  if (!category) return "general";
-  return TRADE_TEMPLATE[category] ?? "general";
+  if (!category) return "laique";
+  return TRADE_TEMPLATE[category] ?? "laique";
+}
+
+export function parseTemplateSlots(value: unknown): TemplateSlot[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((slot) => {
+    if (!slot || typeof slot !== "object") return [];
+    const row = slot as Record<string, unknown>;
+    if (typeof row.title !== "string" || typeof row.startsAt !== "string") return [];
+    return [
+      {
+        title: row.title,
+        startsAt: row.startsAt,
+        place: typeof row.place === "string" ? row.place : "",
+        notes: typeof row.notes === "string" ? row.notes : "",
+      },
+    ];
+  });
 }

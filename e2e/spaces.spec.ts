@@ -67,10 +67,10 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   await couplePage.getByRole("button", { name: "Ajouter l'invité" }).click();
   await expect(couplePage.getByText(guestName)).toBeVisible();
 
-  await couplePage.goto(`/mariage/${weddingId}/deroulement`);
-  await couplePage.getByLabel("Nouveau moment").fill("Cérémonie");
+  await couplePage.goto(`/mariage/${weddingId}/jour`);
+  await couplePage.getByLabel("Étape").fill("Cérémonie");
   await couplePage.getByLabel("Heure").fill("16:00");
-  await couplePage.getByRole("button", { name: "Ajouter au déroulé" }).click();
+  await couplePage.getByRole("button", { name: "Ajouter l'étape" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
 
   await couplePage.goto(`/mariage/${weddingId}/jour`);

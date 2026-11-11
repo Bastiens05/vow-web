@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { canInviteMembers, canManageTimeline, partitionWeddings, weddingStatus } from "./access";
 
 describe("access", () => {
-  it("lets vendors edit the timeline and invite", () => {
-    expect(canManageTimeline("vendor")).toBe(true);
+  it("lets vendors invite and keeps the day programme with the couple", () => {
+    expect(canManageTimeline("vendor")).toBe(false);
     expect(canInviteMembers("vendor")).toBe(true);
   });
 
-  it("keeps the couple from editing the timeline and lets them invite their partner", () => {
-    expect(canManageTimeline("couple")).toBe(false);
+  it("lets the couple edit the day programme and invite their partner", () => {
+    expect(canManageTimeline("couple")).toBe(true);
     expect(canInviteMembers("couple")).toBe(true);
     expect(canManageTimeline(null)).toBe(false);
     expect(canInviteMembers(null)).toBe(false);

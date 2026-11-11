@@ -1,14 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, TextInput } from "@/components/ui/field";
+import { ProgrammeStart } from "@/components/wedding/programme-start";
 import { addMinutesToTime } from "@/lib/domain/day";
 import { formatSlotTime } from "@/lib/domain/format";
+import type { TemplateSlot } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/client";
 import { shiftSlot, undoShift } from "@/server/actions/day";
-import { markReady } from "@/server/actions/relay";
+import { assignStep, markReady } from "@/server/actions/relay";
+import { addTimelineSlot, deleteTimelineSlot, updateTimelineSlot } from "@/server/actions/space";
 import type { SlotView } from "@/server/data";
 
 export function DayBoard({
@@ -16,11 +20,15 @@ export function DayBoard({
   slots,
   canControl,
   userId,
+  vendors = [],
+  suggestion = null,
 }: {
   weddingId: string;
   slots: SlotView[];
   canControl: boolean;
   userId: string;
+  vendors?: { userId: string; fullName: string }[];
+  suggestion?: { id: string; label: string; slots: TemplateSlot[] } | null;
 }) {
   const router = useRouter();
   const [overrides, setOverrides] = useState<Record<string, string>>({});
@@ -35,6 +43,8 @@ export function DayBoard({
     minutes: number;
     cascade: boolean;
   } | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [offerTemplate, setOfferTemplate] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -112,28 +122,45 @@ export function DayBoard({
     router.refresh();
   }
 
+  const names = new Map(vendors.map((vendor) => [vendor.userId, vendor.fullName]));
+
   return (
     <div className="space-y-6">
-      {canControl ? (
-        <label className="flex min-h-12 items-center gap-3 text-sm">
+      {live.length === 0 ? <ProgrammeStart weddingId={weddingId} canApply={canControl} suggestion={suggestion} /> : null}
+      {live.length > 0 && !canControl ? (
+        <div>
+          <button type="button" className="text-sm underline active:opacity-70" onClick={() => setOfferTemplate((value) => !value)}>
+            Proposer un programme
+          </button>
+          {offerTemplate ? (
+            <div className="mt-4">
+              <ProgrammeStart weddingId={weddingId} canApply={false} suggestion={suggestion} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {canControl && live.length > 0 ? (
+        <label className="flex min-h-11 items-center gap-3 text-sm text-muted">
           <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-4 w-4 accent-ink" />
           Décaler aussi la suite
         </label>
-      ) : (
-        <p className="rounded-2xl bg-paper px-4 py-3 text-sm leading-6">
-          Le couple met à jour les horaires. Vous voyez le déroulé en direct et recevez les alertes.
-        </p>
-      )}
+      ) : null}
       {error ? <Alert>{error}</Alert> : null}
-      <p className="text-sm text-muted">
-        {live.filter((slot) => slot.ready).length}/{live.length} étapes prêtes
-      </p>
-      <ol className="space-y-4">
-        {live.map((slot) => (
-          <li key={slot.id} className="rounded-3xl border border-line bg-paper p-5">
-            <p className="text-4xl font-semibold tracking-tight">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight">{slot.title}</h2>
-            {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : null}
+      {live.length > 0 ? (
+        <p className="text-sm text-muted">
+          {live.filter((slot) => slot.ready).length}/{live.length} étapes prêtes
+        </p>
+      ) : null}
+      {live.length > 0 ? <ol className="relative ml-1 border-l border-line">
+        {live.map((slot) => {
+          const concerned = slot.assigneeIds.map((id) => names.get(id)).filter((name): name is string => Boolean(name));
+          return (
+          <li key={slot.id} className="relative pb-8 pl-6">
+            <span className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full bg-ink" aria-hidden />
+            <p className="text-3xl font-semibold tracking-tight tabular-nums">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
+            <h3 className="mt-1 text-xl font-semibold tracking-tight">{slot.title}</h3>
+            {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : <p className="text-sm text-muted">Lieu à préciser</p>}
+            <p className="mt-2 text-sm">{concerned.length > 0 ? concerned.join(", ") : "Aucun prestataire"}</p>
             {slot.ready ? (
               <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted">
                 <span className="h-2 w-2 rounded-full bg-ok" aria-hidden />
@@ -151,6 +178,12 @@ export function DayBoard({
             ) : null}
             {canControl ? (
               <>
+                <button type="button" className="mt-3 text-sm underline active:opacity-70" onClick={() => setEditingId((current) => (current === slot.id ? null : slot.id))}>
+                  {editingId === slot.id ? "Fermer" : "Modifier"}
+                </button>
+                {editingId === slot.id ? (
+                  <StepEditor weddingId={weddingId} slot={slot} vendors={vendors} />
+                ) : null}
                 <div className="mt-4 flex flex-wrap gap-2">
                   {[5, 15, 30, 60].map((minutes) => (
                     <Button
@@ -169,8 +202,10 @@ export function DayBoard({
               </>
             ) : null}
           </li>
-        ))}
-      </ol>
+          );
+        })}
+      </ol> : null}
+      {canControl ? <AddStep weddingId={weddingId} /> : null}
       {undo ? (
         <div role="status" className="fixed bottom-28 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#2c2c2e] px-4 py-2 text-sm text-white shadow-lg">
           Prestataires prévenus
@@ -181,6 +216,95 @@ export function DayBoard({
       ) : null}
       {canControl ? <PushToggle /> : null}
     </div>
+  );
+}
+
+function AddStep({ weddingId }: { weddingId: string }) {
+  const [state, action, pending] = useActionState(addTimelineSlot.bind(null, weddingId), {});
+  return (
+    <form action={action} className="grid gap-3 rounded-3xl border border-line bg-paper p-4 sm:grid-cols-2">
+      <p className="text-sm font-medium sm:col-span-2">Ajouter une étape</p>
+      <Field label="Étape">
+        <TextInput name="title" required placeholder="Cérémonie" />
+      </Field>
+      <Field label="Heure">
+        <TextInput name="starts_at" type="time" required />
+      </Field>
+      <Field label="Lieu">
+        <TextInput name="place" placeholder="Jardin" />
+      </Field>
+      {state.error ? (
+        <div className="sm:col-span-2">
+          <Alert>{state.error}</Alert>
+        </div>
+      ) : null}
+      <Button type="submit" variant="secondary" disabled={pending}>
+        {pending ? "Ajout…" : "Ajouter l'étape"}
+      </Button>
+    </form>
+  );
+}
+
+function StepEditor({
+  weddingId,
+  slot,
+  vendors,
+}: {
+  weddingId: string;
+  slot: SlotView;
+  vendors: { userId: string; fullName: string }[];
+}) {
+  const [state, formAction, pending] = useActionState(updateTimelineSlot.bind(null, weddingId), {});
+  return (
+    <form action={formAction} className="mt-3 grid gap-3 rounded-2xl border border-line p-3 sm:grid-cols-2">
+      <input type="hidden" name="id" value={slot.id} />
+      <input type="hidden" name="wedding_id" value={weddingId} />
+      <input type="hidden" name="slot_id" value={slot.id} />
+      {slot.assigneeIds.map((id) => (
+        <input key={id} type="hidden" name="previous_user_id" value={id} />
+      ))}
+      <Field label="Étape">
+        <TextInput name="title" required defaultValue={slot.title} />
+      </Field>
+      <Field label="Heure de l'étape">
+        <TextInput name="starts_at" type="time" required defaultValue={formatSlotTime(slot.startsAt)} />
+      </Field>
+      <Field label="Lieu">
+        <TextInput name="place" defaultValue={slot.place} />
+      </Field>
+      <Field label={`Prestataire pour ${slot.title}`}>
+        <select
+          name="user_id"
+          defaultValue={slot.assigneeIds[0] ?? ""}
+          aria-label={`Prestataire pour ${slot.title}`}
+          className="min-h-11 w-full rounded-xl border border-line bg-ivory px-3 text-sm"
+        >
+          <option value="">Personne</option>
+          {vendors.map((vendor) => (
+            <option key={vendor.userId} value={vendor.userId}>
+              {vendor.fullName}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <input type="hidden" name="notes" value={slot.notes} />
+      {state.error ? (
+        <div className="sm:col-span-2">
+          <Alert>{state.error}</Alert>
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-2 sm:col-span-2">
+        <Button type="submit" disabled={pending}>
+          {pending ? "…" : "Enregistrer"}
+        </Button>
+        <Button type="submit" variant="secondary" formAction={assignStep}>
+          Attribuer
+        </Button>
+        <Button type="submit" variant="ghost" formAction={deleteTimelineSlot}>
+          Retirer
+        </Button>
+      </div>
+    </form>
   );
 }
 

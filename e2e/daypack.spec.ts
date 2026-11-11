@@ -105,11 +105,11 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
     expect(denied.status()).toBe(404);
   }
 
-  await couplePage.goto(`/mariage/${weddingId}/deroulement`);
-  await couplePage.getByLabel("Nouveau moment").fill("Cérémonie");
+  await couplePage.goto(`/mariage/${weddingId}/jour`);
+  await couplePage.getByLabel("Étape").fill("Cérémonie");
   await couplePage.getByLabel("Heure").fill("16:00");
   await couplePage.getByLabel("Lieu", { exact: true }).fill("Jardin");
-  await couplePage.getByRole("button", { name: "Ajouter au déroulé" }).click();
+  await couplePage.getByRole("button", { name: "Ajouter l'étape" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
 
   await couplePage.goto(`/mariage/${weddingId}/jour`);

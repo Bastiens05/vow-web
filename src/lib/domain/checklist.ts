@@ -36,8 +36,8 @@ export function vendorSteps(input: {
     },
     {
       id: "timeline",
-      label: "Poser le déroulé du jour",
-      href: wedding ? `/mariage/${wedding}/deroulement` : "/espace",
+      label: "Poser le programme du jour",
+      href: wedding ? `/mariage/${wedding}/jour` : "/espace",
       done: input.hasTimeline,
     },
     {

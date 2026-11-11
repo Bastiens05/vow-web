@@ -40,7 +40,7 @@ export function backTarget(
       if (!section) return { label: "Accueil", href: "/espace" };
       return { label: "Mariage", href: `/mariage/${id}` };
     }
-    if (["messages", "jour", "documents", "pratique", "deroulement", "inviter"].includes(section)) return null;
+    if (["messages", "jour", "documents", "pratique", "inviter"].includes(section)) return null;
     if (!section) return { label: "Mariages", href: "/mariages" };
     return { label: "Mariage", href: `/mariage/${id}` };
   }
