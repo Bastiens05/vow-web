@@ -75,6 +75,11 @@ describe("migration", () => {
       "profile_field_access",
       "quote_intakes",
       "brief_sends",
+      "payment_installments",
+      "wedding_time_entries",
+      "cashflow_snapshots",
+      "vendor_cash_settings",
+      "cash_notices",
       "wedding_music",
     ]);
     for (const table of tables) {

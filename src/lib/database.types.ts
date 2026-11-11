@@ -471,6 +471,31 @@ export type Database = {
         },
         Record<string, never>
       >;
+      payment_installments: Table<
+        { id: string; quote_id: string; due_on: string; amount_cents: number; collected_on: string | null },
+        { quote_id: string; due_on: string; amount_cents: number; collected_on?: string | null },
+        { due_on?: string; amount_cents?: number; collected_on?: string | null }
+      >;
+      wedding_time_entries: Table<
+        { id: string; wedding_id: string; vendor_id: string; kind: string; minutes: number; note: string },
+        { wedding_id: string; vendor_id: string; kind: string; minutes?: number; note?: string },
+        { kind?: string; minutes?: number; note?: string }
+      >;
+      cashflow_snapshots: Table<
+        { vendor_id: string; month: string; collected_cents: number; scheduled_cents: number; unscheduled_cents: number },
+        { vendor_id: string; month: string; collected_cents?: number; scheduled_cents?: number; unscheduled_cents?: number },
+        { collected_cents?: number; scheduled_cents?: number; unscheduled_cents?: number }
+      >;
+      vendor_cash_settings: Table<
+        { vendor_id: string; thin_cents: number; include_unsigned: boolean },
+        { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
+        { thin_cents?: number; include_unsigned?: boolean }
+      >;
+      cash_notices: Table<
+        { vendor_id: string; month: string },
+        { vendor_id: string; month: string },
+        Record<string, never>
+      >;
       quotes: Table<
         {
           id: string;
@@ -1007,6 +1032,7 @@ export type Database = {
       my_profile_slice: { Args: { p_wedding: string }; Returns: Json };
       notify_shift_personal: { Args: { p_wedding: string; p_user: string; p_body: string }; Returns: string };
       due_day_briefs: { Args: { p_day: string }; Returns: { wedding_id: string; user_id: string; email: string }[] };
+      rebuild_cashflow: { Args: Record<string, never>; Returns: undefined };
       mark_brief_sent: { Args: { p_wedding: string; p_user: string; p_day: string }; Returns: undefined };
       create_invitation: {
         Args: {
