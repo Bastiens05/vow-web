@@ -58,7 +58,12 @@ export default async function SettingsPage() {
       ) : null}
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Alertes</h2>
-        <NotificationForm inApp={session.profile.notify_in_app} push={session.profile.notify_push} />
+        <NotificationForm
+          inApp={session.profile.notify_in_app}
+          push={session.profile.notify_push}
+          email={session.profile.notify_email}
+          reminders={session.profile.notify_reminders}
+        />
       </Card>
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Mot de passe</h2>

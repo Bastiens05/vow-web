@@ -32,6 +32,9 @@ export type Database = {
           email: string;
           notify_in_app: boolean;
           notify_push: boolean;
+          notify_email: boolean;
+          notify_reminders: boolean;
+          email_token: string;
           created_at: string;
           updated_at: string;
         },
@@ -42,10 +45,20 @@ export type Database = {
           email?: string;
           notify_in_app?: boolean;
           notify_push?: boolean;
+          notify_email?: boolean;
+          notify_reminders?: boolean;
+          email_token?: string;
           created_at?: string;
           updated_at?: string;
         },
-        { full_name?: string; notify_in_app?: boolean; notify_push?: boolean; updated_at?: string }
+        {
+          full_name?: string;
+          notify_in_app?: boolean;
+          notify_push?: boolean;
+          notify_email?: boolean;
+          notify_reminders?: boolean;
+          updated_at?: string;
+        }
       >;
       vendor_profiles: Table<
         {
@@ -593,6 +606,35 @@ export type Database = {
         { id?: string; wedding_id: string; vendor_id: string; title: string; expires_at?: string | null },
         { title?: string; expires_at?: string | null }
       >;
+      mail_outbox: Table<
+        {
+          id: string;
+          kind: string;
+          to_email: string;
+          subject: string;
+          heading: string;
+          body: string;
+          button_label: string;
+          button_url: string;
+          unsubscribe_token: string | null;
+          created_at: string;
+          sent_at: string | null;
+        },
+        {
+          id?: string;
+          kind: string;
+          to_email: string;
+          subject: string;
+          heading: string;
+          body: string;
+          button_label: string;
+          button_url: string;
+          unsubscribe_token?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+        },
+        { sent_at?: string | null }
+      >;
       delivery_files: Table<
         {
           id: string;
@@ -694,6 +736,30 @@ export type Database = {
       run_deposit_reminders: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      unsubscribe_reminders: {
+        Args: { p_token: string };
+        Returns: boolean;
+      };
+      enqueue_product_mail: {
+        Args: { p_site: string };
+        Returns: number;
+      };
+      claim_mail_outbox: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          kind: string;
+          to_email: string;
+          subject: string;
+          heading: string;
+          body: string;
+          button_label: string;
+          button_url: string;
+          unsubscribe_token: string | null;
+          created_at: string;
+          sent_at: string | null;
+        }[];
       };
       wedding_directory: {
         Args: { p_wedding_id: string };

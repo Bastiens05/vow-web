@@ -18,6 +18,14 @@ export async function landingPath(
   const userId = userData.user?.id;
   if (!userId) return nextPath || "/espace";
 
+  if (onboard) {
+    const token = userData.user?.user_metadata?.invitation_token;
+    if (typeof token === "string" && /^[a-f0-9]{64}$/.test(token)) {
+      const { data, error } = await supabase.rpc("accept_invitation", { p_token: token });
+      if (!error && data) return `/mariage/${data}`;
+    }
+  }
+
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
   if (!profile) return "/espace";
 

@@ -8,7 +8,8 @@ export function isPublicPath(pathname: string): boolean {
     pathname === "/confidentialite" ||
     pathname.startsWith("/demande/") ||
     pathname.startsWith("/p/") ||
-    pathname.startsWith("/invitation/")
+    pathname.startsWith("/invitation/") ||
+    pathname.startsWith("/desabonnement/")
   );
 }
 

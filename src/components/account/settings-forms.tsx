@@ -120,7 +120,17 @@ export function LogoField({ userId, logoPath }: { userId: string; logoPath: stri
   );
 }
 
-export function NotificationForm({ inApp, push }: { inApp: boolean; push: boolean }) {
+export function NotificationForm({
+  inApp,
+  push,
+  email,
+  reminders,
+}: {
+  inApp: boolean;
+  push: boolean;
+  email: boolean;
+  reminders: boolean;
+}) {
   const [state, action, pending] = useActionState(saveNotificationPrefs, {});
   return (
     <form action={action} className="space-y-3">
@@ -131,6 +141,14 @@ export function NotificationForm({ inApp, push }: { inApp: boolean; push: boolea
       <label className="flex min-h-11 items-center gap-3 text-sm">
         <input type="checkbox" name="notify_push" defaultChecked={push} className="h-5 w-5" />
         Notifications sur le téléphone, si elles sont activées
+      </label>
+      <label className="flex min-h-11 items-center gap-3 text-sm">
+        <input type="checkbox" name="notify_email" defaultChecked={email} className="h-5 w-5" />
+        Recevoir les e-mails de VOW
+      </label>
+      <label className="flex min-h-11 items-center gap-3 text-sm">
+        <input type="checkbox" name="notify_reminders" defaultChecked={reminders} className="h-5 w-5" />
+        Rappels avant le mariage (désactivables aussi depuis l&apos;e-mail)
       </label>
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}

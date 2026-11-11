@@ -5,6 +5,7 @@ import type { Json } from "@/lib/database.types";
 import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { sendMemberMail } from "@/server/product-mail";
 import { notifyWedding } from "@/server/push";
 import { requireSession } from "@/server/session";
 
@@ -28,6 +29,13 @@ async function fanOut(note: { id: string; weddingId: string; body: string }, aut
     title: "VOW · Jour J",
     body: note.body,
     url: `/mariage/${note.weddingId}/jour`,
+  });
+  await sendMemberMail(supabase, note.weddingId, authorId, {
+    subject: "Jour J · un horaire a changé",
+    heading: "Le jour J bouge",
+    body: note.body,
+    buttonLabel: "Voir le jour J",
+    path: `/mariage/${note.weddingId}/jour`,
   });
   revalidatePath(`/mariage/${note.weddingId}/jour`);
   revalidatePath("/alertes");

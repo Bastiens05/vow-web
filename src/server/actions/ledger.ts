@@ -8,6 +8,7 @@ import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import { createDepositCheckout, stripeEnabled } from "@/server/stripe";
 import type { ActionState } from "@/server/actions/auth";
+import { sendCoupleMail } from "@/server/product-mail";
 import { requireSession } from "@/server/session";
 
 async function nextNumber(table: "quotes" | "invoices", vendorId: string) {
@@ -43,7 +44,18 @@ export async function setQuoteStatus(formData: FormData) {
   const status = String(formData.get("status") ?? "");
   if (!["sent", "accepted"].includes(status)) return;
   const supabase = await createClient();
+  const { data: quote } = await supabase.from("quotes").select("title, amount_cents").eq("id", id).maybeSingle();
   await supabase.from("quotes").update({ status }).eq("id", id);
+  if (status === "sent" && quote) {
+    const euros = (quote.amount_cents / 100).toLocaleString("fr-FR");
+    await sendCoupleMail(supabase, weddingId, {
+      subject: `Devis · ${quote.title}`,
+      heading: "Votre devis",
+      body: `${quote.title}, ${euros} €. Il vous attend dans le mariage.`,
+      buttonLabel: "Voir le devis",
+      path: `/mariage/${weddingId}/devis`,
+    });
+  }
   revalidatePath(`/mariage/${weddingId}/devis`);
 }
 
@@ -68,6 +80,14 @@ export async function invoiceQuote(formData: FormData) {
   });
   if (error) return;
   await supabase.from("quotes").update({ status: "invoiced" }).eq("id", quote.id);
+  const euros = (quote.amount_cents / 100).toLocaleString("fr-FR");
+  await sendCoupleMail(supabase, weddingId, {
+    subject: `Facture · ${quote.title}`,
+    heading: "Votre facture",
+    body: `${quote.title}, ${euros} €. L'échéance est dans 14 jours.`,
+    buttonLabel: "Voir la facture",
+    path: `/mariage/${weddingId}/devis`,
+  });
   revalidatePath(`/mariage/${weddingId}/devis`);
 }
 
