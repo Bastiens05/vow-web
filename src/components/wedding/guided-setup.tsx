@@ -24,7 +24,7 @@ export function GuidedSetup({
   const action = savePractical.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   if (skipped) {
-    return <p className="text-sm text-muted">Vous pourrez compléter ces infos plus tard, depuis n&apos;importe quelle bulle.</p>;
+    return <p className="text-sm text-muted">Vous pourrez compléter ces infos plus tard, depuis l&apos;espace de chaque prestataire.</p>;
   }
   return (
     <form action={formAction} className="space-y-6">

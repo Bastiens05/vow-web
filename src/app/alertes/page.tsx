@@ -7,10 +7,14 @@ import { formatDateTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 
-export const metadata: Metadata = { title: "Alertes" };
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await requireSession();
+  return { title: session.profile.role === "couple" ? "Nouveautés" : "Alertes" };
+}
 
 export default async function AlertsPage() {
   const session = await requireSession();
+  const couple = session.profile.role === "couple";
   const supabase = await createClient();
   const { data } = await supabase
     .from("wedding_notifications")
@@ -21,21 +25,21 @@ export default async function AlertsPage() {
   const notes = data ?? [];
   return (
     <div className="mx-auto w-full max-w-lg px-5 py-8">
-      <h1 className="text-4xl font-semibold tracking-tight">Alertes</h1>
+      <h1 className="text-4xl font-semibold tracking-tight">{couple ? "Nouveautés" : "Alertes"}</h1>
       <p className="mt-2 text-sm text-muted">
-        {session.profile.role === "couple" ? "Les dernières nouvelles de votre mariage." : "Ce qui a bougé sur vos mariages."}
+        {couple ? "Les dernières nouvelles de votre mariage." : "Ce qui a bougé sur vos mariages."}
       </p>
       <ul className="mt-6 space-y-3">
         {notes.length === 0 ? (
           <li>
-            <EmptyState title="Aucune alerte">
-              <ButtonLink href="/espace">Retour à l&apos;accueil</ButtonLink>
+            <EmptyState title={couple ? "Tout est à jour" : "Aucune alerte"}>
+              {couple ? null : <ButtonLink href="/espace">Retour à l&apos;accueil</ButtonLink>}
             </EmptyState>
           </li>
         ) : null}
         {notes.map((note) => (
-          <li key={note.id} className="rounded-2xl bg-paper px-4 py-4">
-            <p className="text-sm leading-6">{note.body}</p>
+          <li key={note.id} className="rounded-2xl border border-line bg-paper px-4 py-4">
+            <p className="text-sm leading-6">{couple ? coupleNote(note.kind, note.body, note.author_id === session.userId) : note.body}</p>
             <p className="mt-2 text-xs text-muted">
               {formatDateTime(note.created_at)}
               {note.author_id === session.userId ? " · vous" : ""}
@@ -51,4 +55,11 @@ export default async function AlertsPage() {
       </ul>
     </div>
   );
+}
+
+function coupleNote(kind: string, body: string, mine: boolean) {
+  if (kind === "shift" && mine) return "Vos prestataires ont été prévenus du nouvel horaire.";
+  if (kind === "shift") return body.replace(/alerte/gi, "nouvelle");
+  if (kind === "alert") return body.replace(/^Alerte\s*:\s*/i, "").replace(/alerte/gi, "nouvelle");
+  return body.replace(/alerte/gi, "nouvelle");
 }

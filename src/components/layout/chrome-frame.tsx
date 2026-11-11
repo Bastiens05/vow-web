@@ -31,7 +31,7 @@ export function ChromeFrame({
   return (
     <>
       {mobile}
-      <div className="md:grid md:min-h-dvh md:grid-cols-[232px_minmax(0,1fr)]">
+      <div className="md:grid md:min-h-dvh md:grid-cols-[auto_minmax(0,1fr)]">
         {desktop}
         <main className="min-w-0 pb-24 md:pb-10">{children}</main>
       </div>

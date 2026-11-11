@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { pratiqueLabel } from "@/lib/domain/trades";
+import { LineIcon } from "@/components/ui/line-icon";
 import { NavLink, type IconName } from "@/components/ui/nav-link";
 
 type Item = { href: string; label: string; icon: IconName };
@@ -26,7 +27,7 @@ export function NavMenu({
   isAdmin?: boolean;
 }) {
   const path = usePathname() ?? "";
-  const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
+  const items = navigationItems(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
   const inWedding = Boolean(weddingIdFrom(path));
   const couple = role === "couple" || actingAsCouple;
   const mobileCouple = couple && variant === "tab";
@@ -82,12 +83,8 @@ function MoreTab({ items, path }: { items: Item[]; path: string }) {
         className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
         onClick={() => setOpen(true)}
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <circle cx="6" cy="12" r="1.2" fill="currentColor" />
-          <circle cx="12" cy="12" r="1.2" fill="currentColor" />
-          <circle cx="18" cy="12" r="1.2" fill="currentColor" />
-        </svg>
-        Plus
+        <LineIcon name="more" />
+        <span className="text-[11px] leading-none">Plus</span>
       </button>
       {open ? (
         <div className="fixed inset-0 z-50">
@@ -111,7 +108,7 @@ function weddingIdFrom(path: string) {
   return match?.[1] ?? null;
 }
 
-function itemsFor(
+export function navigationItems(
   path: string,
   role: "vendor" | "couple" | null,
   category: VendorCategory | null,
@@ -127,11 +124,10 @@ function itemsFor(
       { href: "/espace", label: "Accueil", icon: "home" },
       { href: base ? `${base}/jour` : "/espace", label: "Jour J", icon: "clock" },
       { href: base ? `${base}/messages` : "/messages", label: "Messages", icon: "message" },
-      { href: base ? `${base}/bulles` : "/espace", label: "Documents", icon: "file" },
+      { href: base ? `${base}/documents` : "/espace", label: "Documents", icon: "file" },
       { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "spark" },
       { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
-      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "spark" },
-      { href: base ? `${base}/coffre` : "/espace", label: "Coffre", icon: "file" },
+      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "wallet" },
       { href: "/reglages", label: "Réglages", icon: "gear" },
     ];
     if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
@@ -150,7 +146,7 @@ function itemsFor(
     ];
     if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
     if (view === "vendor") {
-      items.push({ href: `${base}/bulles`, label: "Ma bulle", icon: "spark" });
+      items.push({ href: `${base}/bulles`, label: "Mon dossier", icon: "spark" });
       items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
     }
     return items;
@@ -176,7 +172,7 @@ function itemsFor(
       : [
           { href: "/espace", label: "Accueil", icon: "home" },
           { href: primaryWeddingId ? `/mariage/${primaryWeddingId}` : "/mariages", label: "Mariage", icon: "list" },
-          { href: "/alertes", label: "Alertes", icon: "bell" },
+          { href: "/alertes", label: "Nouveautés", icon: "bell" },
           { href: "/reglages", label: "Réglages", icon: "gear" },
         ];
   if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });

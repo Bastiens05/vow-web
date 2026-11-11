@@ -230,7 +230,7 @@ export function DayBoard({
       {canControl ? <AddStep weddingId={weddingId} /> : null}
       {undo ? (
         <div role="status" className="fixed bottom-28 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#2c2c2e] px-4 py-2 text-sm text-white shadow-lg">
-          Prestataires prévenus
+          Vos prestataires ont été prévenus du nouvel horaire.
           <button type="button" className="font-medium underline active:opacity-70" onClick={() => void cancelShift()}>
             Annuler
           </button>
@@ -400,7 +400,7 @@ function PushToggle() {
   if (!key) {
     return (
       <p className="text-sm text-muted">
-        Les alertes s’affichent dans VOW. Les notifications du téléphone s’activent quand les clés push sont configurées.
+        Les nouveautés s&apos;affichent dans VOW. Les notifications du téléphone s&apos;activent quand les clés sont configurées.
       </p>
     );
   }
@@ -436,10 +436,10 @@ function PushToggle() {
             headers: { "content-type": "application/json" },
             body: JSON.stringify(json),
           });
-          setStatus(response.ok ? "Alertes activées sur cet appareil." : "Activation impossible pour le moment.");
+          setStatus(response.ok ? "Notifications activées sur cet appareil." : "Activation impossible pour le moment.");
         }}
       >
-        Activer les alertes sur cet appareil
+        Activer les notifications sur cet appareil
       </Button>
       {status ? <p className="mt-2 text-sm text-muted">{status}</p> : null}
     </div>

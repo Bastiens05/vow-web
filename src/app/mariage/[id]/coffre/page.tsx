@@ -18,7 +18,7 @@ export default async function VaultPage({ params }: { params: Promise<{ id: stri
       <header>
         <h2 className="text-3xl font-semibold tracking-tight">Coffre</h2>
         <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-          Déposez une fois les pièces que les prestataires demandent. Vous les partagez ensuite, d&apos;un geste, dans leur bulle.
+          Déposez une fois les pièces que les prestataires demandent. Vous les partagez ensuite, d&apos;un geste, dans leur espace.
         </p>
       </header>
       <VaultBoard weddingId={id} userId={space.session.userId} checklist={VAULT_CHECKLIST} stored={data ?? []} />

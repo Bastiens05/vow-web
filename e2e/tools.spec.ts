@@ -71,6 +71,7 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
   await couplePage.getByRole("button", { name: "Rejoindre le mariage" }).click();
   await expect(couplePage.getByRole("heading", { name: "Nina & Paul" })).toBeVisible();
   await couplePage.getByRole("link", { name: "Jour J" }).click();
+  await couplePage.getByRole("button", { name: "Voir les étapes" }).click();
   await couplePage.getByRole("button", { name: "Appliquer" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie laïque" })).toBeVisible();
 

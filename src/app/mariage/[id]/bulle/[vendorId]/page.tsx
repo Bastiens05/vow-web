@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet, getWeddingSpace } from "@/server/data";
 import { shareVaultItem } from "@/server/actions/vault";
 
-export const metadata: Metadata = { title: "Bulle" };
+export const metadata: Metadata = { title: "Prestataire" };
 
 export default async function BubblePage({ params }: { params: Promise<{ id: string; vendorId: string }> }) {
   const { id, vendorId } = await params;
@@ -44,7 +44,7 @@ export default async function BubblePage({ params }: { params: Promise<{ id: str
     <div className="grid gap-4">
       <header>
         <p className="text-xs uppercase tracking-[0.16em] text-muted">{trade}</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">{person?.business_name || profile?.business_name || "Votre bulle"}</h2>
+        <h2 className="mt-1 text-3xl font-semibold tracking-tight">{person?.business_name || profile?.business_name || person?.full_name || "Prestataire"}</h2>
         {person?.phone || person?.email ? (
           <p className="mt-2 text-sm text-muted">{[person?.phone, person?.email].filter(Boolean).join(" · ")}</p>
         ) : null}

@@ -67,8 +67,9 @@ export default async function SettingsPage() {
         </Card>
       ) : null}
       <Card className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Alertes</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{vendor ? "Alertes" : "Notifications"}</h2>
         <NotificationForm
+          calm={!vendor}
           inApp={session.profile.notify_in_app}
           push={session.profile.notify_push}
           email={session.profile.notify_email}

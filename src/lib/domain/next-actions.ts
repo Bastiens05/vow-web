@@ -12,6 +12,13 @@ export function daysUntil(weddingDate: string, today: string): number | null {
   return Math.round((end - start) / 86_400_000);
 }
 
+export function heroCountdown(days: number | null): { figure: string; caption: string } {
+  if (days === null) return { figure: "—", caption: "Date à confirmer" };
+  if (days > 0) return { figure: `J-${days}`, caption: "avant le grand jour" };
+  if (days === 0) return { figure: "C'est le jour J", caption: "aujourd'hui" };
+  return { figure: "Mariage passé", caption: "" };
+}
+
 export function countdownLabel(days: number | null): string {
   if (days === null) return "Date à confirmer";
   if (days > 1) return `J-${days}`;

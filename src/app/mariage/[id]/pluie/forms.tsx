@@ -47,7 +47,7 @@ export function RainForms({ weddingId }: { weddingId: string }) {
         <input type="hidden" name="wedding_id" value={weddingId} />
         <label className="flex min-h-11 items-center gap-3 text-sm">
           <input type="checkbox" name="enabled" defaultChecked className="h-5 w-5" />
-          Alerte météo du J-7 au jour J
+          Suivi météo du J-7 au jour J
         </label>
         <Field label="Pluie (mm)">
           <TextInput name="rain_mm" inputMode="decimal" defaultValue="1" />

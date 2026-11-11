@@ -22,7 +22,7 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
       <Card>
         <h2 className="text-3xl font-semibold tracking-tight">Préparer l&apos;espace</h2>
         <p className="mt-2 mb-6 text-sm leading-6 text-muted">
-          Trois étapes, les infos déjà connues sont reprises. Vous pouvez passer. Les photos de groupe et les invités vivent dans la bulle du métier concerné.
+          Trois étapes, les infos déjà connues sont reprises. Vous pouvez passer. Les photos de groupe et les invités vivent dans l&apos;espace du métier concerné.
         </p>
         <GuidedSetup weddingId={id} practical={sheet.practical} venue={venue} />
       </Card>

@@ -79,6 +79,70 @@ export function coupleSteps(input: {
   ];
 }
 
+export type ChecklistItem = Step;
+
+export function coupleChecklist(input: {
+  weddingId: string;
+  hasPractical: boolean;
+  needsPhotos: boolean;
+  hasPhotos: boolean;
+  photoVendorId: string | null;
+  needsGuests: boolean;
+  hasGuests: boolean;
+  guestVendorId: string | null;
+  hasTimeline: boolean;
+  pendingSignature: boolean;
+  hasVault: boolean;
+}): ChecklistItem[] {
+  const base = `/mariage/${input.weddingId}`;
+  const items: ChecklistItem[] = [
+    { id: "practical", label: "Infos du lieu", href: `${base}/pratique`, done: input.hasPractical },
+  ];
+  if (input.needsPhotos) {
+    items.push({
+      id: "photos",
+      label: "Lister les photos de groupe",
+      href: input.photoVendorId ? `${base}/documents#${input.photoVendorId}` : `${base}/documents`,
+      done: input.hasPhotos,
+    });
+  }
+  if (input.needsGuests) {
+    items.push({
+      id: "guests",
+      label: "Invités et régimes",
+      href: input.guestVendorId ? `${base}/documents#${input.guestVendorId}` : `${base}/documents`,
+      done: input.hasGuests,
+    });
+  }
+  items.push(
+    { id: "timeline", label: "Programme du jour", href: `${base}/jour`, done: input.hasTimeline },
+    { id: "vault", label: "Coffre des pièces", href: `${base}/coffre`, done: input.hasVault },
+  );
+  if (input.pendingSignature) {
+    items.unshift({ id: "signature", label: "Signer le contrat", href: `${base}/documents`, done: false });
+  }
+  const missing = items.filter((item) => !item.done).slice(0, 3);
+  const done = items.filter((item) => item.done);
+  return [...missing, ...done];
+}
+
+const TASK_KEY: Record<string, string> = {
+  groups: "photos",
+  photos: "photos",
+};
+
+export function dedupeTasks<T extends { id: string; href: string }>(items: readonly T[]): T[] {
+  const kept = new Map<string, T>();
+  for (const item of items) {
+    const key = TASK_KEY[item.id] ?? item.id;
+    const previous = kept.get(key);
+    if (!previous || (item.href.includes("#") && !previous.href.includes("#"))) {
+      kept.set(key, { ...item, id: key });
+    }
+  }
+  return [...kept.values()];
+}
+
 export function openSteps(steps: readonly Step[]): Step[] {
   return steps.filter((step) => !step.done);
 }
