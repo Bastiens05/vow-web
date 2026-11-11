@@ -32,13 +32,16 @@ export function backTarget(
   const wedding = /^\/mariage\/([^/]+)(\/[^?]*)?$/.exec(pathname);
   if (wedding && wedding[1] !== "s") {
     const id = wedding[1];
-    const rest = wedding[2] ?? "";
-    if (!rest || rest === "/") {
-      return actingAsCouple || role === "couple"
-        ? { label: "Accueil", href: "/espace" }
-        : { label: "Mariages", href: "/mariages" };
+    const section = (wedding[2] ?? "").replace(/^\//, "").split("/")[0] ?? "";
+    const couple = actingAsCouple || role === "couple";
+    if (couple) {
+      if (["jour", "pratique", "equipe", "documents", "budget", "messages"].includes(section)) return null;
+      if (!section) return { label: "Accueil", href: "/espace" };
+      return { label: "Mariage", href: `/mariage/${id}` };
     }
-    return { label: "Aperçu", href: `/mariage/${id}` };
+    if (["messages", "jour", "documents", "pratique", "deroulement", "inviter"].includes(section)) return null;
+    if (!section) return { label: "Mariages", href: "/mariages" };
+    return { label: "Mariage", href: `/mariage/${id}` };
   }
   if (pathname.startsWith("/espace/mariages")) return { label: "Mariages", href: "/mariages" };
   if (pathname.startsWith("/espace/")) return { label: "Accueil", href: "/espace" };

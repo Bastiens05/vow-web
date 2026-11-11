@@ -49,8 +49,9 @@ export default async function MessagesPage({
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3">
         {couple ? (
-          <Link href={`/mariage/${id}/messages`} className="text-sm text-muted underline">
-            Conversations
+          <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-11 items-center rounded-full px-2 text-sm font-medium transition active:scale-[0.98]">
+            <span aria-hidden="true">‹</span>
+            <span className="ml-1">Messages</span>
           </Link>
         ) : (
           <span />

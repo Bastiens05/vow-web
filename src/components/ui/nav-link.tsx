@@ -25,9 +25,9 @@ export function NavLink({
       aria-current={active ? "page" : undefined}
       className={cn(
         variant === "side" && "flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm transition",
-        variant === "side" && (active ? "bg-ink text-white" : "text-ink hover:bg-black/[0.04]"),
-        variant === "tab" && "flex min-h-[3.25rem] min-w-[4.25rem] shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-center text-[11px] font-medium leading-tight",
-        variant === "tab" && (active ? "bg-ink text-white" : "text-ink/70"),
+        variant === "side" && (active ? "bg-ink/[0.06] font-medium text-ink" : "text-ink hover:bg-ink/[0.04]"),
+        variant === "tab" && "flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-center text-[11px] font-medium leading-tight",
+        variant === "tab" && (active ? "text-ink" : "text-muted"),
       )}
     >
       <NavBody label={label} icon={icon} tab={variant === "tab"} active={active} />

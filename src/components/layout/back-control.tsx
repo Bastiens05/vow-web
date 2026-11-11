@@ -15,7 +15,7 @@ export function BackControl({ fallback, label }: { fallback: string; label: stri
         else router.push(fallback);
       }}
     >
-      ← {label}
+      ‹ {label}
     </button>
   );
 }

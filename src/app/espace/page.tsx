@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { WeddingDirectory } from "@/components/wedding/wedding-directory";
 import { openCoupleDemo } from "@/server/actions/account";
-import { countdownLabel, coupleNextActions, daysUntil } from "@/lib/domain/next-actions";
+import { coupleNextActions, daysUntil } from "@/lib/domain/next-actions";
 import { categoryLabel } from "@/lib/domain/categories";
-import { coupleSteps, firstRunSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
-import { coupleHeroTitle, formatLongDate, todayIso } from "@/lib/domain/format";
+import { coupleSteps, firstRunSteps, openSteps, vendorSteps, type Step } from "@/lib/domain/checklist";
+import { coupleHeroTitle, formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
@@ -82,13 +83,12 @@ export default async function DashboardPage() {
           actions={realWeddings.length > 0 ? <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink> : null}
         />
       ) : primary ? (
-        <header className="mb-10">
-          <p className="text-5xl font-semibold tracking-tight sm:text-7xl">{countdownLabel(countdown)}</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            {coupleHeroTitle(primary.partner_one_name, primary.partner_two_name)}
-          </h1>
-          <p className="mt-3 text-base text-muted">{formatLongDate(primary.wedding_date)}</p>
-        </header>
+        <CoupleHero
+          days={countdown}
+          title={coupleHeroTitle(primary.partner_one_name, primary.partner_two_name)}
+          date={formatLongDate(primary.wedding_date)}
+          venue={[primary.venue_name, primary.venue_city].filter(Boolean).join(" · ")}
+        />
       ) : (
         <header className="mb-10">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Votre mariage</h1>
@@ -140,20 +140,16 @@ export default async function DashboardPage() {
         </form>
       ) : null}
       {!isVendor && primary ? (
-        <section className="mb-10">
-          <h2 className="text-sm font-medium text-muted">À faire</h2>
-          {actions.length === 0 ? <p className="mt-3 text-sm text-muted">Rien d&apos;urgent pour le moment.</p> : null}
-          <ol className="mt-4 grid gap-3">
-            {actions.map((action, index) => (
-              <li key={action.id}>
-                <a href={action.href} className="flex min-h-16 items-center gap-4 rounded-2xl border border-line bg-paper px-4 shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">{index + 1}</span>
-                  <span className="text-base font-medium">{action.label}</span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <CoupleHome
+          weddingId={primary.id}
+          steps={coupleSteps({
+            primaryWeddingId: primary.id,
+            hasPractical: Boolean(focus?.hasPractical),
+            hasPhotoGroups: Boolean(focus?.hasPhotos),
+            hasGuests: Boolean(focus?.hasGuests),
+          })}
+          extra={actions.filter((action) => !["practical", "groups", "guests"].includes(action.id))}
+        />
       ) : null}
       {isVendor && realWeddings.length === 0 ? (
         <section className="mb-8">
@@ -202,6 +198,72 @@ export default async function DashboardPage() {
       ) : null}
       {isVendor ? <WeddingDirectory weddings={weddings} /> : null}
     </div>
+  );
+}
+
+function CoupleHero({ days, title, date, venue }: { days: number | null; title: string; date: string; venue: string }) {
+  const value = days === null ? "—" : String(Math.max(days, 0));
+  const label = days === null ? "date à confirmer" : days > 1 ? "jours" : days === 1 ? "jour" : days === 0 ? "aujourd'hui" : "passé";
+  return (
+    <header className="mb-10">
+      <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted">{label}</p>
+      <p className="mt-2 text-7xl font-semibold tracking-tight sm:text-8xl">{value}</p>
+      <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
+      <p className="mt-3 text-base text-muted">{[date, venue].filter(Boolean).join(" · ")}</p>
+    </header>
+  );
+}
+
+async function CoupleHome({ weddingId, steps, extra }: { weddingId: string; steps: Step[]; extra: { id: string; label: string; href: string }[] }) {
+  const supabase = await createClient();
+  const [{ data: notes }, { data: nextSlot }] = await Promise.all([
+    supabase.from("messages").select("body, created_at").eq("wedding_id", weddingId).order("created_at", { ascending: false }).limit(2),
+    supabase.from("timeline_slots").select("title, starts_at, place").eq("wedding_id", weddingId).order("starts_at").limit(1).maybeSingle(),
+  ]);
+  const cards = [
+    ...steps.map((step) => ({ ...step, done: step.done })),
+    ...extra.map((step) => ({ ...step, done: false })),
+  ];
+  return (
+    <>
+      <section className="mb-8">
+        <h2 className="text-sm font-medium text-muted">À faire</h2>
+        <ul className="mt-4 grid gap-3">
+          {cards.map((step) => (
+            <li key={step.id}>
+              <a href={step.href} className="flex min-h-16 items-center gap-4 rounded-2xl border border-line bg-paper px-4 transition active:scale-[0.99]">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${step.done ? "bg-ok" : "bg-danger"}`} aria-hidden />
+                <span className="sr-only">{step.done ? "Fait" : "À faire"}</span>
+                <span className="text-base font-medium">{step.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <div className="mb-8 grid gap-3 sm:grid-cols-2">
+        <Link href={`/mariage/${weddingId}/messages`} className="rounded-2xl border border-line bg-paper p-5 transition active:scale-[0.99]">
+          <p className="text-sm font-medium">Derniers messages</p>
+          {(notes ?? []).length === 0 ? <p className="mt-3 text-sm text-muted">Aucun message pour l&apos;instant.</p> : null}
+          <ul className="mt-3 space-y-2">
+            {(notes ?? []).map((note) => (
+              <li key={note.created_at} className="truncate text-sm text-muted">{note.body}</li>
+            ))}
+          </ul>
+        </Link>
+        <Link href={`/mariage/${weddingId}/jour`} className="rounded-2xl border border-line bg-paper p-5 transition active:scale-[0.99]">
+          <p className="text-sm font-medium">Prochaine étape du Jour J</p>
+          {nextSlot ? (
+            <>
+              <p className="mt-3 text-2xl font-semibold tracking-tight">{formatSlotTime(nextSlot.starts_at)}</p>
+              <p className="mt-1 text-sm">{nextSlot.title}</p>
+              {nextSlot.place ? <p className="text-sm text-muted">{nextSlot.place}</p> : null}
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-muted">Le déroulé n&apos;est pas encore posé.</p>
+          )}
+        </Link>
+      </div>
+    </>
   );
 }
 

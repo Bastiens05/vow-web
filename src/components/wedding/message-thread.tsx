@@ -52,12 +52,12 @@ export function MessageThread({
   }, [router, weddingId, vendorUserId]);
 
   return (
-    <div className="flex h-[min(70dvh,40rem)] flex-col">
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-1 py-2">
+    <div className="flex flex-col">
+      <div className="flex flex-col gap-3 px-1 py-2 pb-28 md:h-[min(70dvh,40rem)] md:overflow-y-auto md:pb-2">
         {shown.length === 0 ? <p className="text-sm text-muted">Écrivez le premier message.</p> : null}
         {shown.map((message) => (
           <article key={message.id} className={message.mine ? "ml-auto max-w-[80%]" : "mr-auto max-w-[80%]"}>
-            <div className={message.mine ? "rounded-3xl rounded-br-md bg-ink px-4 py-2.5 text-ivory" : "rounded-3xl rounded-bl-md border border-line bg-paper px-4 py-2.5"}>
+            <div className={message.mine ? "rounded-[18px] bg-[#3a3a3c] px-4 py-2.5 text-white" : "rounded-[18px] border border-line bg-paper px-4 py-2.5"}>
               {message.mine ? null : <p className="mb-1 text-[11px] text-muted">{message.authorName}</p>}
               <p className="whitespace-pre-wrap text-sm leading-6">{message.body}</p>
             </div>
@@ -77,7 +77,7 @@ export function MessageThread({
           }
           await formAction(formData);
         }}
-        className="mt-3 flex items-end gap-2 border-t border-line pt-3"
+        className="fixed inset-x-0 z-30 flex items-end gap-2 border-t border-line bg-paper/95 px-3 py-2 backdrop-blur bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:static md:z-auto md:mt-3 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none"
       >
         <label className="sr-only" htmlFor="chat-body">Message</label>
         <textarea

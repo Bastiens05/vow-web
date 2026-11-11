@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { pratiqueLabel } from "@/lib/domain/trades";
@@ -28,8 +29,17 @@ export function NavMenu({
   const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
   const inWedding = Boolean(weddingIdFrom(path));
   const couple = role === "couple" || actingAsCouple;
-  const shown =
-    couple || variant !== "tab"
+  const mobileCouple = couple && variant === "tab";
+  const tabOrder = ["Accueil", "Jour J", "Messages", "Documents"];
+  const primaryTabs = mobileCouple
+    ? tabOrder.flatMap((label) => items.filter((item) => item.label === label))
+    : [];
+  const moreTabs = mobileCouple
+    ? items.filter((item) => !["Accueil", "Jour J", "Messages", "Documents"].includes(item.label))
+    : [];
+  const shown = mobileCouple
+    ? primaryTabs
+    : variant !== "tab"
       ? items
       : inWedding
         ? items.slice(0, 5)
@@ -55,7 +65,44 @@ export function NavMenu({
       {shown.map((item) => (
         <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
       ))}
+      {mobileCouple ? <MoreTab items={moreTabs} path={path} /> : null}
     </nav>
+  );
+}
+
+function MoreTab({ items, path }: { items: Item[]; path: string }) {
+  const [open, setOpen] = useState(false);
+  const active = items.some((item) => isActive(path, item.href));
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
+        onClick={() => setOpen(true)}
+      >
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <circle cx="6" cy="12" r="1.2" fill="currentColor" />
+          <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+          <circle cx="18" cy="12" r="1.2" fill="currentColor" />
+        </svg>
+        Plus
+      </button>
+      {open ? (
+        <div className="fixed inset-0 z-50">
+          <button type="button" className="absolute inset-0 bg-black/40" aria-label="Fermer" onClick={() => setOpen(false)} />
+          <div role="dialog" aria-label="Plus" className="absolute inset-x-0 bottom-0 rounded-t-3xl border border-line bg-paper p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
+            <div onClick={() => setOpen(false)} className="grid gap-1">
+              {items.map((item) => (
+                <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant="side" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
