@@ -91,6 +91,9 @@ describe("migration", () => {
       "credential_shares",
       "credential_links",
       "proven_references",
+      "anniversary_templates",
+      "anniversary_queue",
+      "marketing_optouts",
       "wedding_music",
     ]);
     for (const table of tables) {
