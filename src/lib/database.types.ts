@@ -491,6 +491,26 @@ export type Database = {
         { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
         { thin_cents?: number; include_unsigned?: boolean }
       >;
+      tech_templates: Table<
+        { vendor_id: string; fields: Json },
+        { vendor_id: string; fields?: Json },
+        { fields?: Json }
+      >;
+      wedding_tech: Table<
+        { wedding_id: string; vendor_id: string; fields: Json },
+        { wedding_id: string; vendor_id: string; fields?: Json },
+        { fields?: Json }
+      >;
+      venue_capabilities: Table<
+        { wedding_id: string; fields: Json; share_with_couple: boolean },
+        { wedding_id: string; fields?: Json; share_with_couple?: boolean },
+        { fields?: Json; share_with_couple?: boolean }
+      >;
+      tech_issues: Table<
+        { id: string; wedding_id: string; code: string; message: string; vendor_ids: string[] },
+        { wedding_id: string; code: string; message: string; vendor_ids?: string[] },
+        { code?: string; message?: string; vendor_ids?: string[] }
+      >;
       cash_notices: Table<
         { vendor_id: string; month: string },
         { vendor_id: string; month: string },
