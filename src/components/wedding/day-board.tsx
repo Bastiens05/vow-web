@@ -198,7 +198,6 @@ export function DayBoard({
         </button>
       ) : null}
       {!canControl && rainActive ? <p className="text-sm text-muted">Version mauvais temps.</p> : null}
-      {!canControl && !rainActive && rainSlots.length > 0 ? <p className="text-sm text-muted">Une version mauvais temps existe.</p> : null}
       {span ? (
         <p className="text-sm text-muted">
           {formatSlotTime(span.first).replace(":", "h")} – {formatSlotTime(span.last).replace(":", "h")} · {span.count} étapes · {Math.round(span.minutes / 60)} h

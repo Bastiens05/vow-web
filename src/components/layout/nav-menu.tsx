@@ -31,14 +31,16 @@ export function NavMenu({
   const inWedding = /^\/mariage\/[^/]+/.test(path);
   const couple = role === "couple" || actingAsCouple;
   const mobileCouple = couple && variant === "tab";
-  const tabOrder = ["Accueil", "Jour J", "Messages", "Documents"];
-  const primaryTabs = mobileCouple
-    ? tabOrder.flatMap((label) => items.filter((item) => item.label === label))
-    : [];
-  const moreTabs = mobileCouple
-    ? items.filter((item) => !["Accueil", "Jour J", "Messages", "Documents"].includes(item.label))
-    : [];
-  const shown = mobileCouple
+  const mobileVendor = role === "vendor" && !actingAsCouple && variant === "tab";
+  const tabOrder = mobileVendor
+    ? inWedding
+      ? ["Aperçu", "Jour J", "Messages", "Documents"]
+      : ["Accueil", "Mariages", "Messages", "Nouveautés"]
+    : ["Accueil", "Jour J", "Messages", "Documents"];
+  const usePlus = mobileCouple || mobileVendor;
+  const primaryTabs = usePlus ? tabOrder.flatMap((label) => items.filter((item) => item.label === label)) : [];
+  const moreTabs = usePlus ? items.filter((item) => !tabOrder.includes(item.label)) : [];
+  const shown = usePlus
     ? primaryTabs
     : variant !== "tab"
       ? items
@@ -66,7 +68,7 @@ export function NavMenu({
       {shown.map((item) => (
         <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
       ))}
-      {mobileCouple ? <MoreTab items={moreTabs} path={path} /> : null}
+      {usePlus ? <MoreTab items={moreTabs} path={path} /> : null}
     </nav>
   );
 }
@@ -80,11 +82,11 @@ function MoreTab({ items, path }: { items: Item[]; path: string }) {
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
-        className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
+        className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-xs font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
         onClick={() => setOpen(true)}
       >
         <LineIcon name="more" />
-        <span className="text-[11px] leading-none">Plus</span>
+        <span className="text-xs leading-none">Plus</span>
       </button>
       {open ? (
         <div className="fixed inset-0 z-50">

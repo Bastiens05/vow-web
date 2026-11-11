@@ -47,7 +47,11 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
     }));
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6 lg:max-w-none">
-      <p className="text-sm leading-6 text-muted">Le programme de votre journée, partagé en direct avec vos prestataires.</p>
+      <p className="text-sm leading-6 text-muted">
+        {couple
+          ? "Le programme de votre journée, partagé en direct avec vos prestataires."
+          : "Le programme du jour, tenu par les mariés. Vous suivez la version active."}
+      </p>
       <JourCache
         weddingId={id}
         slots={slots.map((slot) => ({ startsAt: slot.startsAt, title: slot.title, place: slot.place }))}
@@ -61,7 +65,7 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
           vendors={vendors}
           weddingDay={space.wedding.wedding_date === todayIso()}
           nowMinutes={parisClockMinutes()}
-          rainSlots={couple ? rainSlots : rain?.active ? [] : rainSlots}
+          rainSlots={couple ? rainSlots : []}
           rainActive={Boolean(rain?.active)}
           suggestion={
             suggestion

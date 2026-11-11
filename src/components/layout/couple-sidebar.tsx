@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/server/actions/auth";
@@ -28,11 +28,17 @@ export function CoupleSidebar({
   weddingName,
   countdown,
   userName,
+  groups = GROUPS,
+  navLabel = "Espace mariés",
+  extra = null,
 }: {
   items: Item[];
   weddingName: string;
   countdown: string | null;
   userName: string;
+  groups?: { caption: string; labels: string[] }[];
+  navLabel?: string;
+  extra?: ReactNode;
 }) {
   const path = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
@@ -72,8 +78,9 @@ export function CoupleSidebar({
           </span>
         )}
       </Link>
-      <nav aria-label="Espace mariés" className="mt-4 flex-1 space-y-4 overflow-y-auto px-2">
-        {GROUPS.map((group) => {
+      {extra}
+      <nav aria-label={navLabel} className="mt-4 flex-1 space-y-4 overflow-y-auto px-2">
+        {groups.map((group) => {
           const rows = group.labels.flatMap((label) => items.filter((item) => item.label === label));
           if (rows.length === 0) return null;
           return (

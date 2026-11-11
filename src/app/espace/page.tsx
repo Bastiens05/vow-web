@@ -109,11 +109,13 @@ export default async function DashboardPage() {
             <p className="text-xs text-muted">Mariages à venir</p>
             <p className="mt-1 text-2xl font-semibold">{upcoming.filter((wedding) => !wedding.isDemo).length}</p>
           </Card>
-          <Card>
-            <p className="text-xs text-muted">À traiter</p>
-            <p className="mt-1 text-2xl font-semibold">{ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews}</p>
-            <p className="mt-1 text-xs text-muted">devis, acomptes, avis</p>
-          </Card>
+          {ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews > 0 ? (
+            <Card>
+              <p className="text-xs text-muted">À traiter</p>
+              <p className="mt-1 text-2xl font-semibold">{ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews}</p>
+              <p className="mt-1 text-xs text-muted">devis, acomptes, avis</p>
+            </Card>
+          ) : null}
         </section>
       ) : null}
       {isVendor && recoIds.length > 0 ? (

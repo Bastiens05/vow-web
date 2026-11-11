@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { partitionWeddings, weddingStatus } from "@/lib/domain/access";
 import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
+import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import type { WeddingCard } from "@/server/data";
 
 export function WeddingDirectory({ weddings }: { weddings: WeddingCard[] }) {
@@ -40,7 +41,9 @@ function WeddingGroup({
         {items.map((wedding) => (
           <Card key={wedding.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-gold-deep">{formatLongDate(wedding.wedding_date)}</p>
+              <p className="text-xs font-medium text-gold-deep">
+                {countdownLabel(daysUntil(wedding.wedding_date, today))} · {formatLongDate(wedding.wedding_date)}
+              </p>
               <h3 className="mt-1 truncate text-2xl font-semibold tracking-tight">
                 {weddingTitle(wedding.partner_one_name, wedding.partner_two_name)}
               </h3>

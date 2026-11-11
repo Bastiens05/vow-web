@@ -4,6 +4,7 @@ import { PracticalBoard } from "@/components/wedding/practical-board";
 import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
 import { canSeeSheet, pratiqueLabel } from "@/lib/domain/trades";
+import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet, getWeddingSpace } from "@/server/data";
 
 export const metadata: Metadata = { title: "Infos pratiques" };
@@ -17,6 +18,11 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
   const showPhotos = !couple && canSeeSheet(viewRole, category, "photos");
   const showGuests = !couple && canSeeSheet(viewRole, category, "guests");
   const sheet = await getPracticalSheet(id, { photos: showPhotos, guests: showGuests });
+  const showMusic = canSeeSheet(viewRole, category, "music");
+  const supabase = await createClient();
+  const { data: music } = showMusic
+    ? await supabase.from("wedding_music").select("notes").eq("wedding_id", id).maybeSingle()
+    : { data: null };
   if (couple) {
     const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(", ");
     const practical = sheet.practical;
@@ -53,13 +59,16 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
           showGuests={false}
           canEditPhotos={false}
           canEditGuests={false}
+          showMusic
+          musicNotes={music?.notes ?? ""}
+          canEditMusic
         />
       </div>
     );
   }
   const label = pratiqueLabel(viewRole, category) ?? "Pratique";
   const title =
-    label === "Groupes" ? "Groupes photo" : label === "Invités" ? "Tables et régimes" : label === "Infos" ? "Infos du lieu" : "Infos pratiques";
+    label === "Groupes" ? "Groupes photo" : label === "Invités" ? "Tables et régimes" : label === "Musique" ? "Musique" : label === "Infos" ? "Infos du lieu" : "Infos pratiques";
   return (
     <Card>
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
@@ -80,6 +89,9 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         showGuests={showGuests}
         canEditPhotos={showPhotos}
         canEditGuests={showGuests}
+        showMusic={showMusic}
+        musicNotes={music?.notes ?? ""}
+        canEditMusic={false}
       />
     </Card>
   );

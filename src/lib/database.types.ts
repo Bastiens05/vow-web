@@ -290,6 +290,11 @@ export type Database = {
         { id?: string; slot_id: string; author_id: string; body: string },
         { body?: string }
       >;
+      wedding_music: Table<
+        { wedding_id: string; notes: string },
+        { wedding_id: string; notes?: string },
+        { notes?: string }
+      >;
       wedding_practical: Table<
         {
           wedding_id: string;

@@ -96,7 +96,7 @@ async function main() {
       await page.getByText("Vitrine publiée.").waitFor();
     }
     await page.goto("/alertes");
-    await page.getByRole("heading", { name: "Alertes" }).waitFor();
+    await page.getByRole("heading", { name: "Nouveautés" }).waitFor();
     await shot(page, `${prefix}-alertes`);
 
     await page.goto("/espace/profil");

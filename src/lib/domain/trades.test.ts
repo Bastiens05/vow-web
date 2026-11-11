@@ -3,7 +3,7 @@ import { canDeliver, canSeeSheet, pratiqueLabel, sheetsFor } from "./trades";
 
 describe("sheetsFor", () => {
   it("gives the couple every sheet", () => {
-    expect(sheetsFor("couple", null)).toEqual(["practical", "photos", "guests"]);
+    expect(sheetsFor("couple", null)).toEqual(["practical", "photos", "guests", "music"]);
   });
 
   it("gives the photographer groups, not guests", () => {
@@ -27,8 +27,10 @@ describe("sheetsFor", () => {
   });
 
   it("lets the planner see everything and the DJ only the addresses", () => {
-    expect(sheetsFor("vendor", "planner")).toEqual(["practical", "photos", "guests"]);
-    expect(sheetsFor("vendor", "dj")).toEqual(["practical"]);
+    expect(sheetsFor("vendor", "planner")).toEqual(["practical", "photos", "guests", "music"]);
+    expect(sheetsFor("vendor", "dj")).toEqual(["practical", "music"]);
+    expect(canSeeSheet("vendor", "florist", "music")).toBe(false);
+    expect(canSeeSheet("vendor", "florist", "photos")).toBe(false);
   });
 });
 
@@ -36,7 +38,7 @@ describe("pratiqueLabel", () => {
   it("names the tab after the trade", () => {
     expect(pratiqueLabel("vendor", "photographer")).toBe("Groupes");
     expect(pratiqueLabel("vendor", "caterer")).toBe("Invités");
-    expect(pratiqueLabel("vendor", "dj")).toBe("Infos");
+    expect(pratiqueLabel("vendor", "dj")).toBe("Musique");
     expect(pratiqueLabel("couple", null)).toBe("Pratique");
   });
 });

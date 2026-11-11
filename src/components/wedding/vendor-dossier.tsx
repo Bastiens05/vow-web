@@ -68,7 +68,7 @@ export async function VendorDossier({
             return (
               <li key={request.kind} className="flex items-center justify-between gap-3 py-3">
                 <span className="inline-flex items-center gap-2 text-sm">
-                  <span className={`h-2 w-2 rounded-full ${ready ? "bg-ok" : "bg-danger"}`} aria-hidden />
+                  <span className={`h-2 w-2 rounded-full ${ready ? "bg-ok" : "bg-muted"}`} aria-hidden />
                   {request.label}
                 </span>
                 {couple && match && !ready ? (

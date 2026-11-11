@@ -70,7 +70,7 @@ async function AlertSlot() {
           </VaultButton>
         ) : null}
         <AlertDock
-          calm={session.profile.role === "couple" || Boolean(vault)}
+          calm
           inApp={session.profile.notify_in_app}
           initialToast={session.profile.notify_in_app ? (latest?.body ?? null) : null}
           initialUnread={latest ? 1 : 0}

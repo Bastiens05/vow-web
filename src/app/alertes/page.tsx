@@ -8,8 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const session = await requireSession();
-  return { title: session.profile.role === "couple" ? "Nouveautés" : "Alertes" };
+  await requireSession();
+  return { title: "Nouveautés" };
 }
 
 export default async function AlertsPage() {
@@ -25,14 +25,14 @@ export default async function AlertsPage() {
   const notes = data ?? [];
   return (
     <div className="mx-auto w-full max-w-lg px-5 py-8">
-      <h1 className="text-4xl font-semibold tracking-tight">{couple ? "Nouveautés" : "Alertes"}</h1>
+      <h1 className="text-4xl font-semibold tracking-tight">Nouveautés</h1>
       <p className="mt-2 text-sm text-muted">
         {couple ? "Les dernières nouvelles de votre mariage." : "Ce qui a bougé sur vos mariages."}
       </p>
       <ul className="mt-6 space-y-3">
         {notes.length === 0 ? (
           <li>
-            <EmptyState title={couple ? "Tout est à jour" : "Aucune alerte"}>
+            <EmptyState title="Tout est à jour">
               {couple ? null : <ButtonLink href="/espace">Retour à l&apos;accueil</ButtonLink>}
             </EmptyState>
           </li>

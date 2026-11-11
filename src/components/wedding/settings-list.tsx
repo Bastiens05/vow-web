@@ -34,12 +34,12 @@ export function SettingsLink({
 }
 
 function StatusMark({ status }: { status: string }) {
-  const tone = /complét|payé|prêt/i.test(status) ? "ok" : /à compléter|aucun|aucune/i.test(status) ? "bad" : "muted";
+  const tone = /complét|payé|prêt/i.test(status) ? "ok" : "muted";
   const dotOnly = /^(à compléter|complétée|complété)$/i.test(status.trim());
   return (
     <span className="inline-flex shrink-0 items-center gap-2">
       <span
-        className={`h-2 w-2 rounded-full ${tone === "ok" ? "bg-ok" : tone === "bad" ? "bg-danger" : "bg-muted"}`}
+        className={`h-2 w-2 rounded-full ${tone === "ok" ? "bg-ok" : "bg-muted"}`}
         aria-hidden
       />
       <span className={dotOnly ? "sr-only" : "text-sm text-muted"}>{status}</span>

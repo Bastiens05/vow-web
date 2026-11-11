@@ -5,7 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
-import { addGuest, addPhotoGroup, deleteGuest, deletePhotoGroup, savePractical } from "@/server/actions/sheets";
+import { addGuest, addPhotoGroup, deleteGuest, deletePhotoGroup, saveMusic, savePractical } from "@/server/actions/sheets";
 import type { GuestRow, PhotoGroupRow, PracticalRow } from "@/server/data";
 
 export function PracticalBoard({
@@ -16,8 +16,11 @@ export function PracticalBoard({
   canEditDetails,
   showPhotos,
   showGuests,
+  showMusic = false,
+  musicNotes = "",
   canEditPhotos,
   canEditGuests,
+  canEditMusic = false,
   showDetails = true,
   photosId = "photos",
   guestsId = "guests",
@@ -29,18 +32,47 @@ export function PracticalBoard({
   canEditDetails: boolean;
   showPhotos: boolean;
   showGuests: boolean;
+  showMusic?: boolean;
+  musicNotes?: string;
   canEditPhotos: boolean;
   canEditGuests: boolean;
+  canEditMusic?: boolean;
   showDetails?: boolean;
   photosId?: string;
   guestsId?: string;
 }) {
   return (
     <div className="space-y-8">
+      {showMusic ? <Music weddingId={weddingId} notes={musicNotes} canEdit={canEditMusic} /> : null}
       {showDetails ? <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} /> : null}
       {showPhotos ? <Groups id={photosId} weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
       {showGuests ? <Guests id={guestsId} weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
     </div>
+  );
+}
+
+function Music({ weddingId, notes, canEdit }: { weddingId: string; notes: string; canEdit: boolean }) {
+  const action = saveMusic.bind(null, weddingId);
+  const [state, formAction, pending] = useActionState(action, {});
+  const field = (
+    <Field label="Musique" hint="Pour le DJ. Les autres métiers ne voient pas cette note.">
+      <TextArea name="music_notes" defaultValue={notes} disabled={!canEdit} />
+    </Field>
+  );
+  return (
+    <section>
+      <h3 className="text-lg font-semibold tracking-tight">Musique</h3>
+      {canEdit ? (
+        <form action={formAction} className="mt-3 space-y-3">
+          {field}
+          {state.error ? <Alert>{state.error}</Alert> : null}
+          {state.success ? <Alert tone="success">{state.success}</Alert> : null}
+          <Button type="submit" disabled={pending}>{pending ? "Enregistrement…" : "Enregistrer la musique"}</Button>
+        </form>
+      ) : (
+        <div className="mt-3">{field}</div>
+      )}
+    </section>
   );
 }
 
