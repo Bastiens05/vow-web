@@ -491,6 +491,21 @@ export type Database = {
         { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
         { thin_cents?: number; include_unsigned?: boolean }
       >;
+      vendor_credentials: Table<
+        { id: string; vendor_id: string; kind: string; storage_path: string; file_name: string; expires_on: string | null; share_globally: boolean },
+        { vendor_id: string; kind: string; storage_path: string; file_name: string; expires_on?: string | null; share_globally?: boolean },
+        { kind?: string; storage_path?: string; file_name?: string; expires_on?: string | null; share_globally?: boolean }
+      >;
+      credential_shares: Table<
+        { credential_id: string; wedding_id: string },
+        { credential_id: string; wedding_id: string },
+        Record<string, never>
+      >;
+      credential_links: Table<
+        { token: string; credential_id: string; expires_at: string },
+        { token: string; credential_id: string; expires_at: string },
+        { expires_at?: string }
+      >;
       delivery_tracks: Table<
         { wedding_id: string; vendor_id: string; promised_on: string; step_index: number; note: string; file_url: string },
         { wedding_id: string; vendor_id: string; promised_on: string; step_index?: number; note?: string; file_url?: string },
