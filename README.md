@@ -42,6 +42,7 @@ Migrations, dans cet ordre, sur un projet vide :
 8. `supabase/migrations/20261111020000_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part. Déjà appliquée sur vow-mvp : ne pas la relancer.
 9. `supabase/migrations/20261111030000_suite.sql` — équipe (lecture des mariages, facturation au titulaire), calendrier ICS privé, rendez-vous, RSVP, plan de table, budget du couple et page publique des mariés.
 10. `supabase/migrations/20261111040000_relay.sql` — relais d'étape, plan pluie, besoins techniques, seuils météo et recommandations tracées. Le texte du déroulé reste modifiable par le couple seul.
+11. `supabase/migrations/20261111050000_billing.sql` — essai de 7 jours puis abonnement prestataire, administrateurs (`admin_emails`) et codes test hashés. Les mariés ne sont jamais limités. Stripe n'est pas appelé sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`. Aucun code n'est livré dans le dépôt.
 
 La météo interroge Open-Meteo (gratuit, usage non commercial) seulement si `WEATHER_ALERTS_ENABLED=true`. Avant une exploitation commerciale, il faut un fournisseur ou un plan commercial : laissez la variable vide. `WEATHER_PROVIDER` vaut `open-meteo` par défaut. Les e-mails produit, y compris le relais, le plan pluie et la météo, partent via Resend si `RESEND_API_KEY` et `EMAIL_FROM` sont définis ; sinon le fil dans l'application et le push (clés VAPID) suffisent.
 

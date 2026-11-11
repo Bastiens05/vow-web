@@ -17,7 +17,7 @@ export function isPublicPath(pathname: string): boolean {
   );
 }
 
-const TOP_LEVEL = new Set(["/espace", "/mariages", "/demandes", "/messages", "/alertes", "/reglages"]);
+const TOP_LEVEL = new Set(["/espace", "/mariages", "/demandes", "/messages", "/alertes", "/reglages", "/abonnement", "/admin"]);
 
 export function isTopLevelPath(pathname: string): boolean {
   return TOP_LEVEL.has(pathname);

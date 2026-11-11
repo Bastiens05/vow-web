@@ -14,6 +14,7 @@ export function NavMenu({
   variant,
   primaryWeddingId,
   actingAsCouple,
+  isAdmin = false,
 }: {
   role: "vendor" | "couple" | null;
   category: VendorCategory | null;
@@ -21,12 +22,17 @@ export function NavMenu({
   variant: "side" | "tab";
   primaryWeddingId: string | null;
   actingAsCouple: boolean;
+  isAdmin?: boolean;
 }) {
   const path = usePathname() ?? "";
-  const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple);
+  const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
   const inWedding = Boolean(weddingIdFrom(path));
   const shown =
-    variant === "tab" && !inWedding && role === "vendor" ? items.filter((item) => item.label !== "Messages") : variant === "tab" ? items.slice(0, 5) : items;
+    variant !== "tab"
+      ? items
+      : inWedding
+        ? items.slice(0, 5)
+        : items.filter((item) => item.label !== "Messages" && item.label !== "Abonnement" && item.label !== "Admin").slice(0, 5);
   const label = inWedding
     ? actingAsCouple || role === "couple"
       ? "Espace mariés"
@@ -64,6 +70,7 @@ function itemsFor(
   signedIn: boolean,
   primaryWeddingId: string | null,
   actingAsCouple: boolean,
+  isAdmin: boolean,
 ): Item[] {
   const weddingId = weddingIdFrom(path);
   if (weddingId && signedIn && role) {
@@ -88,22 +95,25 @@ function itemsFor(
       { href: "/inscription", label: "Compte", icon: "spark" },
     ];
   }
-  if (role === "vendor") {
-    return [
-      { href: "/espace", label: "Accueil", icon: "home" },
-      { href: "/mariages", label: "Mariages", icon: "list" },
-      { href: "/demandes", label: "Demandes", icon: "mail" },
-      { href: "/messages", label: "Messages", icon: "message" },
-      { href: "/alertes", label: "Alertes", icon: "bell" },
-      { href: "/reglages", label: "Réglages", icon: "gear" },
-    ];
-  }
-  return [
-    { href: "/espace", label: "Accueil", icon: "home" },
-    { href: primaryWeddingId ? `/mariage/${primaryWeddingId}` : "/mariages", label: "Mariage", icon: "list" },
-    { href: "/alertes", label: "Alertes", icon: "bell" },
-    { href: "/reglages", label: "Réglages", icon: "gear" },
-  ];
+  const items: Item[] =
+    role === "vendor"
+      ? [
+          { href: "/espace", label: "Accueil", icon: "home" },
+          { href: "/mariages", label: "Mariages", icon: "list" },
+          { href: "/demandes", label: "Demandes", icon: "mail" },
+          { href: "/messages", label: "Messages", icon: "message" },
+          { href: "/alertes", label: "Alertes", icon: "bell" },
+          { href: "/abonnement", label: "Abonnement", icon: "spark" },
+          { href: "/reglages", label: "Réglages", icon: "gear" },
+        ]
+      : [
+          { href: "/espace", label: "Accueil", icon: "home" },
+          { href: primaryWeddingId ? `/mariage/${primaryWeddingId}` : "/mariages", label: "Mariage", icon: "list" },
+          { href: "/alertes", label: "Alertes", icon: "bell" },
+          { href: "/reglages", label: "Réglages", icon: "gear" },
+        ];
+  if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
+  return items;
 }
 
 function isActive(path: string, href: string) {

@@ -19,7 +19,7 @@ const LABELS: Record<VendorCategory, string> = {
   dj: "DJ / musique",
   florist: "Fleuriste",
   caterer: "Traiteur",
-  venue: "Lieu / salle",
+  venue: "Lieu de réception",
   planner: "Wedding planner",
   beauty: "Coiffure / maquillage",
   officiant: "Officiant",

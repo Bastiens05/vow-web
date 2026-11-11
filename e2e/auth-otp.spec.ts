@@ -6,6 +6,9 @@ test("le prestataire entre par le lien de connexion, puis son activité", async 
 
   await page.goto("/inscription");
   await page.getByRole("button", { name: "Je suis prestataire" }).click();
+  await page.getByRole("button", { name: "Traiteur" }).click();
+  await page.getByLabel("Nom de l'activité").fill(`Table ${stamp}`);
+  await page.getByLabel("Ville").fill("Bordeaux");
   await page.getByLabel("E-mail").fill(email);
   await page.getByRole("button", { name: "Recevoir un lien de connexion" }).click();
   await expect(page.getByText("Vérifiez votre boîte mail")).toBeVisible();
@@ -13,14 +16,8 @@ test("le prestataire entre par le lien de connexion, puis son activité", async 
 
   const link = await readLink(request, email);
   await page.goto(link);
-  await page.getByRole("heading", { name: "Votre activité" }).waitFor();
-  await page.getByRole("button", { name: "Traiteur" }).click();
-  await page.getByLabel("Nom de l'activité").fill(`Table ${stamp}`);
-  await page.getByLabel("Ville").fill("Bordeaux");
-  await page.getByRole("button", { name: "Continuer" }).click();
-  await page.getByRole("link", { name: "Continuer" }).click();
   await page.waitForURL("**/espace**");
-  await expect(page.getByText(`Table ${stamp}`).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: `Table ${stamp}` })).toBeVisible();
   await expect(page.getByText("Léa & Hugo")).toHaveCount(0);
 });
 

@@ -7,7 +7,8 @@ const password = "DemoVow2026!";
 
 test("la page publique n'affiche pas le compte, et un compte ouvert quitte l'accueil", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Créer mon espace" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Je suis prestataire" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Nous nous marions" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Connexion" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Alertes" })).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Navigation générale" })).toHaveCount(0);
@@ -15,7 +16,7 @@ test("la page publique n'affiche pas le compte, et un compte ouvert quitte l'acc
   await login(page, "camille@demo.vow.test");
   await page.goto("/");
   await page.waitForURL("**/espace**");
-  await expect(page.getByRole("link", { name: "Créer mon espace" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Je suis prestataire" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Alertes" }).first()).toBeVisible();
 
   await page.goto("/p/atelier-lumiere");

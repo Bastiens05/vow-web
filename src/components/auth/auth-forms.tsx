@@ -48,15 +48,20 @@ export function SignupForm({
   nextPath,
   defaultEmail = "",
   lockedRole,
+  extras,
 }: {
   nextPath: string;
   defaultEmail?: string;
   lockedRole?: "vendor" | "couple";
+  extras?: Record<string, string>;
 }) {
   const [state, action, pending] = useActionState(signUp, initial);
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={nextPath} />
+      {Object.entries(extras ?? {}).map(([key, value]) => (
+        <input key={key} type="hidden" name={key} value={value} />
+      ))}
       <Field label="Nom complet">
         <TextInput name="full_name" autoComplete="name" required minLength={2} />
       </Field>

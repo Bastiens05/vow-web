@@ -10,6 +10,8 @@ export type SessionProfile = {
   email: string | null;
   profile: Tables<"profiles">;
   vendor: Tables<"vendor_profiles"> | null;
+  billing: Tables<"vendor_billing"> | null;
+  isAdmin: boolean;
 };
 
 async function hintedUserId(): Promise<string | null | "anonymous"> {
@@ -42,13 +44,27 @@ export const getSession = cache(async (): Promise<SessionProfile | null> => {
   if (profile.role === "vendor") {
     const { data: vendorProfile } = await supabase
       .from("vendor_profiles")
-      .select("id, user_id, business_name, slug, category, city, published, description, zone, contact_email, contact_phone, website, starting_price_cents, currency, logo_path, share_phone, share_email, stripe_account_id, created_at, updated_at")
+      .select("id, user_id, business_name, slug, category, city, published, description, zone, contact_email, contact_phone, website, instagram, weddings_per_year, starting_price_cents, currency, logo_path, share_phone, share_email, stripe_account_id, created_at, updated_at")
       .eq("user_id", userId)
       .maybeSingle();
     vendor = vendorProfile;
   }
 
-  return { userId, email: email ?? profile.email, profile, vendor };
+  const [{ data: adminRow }, billingResult] = await Promise.all([
+    supabase.from("admins").select("user_id").eq("user_id", userId).maybeSingle(),
+    vendor
+      ? supabase.from("vendor_billing").select("*").eq("vendor_id", vendor.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  return {
+    userId,
+    email: email ?? profile.email,
+    profile,
+    vendor,
+    billing: billingResult.data,
+    isAdmin: Boolean(adminRow),
+  };
 });
 
 export async function requireSession(): Promise<SessionProfile> {

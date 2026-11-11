@@ -31,6 +31,7 @@ export async function DesktopNav() {
         variant="side"
         primaryWeddingId={context.primaryWeddingId}
         actingAsCouple={context.actingAsCouple}
+        isAdmin={Boolean(session?.isAdmin)}
       />
       {session ? <SignOutButton /> : null}
     </aside>
@@ -61,6 +62,7 @@ export async function MobileChrome() {
         variant="tab"
         primaryWeddingId={context.primaryWeddingId}
         actingAsCouple={context.actingAsCouple}
+        isAdmin={Boolean(session?.isAdmin)}
       />
       )}
     </>
