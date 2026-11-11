@@ -33,7 +33,12 @@ export default async function TimelinePage({ params }: { params: Promise<{ id: s
         personal={personal ?? []}
         suggestion={suggestion}
       />
-      <TimelineBoard weddingId={id} slots={slots} canEdit={space.actingAsCouple} />
+      <TimelineBoard
+        weddingId={id}
+        slots={slots}
+        canEdit={space.actingAsCouple}
+        vendors={space.members.filter((member) => member.role === "vendor").map((member) => ({ userId: member.userId, fullName: member.fullName }))}
+      />
     </Card>
   );
 }

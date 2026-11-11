@@ -410,6 +410,7 @@ export type Database = {
           status: string;
           wedding_id: string | null;
           source_ip: string;
+          recommendation_id: string | null;
           created_at: string;
         },
         {
@@ -424,7 +425,7 @@ export type Database = {
           status?: string;
           source_ip?: string;
         },
-        { status?: string; wedding_id?: string | null }
+        { status?: string; wedding_id?: string | null; recommendation_id?: string | null }
       >;
       reminders: Table<
         { id: string; wedding_id: string; milestone: number; kind: string; created_at: string },
@@ -715,6 +716,115 @@ export type Database = {
         { user_id: string; token: string },
         { token?: string; revoked_at?: string | null }
       >;
+      timeline_assignees: Table<
+        { slot_id: string; user_id: string },
+        { slot_id: string; user_id: string },
+        Record<string, never>
+      >;
+      timeline_ready: Table<
+        { slot_id: string; wedding_id: string; user_id: string; ready_at: string },
+        { slot_id: string; wedding_id: string; user_id: string },
+        Record<string, never>
+      >;
+      rain_plans: Table<
+        { wedding_id: string; active: boolean; note: string },
+        { wedding_id: string; active?: boolean; note?: string },
+        { active?: boolean; note?: string }
+      >;
+      rain_stops: Table<
+        { id: string; wedding_id: string; label: string; address: string; sort_order: number },
+        { wedding_id: string; label: string; address: string; sort_order?: number },
+        { label?: string; address?: string }
+      >;
+      rain_slots: Table<
+        { id: string; wedding_id: string; title: string; starts_at: string; place: string; sort_order: number },
+        { wedding_id: string; title: string; starts_at: string; place?: string; sort_order?: number },
+        { title?: string; starts_at?: string; place?: string }
+      >;
+      technical_needs: Table<
+        {
+          wedding_id: string;
+          user_id: string;
+          vehicle: string;
+          access_start: string | null;
+          access_end: string | null;
+          parking: string;
+          power_w: number;
+          sockets: number;
+          setup_minutes: number;
+          space_note: string;
+        },
+        {
+          wedding_id: string;
+          user_id: string;
+          vehicle?: string;
+          access_start?: string | null;
+          access_end?: string | null;
+          parking?: string;
+          power_w?: number;
+          sockets?: number;
+          setup_minutes?: number;
+          space_note?: string;
+        },
+        {
+          vehicle?: string;
+          access_start?: string | null;
+          access_end?: string | null;
+          parking?: string;
+          power_w?: number;
+          sockets?: number;
+          setup_minutes?: number;
+          space_note?: string;
+        }
+      >;
+      venue_limits: Table<
+        { wedding_id: string; power_w: number | null; parking_note: string },
+        { wedding_id: string; power_w?: number | null; parking_note?: string },
+        { power_w?: number | null; parking_note?: string }
+      >;
+      weather_settings: Table<
+        {
+          wedding_id: string;
+          enabled: boolean;
+          rain_mm: number;
+          rain_probability: number;
+          wind_kmh: number;
+          latitude: number | null;
+          longitude: number | null;
+        },
+        {
+          wedding_id: string;
+          enabled?: boolean;
+          rain_mm?: number;
+          rain_probability?: number;
+          wind_kmh?: number;
+          latitude?: number | null;
+          longitude?: number | null;
+        },
+        {
+          enabled?: boolean;
+          rain_mm?: number;
+          rain_probability?: number;
+          wind_kmh?: number;
+          latitude?: number | null;
+          longitude?: number | null;
+        }
+      >;
+      weather_checks: Table<
+        { wedding_id: string; checked_on: string },
+        { wedding_id: string; checked_on: string },
+        Record<string, never>
+      >;
+      recommendations: Table<
+        { id: string; wedding_id: string; from_user_id: string; vendor_id: string; token: string; created_at: string },
+        { wedding_id: string; from_user_id: string; vendor_id: string; token: string },
+        Record<string, never>
+      >;
+      recommendation_events: Table<
+        { id: string; recommendation_id: string; kind: string; created_at: string },
+        { recommendation_id: string; kind: string },
+        Record<string, never>
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -835,6 +945,27 @@ export type Database = {
           sent_at: string | null;
         }[];
       };
+      assign_timeline_step: { Args: { p_slot: string; p_user: string }; Returns: undefined };
+      clear_timeline_step: { Args: { p_slot: string; p_user: string }; Returns: undefined };
+      mark_step_ready: { Args: { p_slot: string }; Returns: Json };
+      set_rain_plan: { Args: { p_wedding: string; p_active: boolean }; Returns: string };
+      due_weather_weddings: {
+        Args: Record<string, never>;
+        Returns: {
+          wedding_id: string;
+          wedding_date: string;
+          place: string;
+          latitude: number | null;
+          longitude: number | null;
+          rain_mm: number;
+          rain_probability: number;
+          wind_kmh: number;
+        }[];
+      };
+      record_weather_alert: { Args: { p_wedding: string; p_body: string }; Returns: undefined };
+      set_venue_point: { Args: { p_wedding: string; p_lat: number; p_lng: number }; Returns: undefined };
+      record_reco_click: { Args: { p_token: string }; Returns: string | null };
+      attribute_quote: { Args: { p_lead: string; p_token: string }; Returns: undefined };
       wedding_directory: {
         Args: { p_wedding_id: string };
         Returns: {

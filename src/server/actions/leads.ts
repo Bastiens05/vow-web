@@ -37,7 +37,7 @@ export async function submitQuote(_prev: ActionState, formData: FormData): Promi
 
   const headerStore = await headers();
   const supabase = await createClient();
-  const { error } = await supabase.rpc("submit_quote_request", {
+  const { data: leadId, error } = await supabase.rpc("submit_quote_request", {
     p_slug: slug,
     p_names: names,
     p_email: email,
@@ -50,6 +50,8 @@ export async function submitQuote(_prev: ActionState, formData: FormData): Promi
   });
   if (error) return { error: messageFromError(error) };
   await deliverOutbox();
+  const reco = String(formData.get("reco") ?? "").trim();
+  if (reco && leadId) await supabase.rpc("attribute_quote", { p_lead: leadId, p_token: reco });
   return { success: "Demande envoyée. Le prestataire la retrouve dans VOW." };
 }
 

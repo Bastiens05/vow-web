@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReviewForm } from "@/components/wedding/review-form";
 import { LineIcon, SettingsGroup, SettingsLink } from "@/components/wedding/settings-list";
@@ -8,12 +9,22 @@ import { countLabel, moneyStatus, questionStatus, sheetStatus } from "@/lib/doma
 import { reminderKindLabel } from "@/lib/domain/reminders";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
+import { todayIso } from "@/lib/domain/format";
+import { siteUrl } from "@/lib/env";
+import { recommendVendor } from "@/server/actions/relay";
 import { getWeddingSpace } from "@/server/data";
 
 export const metadata: Metadata = { title: "Mariage" };
 
-export default async function WeddingOverviewPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WeddingOverviewPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ reco?: string }>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
   const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
@@ -129,6 +140,10 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
             />
           ) : null}
         </SettingsGroup>
+        <SettingsGroup title="Lieu">
+          <SettingsLink href={`/mariage/${id}/pluie`} label="Plan pluie" status="Repli" icon={<MapIcon />} />
+          <SettingsLink href={`/mariage/${id}/besoins`} label="Besoins techniques" status="Fiches" icon={<SheetIcon />} />
+        </SettingsGroup>
         {showInvite || (reminders.data ?? []).length > 0 ? (
           <SettingsGroup title="Rappels">
             {showInvite ? (
@@ -157,6 +172,24 @@ export default async function WeddingOverviewPage({ params }: { params: Promise<
       </section>
       {space.actingAsCouple ? (
         <ReviewForm weddingId={id} vendors={(vendors.data ?? []).map((vendor) => ({ id: vendor.id, name: vendor.business_name }))} />
+      ) : null}
+      {space.role === "vendor" && !space.actingAsCouple && space.wedding.wedding_date < todayIso() ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold">Recommander un confrère</h2>
+          <p className="text-sm text-muted">Le lien compte les clics et les demandes de devis qui en viennent.</p>
+          {query.reco ? <p className="break-all text-sm">{siteUrl()}/r/{query.reco}</p> : null}
+          {(vendors.data ?? [])
+            .filter((vendor) => vendor.user_id !== space.session.userId)
+            .map((vendor) => (
+              <form key={vendor.id} action={recommendVendor}>
+                <input type="hidden" name="wedding_id" value={id} />
+                <input type="hidden" name="vendor_id" value={vendor.id} />
+                <Button type="submit" variant="secondary">
+                  Lien pour {vendor.business_name}
+                </Button>
+              </form>
+            ))}
+        </Card>
       ) : null}
     </div>
   );

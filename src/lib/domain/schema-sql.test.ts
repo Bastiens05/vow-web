@@ -52,6 +52,17 @@ describe("migration", () => {
       "budget_lines",
       "wedding_sites",
       "calendar_feeds",
+      "timeline_assignees",
+      "timeline_ready",
+      "rain_plans",
+      "rain_stops",
+      "rain_slots",
+      "technical_needs",
+      "venue_limits",
+      "weather_settings",
+      "weather_checks",
+      "recommendations",
+      "recommendation_events",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

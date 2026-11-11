@@ -58,6 +58,16 @@ export default async function DashboardPage() {
     : [];
   const name = isVendor ? session.vendor?.business_name || session.profile.full_name : session.profile.full_name;
   const ledger = isVendor && session.vendor ? await vendorLedger(session.vendor.id) : null;
+  const supabase = await createClient();
+  const { data: recos } = isVendor
+    ? await supabase.from("recommendations").select("id").eq("from_user_id", session.userId)
+    : { data: [] as { id: string }[] };
+  const recoIds = (recos ?? []).map((row) => row.id);
+  const { data: recoEvents } = recoIds.length
+    ? await supabase.from("recommendation_events").select("kind").in("recommendation_id", recoIds)
+    : { data: [] as { kind: string }[] };
+  const recoClicks = (recoEvents ?? []).filter((event) => event.kind === "click").length;
+  const recoLeads = (recoEvents ?? []).filter((event) => event.kind === "lead").length;
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
@@ -91,6 +101,11 @@ export default async function DashboardPage() {
             <p className="mt-1 text-xs text-muted">devis, acomptes, avis</p>
           </Card>
         </section>
+      ) : null}
+      {isVendor && recoIds.length > 0 ? (
+        <p className="mb-8 text-sm text-muted">
+          Recommandations · {recoClicks} clics · {recoLeads} demandes
+        </p>
       ) : null}
       {ledger && ledger.reviews.length > 0 ? (
         <section className="mb-8 grid gap-2">

@@ -12,7 +12,8 @@ export function isPublicPath(pathname: string): boolean {
     pathname.startsWith("/desabonnement/") ||
     pathname.startsWith("/rsvp/") ||
     pathname.startsWith("/m/") ||
-    pathname.startsWith("/equipe/")
+    pathname.startsWith("/equipe/") ||
+    pathname.startsWith("/r/")
   );
 }
 

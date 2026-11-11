@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
 import { submitQuote } from "@/server/actions/leads";
 
-export function QuoteForm({ slug }: { slug: string }) {
+export function QuoteForm({ slug, recommendation }: { slug: string; recommendation?: string }) {
   const [state, action, pending] = useActionState(submitQuote, {});
   if (state.success) {
     return <Alert tone="success">{state.success}</Alert>;
@@ -14,6 +14,7 @@ export function QuoteForm({ slug }: { slug: string }) {
   return (
     <form action={action} className="grid gap-4">
       <input type="hidden" name="slug" value={slug} />
+      {recommendation ? <input type="hidden" name="reco" value={recommendation} /> : null}
       <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden>
         <label>
           Société
