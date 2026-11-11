@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { InviteVendor } from "@/components/wedding/invite-vendor";
+import { QuoteIntake } from "@/components/wedding/quote-intake";
 import { VendorBubbles, type VendorBubblePerson } from "@/components/wedding/vendor-bubbles";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { publicObjectUrl } from "@/lib/storage";
@@ -37,6 +38,7 @@ export default async function DirectoryPage({ params }: { params: Promise<{ id: 
           <VendorBubbles weddingId={id} people={bubbles} />
         </div>
         <InviteVendor weddingId={id} />
+        <QuoteIntake weddingId={id} userId={space.session.userId} />
       </div>
     );
   }
