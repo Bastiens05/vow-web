@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthFlow } from "@/components/auth/auth-flow";
-import { configuredAuthProviders } from "@/lib/auth-providers";
+import { configuredAuthProviders, otpCodeEnabled } from "@/lib/auth-providers";
 import { safeNextPath } from "@/lib/domain/paths";
 
 export const metadata: Metadata = { title: "Inscription" };
@@ -24,6 +24,7 @@ export default async function SignupPage({
       lockedRole={lockedRole}
       google={providers.google}
       apple={providers.apple}
+      otp={otpCodeEnabled()}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coupleSteps, openSteps, vendorSteps } from "./checklist";
+import { coupleSteps, firstRunSteps, openSteps, vendorSteps } from "./checklist";
 
 describe("vendorSteps", () => {
   it("points an empty account at the vitrine and a new wedding", () => {
@@ -31,6 +31,19 @@ describe("vendorSteps", () => {
       }),
     );
     expect(open).toEqual([]);
+  });
+});
+
+describe("firstRunSteps", () => {
+  it("starts with the activity, then the first wedding, then the invitation", () => {
+    const steps = firstRunSteps({ profileReady: true, weddingId: null, coupleJoined: false });
+    expect(steps.map((step) => step.label)).toEqual([
+      "Votre activité",
+      "Créez votre premier mariage",
+      "Invitez le couple",
+    ]);
+    expect(steps[0]?.done).toBe(true);
+    expect(steps[1]?.done).toBe(false);
   });
 });
 

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import { AlertDock } from "@/components/alerts/alert-dock";
-import { DesktopNav, MobileChrome } from "@/components/layout/app-nav";
+import { DesktopNav, MobileChrome, PublicHeader } from "@/components/layout/app-nav";
+import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { latestUnreadAlert } from "@/server/data";
 import { getSession } from "@/server/session";
 import "./globals.css";
@@ -15,22 +16,30 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
-        <Suspense fallback={<MobileBarFallback />}>
-          <MobileChrome />
-        </Suspense>
-        <div className="md:grid md:min-h-dvh md:grid-cols-[232px_minmax(0,1fr)]">
-          <Suspense fallback={<div className="hidden border-r border-line md:block" />}>
-            <DesktopNav />
-          </Suspense>
-          <main className="min-w-0 pb-24 md:pb-10">{children}</main>
-        </div>
-        <Suspense fallback={null}>
-          <AlertSlot />
-        </Suspense>
+        <ChromeFrame
+          publicHeader={<PublicHeader />}
+          mobile={
+            <Suspense fallback={<MobileBarFallback />}>
+              <MobileChrome />
+            </Suspense>
+          }
+          desktop={
+            <Suspense fallback={<div className="hidden border-r border-line md:block" />}>
+              <DesktopNav />
+            </Suspense>
+          }
+          alerts={
+            <Suspense fallback={null}>
+              <AlertSlot />
+            </Suspense>
+          }
+        >
+          {children}
+        </ChromeFrame>
       </body>
     </html>
   );
@@ -45,8 +54,8 @@ async function AlertSlot() {
   if (!session) return null;
   const latest = await latestUnreadAlert(session.userId);
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 md:left-auto md:right-0 md:w-auto">
-      <div className="pointer-events-auto flex h-14 items-center justify-end px-3 md:h-16 md:px-6">
+    <div className="pointer-events-none fixed right-0 top-0 z-50">
+      <div className="pointer-events-auto flex h-14 items-center px-3 md:h-16 md:px-6">
         <AlertDock
           inApp={session.profile.notify_in_app}
           initialToast={session.profile.notify_in_app ? (latest?.body ?? null) : null}

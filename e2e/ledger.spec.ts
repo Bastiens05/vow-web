@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { revealPasswordSignup } from "./password-auth";
+import { passVendorWelcome, revealPasswordSignup } from "./password-auth";
 
 const password = "VowTest2026!";
 
@@ -7,6 +7,7 @@ test("un devis devient une facture et l'acompte se relance sans Stripe", async (
   const stamp = Date.now().toString(36);
   const email = `devis.${stamp}@vow.test`;
   await signUp(page, { name: "Camille Devis", email, role: "Prestataire" });
+  await passVendorWelcome(page, `Studio ${stamp}`);
   await expect(page.getByRole("heading", { name: "Votre page publique" })).toBeVisible();
   await page.getByLabel("Nom commercial").fill(`Studio ${stamp}`);
   await page.getByLabel("Ville").fill("Bordeaux");

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
+import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { listInbox } from "@/server/data";
 import { requireSession } from "@/server/session";
 
@@ -17,7 +18,11 @@ export default async function InboxPage() {
         title="Messages"
         description="Le dernier message de chaque mariage."
       />
-      {threads.length === 0 ? <p className="text-sm text-muted">Aucune conversation pour le moment.</p> : null}
+      {threads.length === 0 ? (
+        <EmptyState title="Aucune conversation">
+          <ButtonLink href="/mariages">Ouvrir un mariage</ButtonLink>
+        </EmptyState>
+      ) : null}
       <ul className="space-y-3">
         {threads.map((thread) => (
           <li key={thread.weddingId}>

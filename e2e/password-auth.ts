@@ -15,6 +15,16 @@ export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "C
   await page.getByLabel("Nom complet").waitFor();
 }
 
+export async function passVendorWelcome(page: Page, business: string) {
+  if (!page.url().includes("/bienvenue")) return;
+  await page.getByLabel("Nom de l'activité").fill(business);
+  await page.getByLabel("Ville").fill("Bordeaux");
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByRole("link", { name: "Continuer" }).click();
+  await page.waitForURL("**/espace**");
+  await page.goto("/espace/profil");
+}
+
 export async function revealPasswordLogin(page: Page) {
   const password = page.getByRole("button", { name: "Continuer avec un mot de passe" });
   if (await password.isVisible().catch(() => false)) await password.click();

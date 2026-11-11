@@ -17,6 +17,7 @@ export function AuthFlow({
   lockedRole,
   google,
   apple,
+  otp = false,
 }: {
   mode: "login" | "signup";
   nextPath: string;
@@ -24,6 +25,7 @@ export function AuthFlow({
   lockedRole?: "vendor" | "couple";
   google: boolean;
   apple: boolean;
+  otp?: boolean;
 }) {
   const [step, setStep] = useState<Step>(mode === "signup" && !lockedRole ? "choose" : "email");
   const [role, setRole] = useState<"vendor" | "couple" | null>(lockedRole ?? null);
@@ -34,7 +36,7 @@ export function AuthFlow({
   const [sent, request, sending] = useActionState(requestEmailCode, {} as ActionState);
   const [checked, verify, verifying] = useActionState(verifyEmailCode, {} as ActionState);
   const [appliedCode, setAppliedCode] = useState("");
-  if (sent.success?.startsWith("code:") && sent.success !== appliedCode) {
+  if (otp && sent.success?.startsWith("code:") && sent.success !== appliedCode) {
     setAppliedCode(sent.success);
     setStep("code");
     setSeconds(30);
@@ -74,7 +76,9 @@ export function AuthFlow({
           : step === "code"
             ? `Nous avons envoyé un code à ${email}. Le lien dans le message fonctionne aussi.`
             : step === "email"
-              ? "Un code à 6 chiffres, rien à retenir."
+              ? otp
+                ? "Un code à 6 chiffres, rien à retenir."
+                : "Un lien de connexion, rien à retenir."
               : "Le mot de passe reste possible, si vous préférez."}
       </p>
 
@@ -110,8 +114,11 @@ export function AuthFlow({
             />
           </label>
           {sent.error ? <Alert>{sent.error}</Alert> : null}
+          {sent.success?.startsWith("link:") ? (
+            <Alert tone="success">Vérifiez votre boîte mail. Le lien ouvre votre espace.</Alert>
+          ) : null}
           <button type="submit" className="auth-primary" disabled={sending || !isValidEmail(email)}>
-            {sending ? "Envoi…" : "Recevoir le code"}
+            {sending ? "Envoi…" : otp ? "Recevoir le code" : "Recevoir un lien de connexion"}
           </button>
           {(google || apple) && (
             <div className="grid gap-2">
@@ -157,7 +164,7 @@ export function AuthFlow({
             <SignupForm nextPath={nextPath} defaultEmail={initialEmail} lockedRole={lockedRole ?? role ?? undefined} />
           )}
           <button type="button" className="auth-quiet mt-4 w-full" onClick={() => setStep("email")}>
-            Revenir au code
+            {otp ? "Revenir au code" : "Revenir au lien"}
           </button>
         </div>
       ) : null}

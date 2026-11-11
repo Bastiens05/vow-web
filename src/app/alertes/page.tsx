@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/page-header";
 import { markAlertsRead } from "@/server/actions/day";
 import { formatDateTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/server";
@@ -22,7 +24,13 @@ export default async function AlertsPage() {
       <h1 className="text-3xl font-semibold tracking-tight">Alertes</h1>
       <p className="mt-2 text-sm text-muted">Ce qui a bougé sur vos mariages.</p>
       <ul className="mt-6 space-y-3">
-        {notes.length === 0 ? <li className="text-sm text-muted">Aucune alerte.</li> : null}
+        {notes.length === 0 ? (
+          <li>
+            <EmptyState title="Aucune alerte">
+              <ButtonLink href="/espace">Retour à l&apos;accueil</ButtonLink>
+            </EmptyState>
+          </li>
+        ) : null}
         {notes.map((note) => (
           <li key={note.id} className="rounded-2xl bg-paper px-4 py-4">
             <p className="text-sm leading-6">{note.body}</p>

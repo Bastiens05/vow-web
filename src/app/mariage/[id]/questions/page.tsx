@@ -40,10 +40,14 @@ export default async function QuestionsPage({ params }: { params: Promise<{ id: 
         </p>
       </Card>
       {canPrepare && !mine ? (
-        <form action={applyQuestionTemplate.bind(null, id)}>
-          <input type="hidden" name="wedding_id" value={id} />
-          <Button type="submit">Utiliser le modèle</Button>
-        </form>
+        <Card>
+          <h3 className="text-lg font-semibold">Aucune question</h3>
+          <p className="mt-1 text-sm text-muted">Un modèle pour votre métier, à envoyer au couple.</p>
+          <form action={applyQuestionTemplate.bind(null, id)} className="mt-4">
+            <input type="hidden" name="wedding_id" value={id} />
+            <Button type="submit">Utiliser le modèle</Button>
+          </form>
+        </Card>
       ) : null}
       {(forms ?? []).map((form) => {
         const rows = (items ?? []).filter((item) => item.questionnaire_id === form.id);

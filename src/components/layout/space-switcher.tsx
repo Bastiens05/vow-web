@@ -14,9 +14,9 @@ export function SpaceSwitcher({
   const path = usePathname() ?? "";
 
   useEffect(() => {
-    if (path.startsWith("/mariage")) localStorage.setItem("vow-last-space", "couple");
+    if (path.startsWith("/mariage/")) rememberSpace("couple");
     if (path === "/espace" || path.startsWith("/espace/") || path.startsWith("/demandes")) {
-      localStorage.setItem("vow-last-space", "vendor");
+      rememberSpace("vendor");
     }
     if (!vendorHref || !coupleHref || path !== "/espace") return;
     if (sessionStorage.getItem("vow-routed")) return;
@@ -33,12 +33,17 @@ export function SpaceSwitcher({
   if (!vendorHref || !coupleHref) return null;
   return (
     <div className="mb-4 flex gap-2 px-3">
-      <Link href="/espace?switch=1" className="rounded-full bg-ink px-3 py-2 text-xs text-white">
+      <Link href="/espace?switch=1" className="rounded-full bg-ink px-3 py-2 text-xs text-white" onClick={() => rememberSpace("vendor")}>
         Prestataire
       </Link>
-      <Link href={coupleHref} className="rounded-full border border-line px-3 py-2 text-xs">
+      <Link href={coupleHref} className="rounded-full border border-line px-3 py-2 text-xs" onClick={() => rememberSpace("couple")}>
         Mariés
       </Link>
     </div>
   );
+}
+
+function rememberSpace(space: "vendor" | "couple") {
+  localStorage.setItem("vow-last-space", space);
+  document.cookie = `vow-last-space=${space}; Path=/; Max-Age=31536000; SameSite=Lax`;
 }

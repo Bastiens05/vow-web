@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { revealPasswordSignup } from "./password-auth";
+import { passVendorWelcome, revealPasswordSignup } from "./password-auth";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const password = "VowTest2026!";
@@ -14,6 +14,7 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   const groupTitle = `Famille ${stamp}`;
 
   await signUp(page, { name: "Camille Photo", email: vendorEmail, role: "Prestataire" });
+  await passVendorWelcome(page, `Studio ${stamp}`);
   await expect(page.getByRole("heading", { name: "Votre page publique" })).toBeVisible();
   await page.getByLabel("Nom commercial").fill(`Studio ${stamp}`);
   await page.getByLabel("Ville").fill("Bordeaux");

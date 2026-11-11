@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SelectInput } from "@/components/ui/field";
-import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { leadStatusLabel } from "@/lib/domain/leads";
 import { formatLongDate } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +31,17 @@ export default async function LeadsPage() {
         title="Demandes"
         description={`Lien à coller dans une bio : /demande/${session.vendor.slug}`}
       />
-      {(leads ?? []).length === 0 ? <p className="text-sm text-muted">Aucune demande pour le moment.</p> : null}
+      {(leads ?? []).length === 0 ? (
+        <div className="mb-6">
+          <EmptyState title="Aucune demande">
+            {session.vendor.published ? (
+              <ButtonLink href={`/p/${session.vendor.slug}`}>Voir votre page publique</ButtonLink>
+            ) : (
+              <ButtonLink href="/espace/profil">Complétez votre vitrine</ButtonLink>
+            )}
+          </EmptyState>
+        </div>
+      ) : null}
       <ul className="space-y-3">
         {(leads ?? []).map((lead) => (
           <li key={lead.id}>
