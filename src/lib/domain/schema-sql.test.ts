@@ -93,6 +93,9 @@ describe("migration", () => {
       "anniversary_templates",
       "anniversary_queue",
       "marketing_optouts",
+      "wedding_briefings",
+      "vendor_brief_notes",
+      "briefing_listens",
       "wedding_music",
     ]);
     for (const table of tables) {
