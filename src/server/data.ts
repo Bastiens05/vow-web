@@ -225,19 +225,30 @@ export type SlotView = {
   sortOrder: number;
   createdAt: string;
   comments: CommentView[];
+  assigneeIds: string[];
+  ready: boolean;
 };
 
 export async function listTimeline(weddingId: string, userId: string): Promise<SlotView[]> {
   const supabase = await createClient();
   const { data: slots } = await supabase.from("timeline_slots").select("*").eq("wedding_id", weddingId);
   const slotIds = (slots ?? []).map((slot) => slot.id);
-  const { data: comments } = slotIds.length
-    ? await supabase.from("timeline_comments").select("*").in("slot_id", slotIds).order("created_at", { ascending: true })
-    : { data: [] };
+  const [{ data: comments }, { data: assignees }, { data: ready }] = await Promise.all([
+    slotIds.length
+      ? supabase.from("timeline_comments").select("*").in("slot_id", slotIds).order("created_at", { ascending: true })
+      : Promise.resolve({ data: [] as { id: string; slot_id: string; author_id: string; body: string; created_at: string }[] }),
+    slotIds.length
+      ? supabase.from("timeline_assignees").select("slot_id, user_id").in("slot_id", slotIds)
+      : Promise.resolve({ data: [] as { slot_id: string; user_id: string }[] }),
+    slotIds.length
+      ? supabase.from("timeline_ready").select("slot_id").in("slot_id", slotIds)
+      : Promise.resolve({ data: [] as { slot_id: string }[] }),
+  ]);
   const authorIds = [
     ...new Set([
       ...(slots ?? []).map((slot) => slot.created_by),
       ...(comments ?? []).map((comment) => comment.author_id),
+      ...(assignees ?? []).map((row) => row.user_id),
     ]),
   ];
   const { data: profiles } = authorIds.length
@@ -256,6 +267,13 @@ export async function listTimeline(weddingId: string, userId: string): Promise<S
     });
     commentsBySlot.set(comment.slot_id, list);
   }
+  const readyIds = new Set((ready ?? []).map((row) => row.slot_id));
+  const assigneesBySlot = new Map<string, string[]>();
+  for (const row of assignees ?? []) {
+    const list = assigneesBySlot.get(row.slot_id) ?? [];
+    list.push(row.user_id);
+    assigneesBySlot.set(row.slot_id, list);
+  }
   const views = (slots ?? []).map((slot) => ({
     id: slot.id,
     title: slot.title,
@@ -265,6 +283,8 @@ export async function listTimeline(weddingId: string, userId: string): Promise<S
     sortOrder: slot.sort_order,
     createdAt: slot.created_at,
     comments: commentsBySlot.get(slot.id) ?? [],
+    assigneeIds: assigneesBySlot.get(slot.id) ?? [],
+    ready: readyIds.has(slot.id),
   }));
   return sortTimelineSlots(views);
 }

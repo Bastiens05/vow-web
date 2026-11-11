@@ -5,6 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
 import { formatSlotTime } from "@/lib/domain/format";
+import { assignStep } from "@/server/actions/relay";
 import { addTimelineComment, addTimelineSlot, deleteTimelineSlot, updateTimelineSlot } from "@/server/actions/space";
 import type { SlotView } from "@/server/data";
 
@@ -12,10 +13,12 @@ export function TimelineBoard({
   weddingId,
   slots,
   canEdit,
+  vendors = [],
 }: {
   weddingId: string;
   slots: SlotView[];
   canEdit: boolean;
+  vendors?: { userId: string; fullName: string }[];
 }) {
   const addAction = addTimelineSlot.bind(null, weddingId);
   const [state, action, pending] = useActionState(addAction, {});
@@ -30,6 +33,24 @@ export function TimelineBoard({
             <p className="font-semibold tracking-tight text-2xl">{formatSlotTime(slot.startsAt)}</p>
             <h2 className="text-lg font-medium">{slot.title}</h2>
             {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : null}
+            {slot.ready ? <p className="text-sm font-medium">Prêt</p> : null}
+            {canEdit && vendors.length > 0 ? (
+              <form action={assignStep} className="mt-2 flex items-center gap-2">
+                <input type="hidden" name="wedding_id" value={weddingId} />
+                <input type="hidden" name="slot_id" value={slot.id} />
+                <select name="user_id" defaultValue={slot.assigneeIds[0] ?? ""} className="min-h-11 rounded-xl border border-line bg-ivory px-2 text-sm" aria-label={`Prestataire pour ${slot.title}`}>
+                  <option value="">Personne</option>
+                  {vendors.map((vendor) => (
+                    <option key={vendor.userId} value={vendor.userId}>
+                      {vendor.fullName}
+                    </option>
+                  ))}
+                </select>
+                <Button type="submit" variant="secondary">
+                  Attribuer
+                </Button>
+              </form>
+            ) : null}
             {slot.notes ? <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{slot.notes}</p> : null}
             {canEdit ? (
               <SlotEditor weddingId={weddingId} slot={slot} />

@@ -11,13 +11,25 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const { id } = await params;
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
-  const { data } = await supabase.from("wedding_stops").select("*").eq("wedding_id", id).order("sort_order").order("starts_at");
-  const stops = data ?? [];
+  const [{ data }, { data: rain }] = await Promise.all([
+    supabase.from("wedding_stops").select("*").eq("wedding_id", id).order("sort_order").order("starts_at"),
+    supabase.from("rain_plans").select("active").eq("wedding_id", id).maybeSingle(),
+  ]);
+  const { data: rainStops } = rain?.active
+    ? await supabase.from("rain_stops").select("id, label, address").eq("wedding_id", id).order("sort_order")
+    : { data: [] };
+  const stops = rain?.active && (rainStops ?? []).length > 0
+    ? (rainStops ?? []).map((stop) => ({ id: stop.id, label: stop.label, address: stop.address, starts_at: null as string | null }))
+    : (data ?? []);
   return (
     <div className="grid gap-4">
       <Card>
-        <h2 className="text-3xl font-semibold tracking-tight">Carte du jour</h2>
-        <p className="mt-1 text-sm text-muted">Les adresses restent dans VOW. L&apos;itinéraire s&apos;ouvre dans Plans ou Google Maps.</p>
+        <h2 className="text-3xl font-semibold tracking-tight">{rain?.active ? "Carte · plan pluie" : "Carte du jour"}</h2>
+        <p className="mt-1 text-sm text-muted">
+          {rain?.active
+            ? "Le plan pluie remplace les lieux prévus. On peut le retirer."
+            : "Les adresses restent dans VOW. L'itinéraire s'ouvre dans Plans ou Google Maps."}
+        </p>
       </Card>
       {stops.map((stop, index) => {
         const previous = stops[index - 1];

@@ -8,16 +8,19 @@ import { addMinutesToTime } from "@/lib/domain/day";
 import { formatSlotTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
 import { sendDayAlert, shiftSlot } from "@/server/actions/day";
+import { markReady } from "@/server/actions/relay";
 import type { SlotView } from "@/server/data";
 
 export function DayBoard({
   weddingId,
   slots,
   canControl,
+  userId,
 }: {
   weddingId: string;
   slots: SlotView[];
   canControl: boolean;
+  userId: string;
 }) {
   const router = useRouter();
   const [overrides, setOverrides] = useState<Record<string, string>>({});
@@ -40,6 +43,16 @@ export function DayBoard({
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "timeline_slots", filter: `wedding_id=eq.${weddingId}` },
+          () => router.refresh(),
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "timeline_ready", filter: `wedding_id=eq.${weddingId}` },
+          () => router.refresh(),
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "rain_plans", filter: `wedding_id=eq.${weddingId}` },
           () => router.refresh(),
         )
         .subscribe();
@@ -89,12 +102,25 @@ export function DayBoard({
         </p>
       )}
       {error ? <Alert>{error}</Alert> : null}
+      <p className="text-sm text-muted">
+        {live.filter((slot) => slot.ready).length}/{live.length} étapes prêtes
+      </p>
       <ol className="space-y-4">
         {live.map((slot) => (
           <li key={slot.id} className="rounded-3xl bg-paper p-4">
             <p className="text-4xl font-semibold tracking-tight">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
             <h2 className="mt-1 text-xl font-semibold">{slot.title}</h2>
             {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : null}
+            {slot.ready ? <p className="mt-2 text-sm font-medium">Prêt</p> : null}
+            {!canControl && slot.assigneeIds.includes(userId) && !slot.ready ? (
+              <form action={markReady} className="mt-4">
+                <input type="hidden" name="slot_id" value={slot.id} />
+                <input type="hidden" name="wedding_id" value={weddingId} />
+                <Button type="submit" className="min-h-14 w-full">
+                  C&apos;est prêt
+                </Button>
+              </form>
+            ) : null}
             {canControl ? (
               <>
                 <div className="mt-4 grid grid-cols-2 gap-2">

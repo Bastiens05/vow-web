@@ -8,8 +8,15 @@ import { getPublicVendor } from "@/server/data";
 
 export const metadata: Metadata = { title: "Demande de devis" };
 
-export default async function QuotePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function QuotePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ reco?: string }>;
+}) {
   const { slug } = await params;
+  const query = await searchParams;
   const data = await getPublicVendor(slug);
   if (!data?.vendor.published) notFound();
   return (
@@ -20,7 +27,7 @@ export default async function QuotePage({ params }: { params: Promise<{ slug: st
         Quelques lignes suffisent. La demande arrive directement dans VOW, sans créer de compte.
       </p>
       <Card className="relative mt-6">
-        <QuoteForm slug={slug} />
+        <QuoteForm slug={slug} recommendation={query.reco} />
       </Card>
       <p className="mt-6 text-sm">
         <Link href={`/p/${slug}`} className="underline">

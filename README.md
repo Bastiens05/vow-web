@@ -39,14 +39,17 @@ Migrations, dans cet ordre, sur un projet vide :
 5. `supabase/migrations/20261110240000_day_tools.sql` — demandes de devis (`leads`, `submit_quote_request`), modèles de déroulé (le couple les applique, le prestataire les suggère), rappels J-60/J-30/J-14 (`run_due_reminders`) et signatures électroniques simples (`signature_requests`, `record_signature`). L'insertion et la modification de `timeline_slots` sont réservées au couple, y compris via `is_wedding_couple` pour l'essai démo.
 6. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
 7. `supabase/migrations/20261111010000_daypack.sql` — questionnaire par métier, lieux du jour J, annuaire (téléphone et e-mail seulement si le prestataire les ouvre) et galerie photo / vidéo.
-8. `supabase/migrations/20261111020000_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part.
+8. `supabase/migrations/20261111020000_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part. Déjà appliquée sur vow-mvp : ne pas la relancer.
 9. `supabase/migrations/20261111030000_suite.sql` — équipe (lecture des mariages, facturation au titulaire), calendrier ICS privé, rendez-vous, RSVP, plan de table, budget du couple et page publique des mariés.
+10. `supabase/migrations/20261111040000_relay.sql` — relais d'étape, plan pluie, besoins techniques, seuils météo et recommandations tracées. Le texte du déroulé reste modifiable par le couple seul.
+
+La météo interroge Open-Meteo (gratuit, usage non commercial) seulement si `WEATHER_ALERTS_ENABLED=true`. Avant une exploitation commerciale, il faut un fournisseur ou un plan commercial : laissez la variable vide. `WEATHER_PROVIDER` vaut `open-meteo` par défaut. Les e-mails produit, y compris le relais, le plan pluie et la météo, partent via Resend si `RESEND_API_KEY` et `EMAIL_FROM` sont définis ; sinon le fil dans l'application et le push (clés VAPID) suffisent.
 
 Le mode Jour J met à jour le déroulé en direct. Le fil d'alertes et le toast fonctionnent sans configuration. Les notifications du téléphone demandent une paire de clés VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) et la clé `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement. Sans ces variables, VOW reste sur le fil dans l'application.
 
 Les fonctions serveur Vercel sont épinglées sur Paris (`cdg1` dans `vercel.json`), à côté du projet Supabase `eu-west-3`.
 
-Deux crons Vercel, une fois par jour à 06:00 UTC : `/api/cron/reminders` pour les rappels J-60/J-30/J-14, et `/api/cron/deposits` pour les acomptes à échéance. Le plan Hobby n'autorise qu'une exécution quotidienne par chemin. Chaque travail est idempotent. Aucun secret n'est requis. Le canal e-mail existe derrière `src/server/mail.ts` et reste éteint : `emailChannelEnabled()` renvoie toujours faux, aucun prestataire n'est appelé. Stripe n'est appelé que si `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY` sont définis.
+Trois crons Vercel, une fois par jour à 06:00 UTC : `/api/cron/reminders` pour les rappels J-60/J-30/J-14, `/api/cron/deposits` pour les acomptes à échéance, et `/api/cron/weather` pour la météo (il ne fait rien tant que `WEATHER_ALERTS_ENABLED` n'est pas `true`). Le plan Hobby n'autorise qu'une exécution quotidienne par chemin. Chaque travail est idempotent. Stripe n'est appelé que si `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY` sont définis.
 
 Il crée les tables, les fonctions (`create_wedding`, `create_invitation`, `accept_invitation`, `preview_invitation`), active la RLS sur chaque table, ajoute `messages` à la publication temps réel, et crée les buckets Storage.
 
