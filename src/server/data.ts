@@ -397,7 +397,9 @@ export type InvitationPreview =
       role: AppRole;
       weddingId: string;
       partnerOne: string;
+      partnerOneLast: string;
       partnerTwo: string;
+      partnerTwoLast: string;
       weddingDate: string;
       venueName: string;
       venueCity: string;
@@ -432,7 +434,9 @@ function parsePreview(value: Json): InvitationPreview {
       role,
       weddingId: value.wedding_id,
       partnerOne: value.partner_one,
+      partnerOneLast: typeof value.partner_one_last === "string" ? value.partner_one_last : "",
       partnerTwo: value.partner_two,
+      partnerTwoLast: typeof value.partner_two_last === "string" ? value.partner_two_last : "",
       weddingDate: typeof value.wedding_date === "string" ? value.wedding_date : "",
       venueName: typeof value.venue_name === "string" ? value.venue_name : "",
       venueCity: typeof value.venue_city === "string" ? value.venue_city : "",

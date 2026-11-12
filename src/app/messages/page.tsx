@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
@@ -13,6 +14,7 @@ export default async function InboxPage() {
   const threads = await listInbox();
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8">
+      <RealtimeRefresh channel="inbox-messages" subscriptions={[{ table: "messages", event: "INSERT" }]} />
       <PageHeader
         eyebrow="Tous les mariages"
         title="Messages"

@@ -18,8 +18,10 @@ test("un devis devient une facture et l'acompte se relance sans Stripe", async (
   await expect(page.getByText("Vitrine enregistrée.")).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Inès");
-  await page.getByLabel("Second prénom").fill("Paul");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Inès");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Paul");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-05-02");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();

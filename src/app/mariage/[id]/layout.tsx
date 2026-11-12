@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { categoryLabel } from "@/lib/domain/categories";
-import { formatLongDate, weddingTitle } from "@/lib/domain/format";
+import { coupleFullNames, formatLongDate, weddingTitle } from "@/lib/domain/format";
+import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
@@ -30,8 +31,21 @@ export default async function WeddingLayout({
   const weddings = await listMyWeddings(space.session.userId);
   const vendor = space.session.profile.role === "vendor";
   const coupleView = space.role === "couple" || space.actingAsCouple;
+  const fullNames = coupleFullNames(
+    space.wedding.partner_one_name,
+    space.wedding.partner_one_last_name,
+    space.wedding.partner_two_name,
+    space.wedding.partner_two_last_name,
+  );
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
+      <RealtimeRefresh
+        channel={`wedding-link-${id}`}
+        subscriptions={[
+          { table: "wedding_members", event: "INSERT", filter: `wedding_id=eq.${id}` },
+          { table: "invitations", event: "*", filter: `wedding_id=eq.${id}` },
+        ]}
+      />
       {coupleView ? null : (
       <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-3">
         <WeddingSwitcher
@@ -50,6 +64,7 @@ export default async function WeddingLayout({
         {formatLongDate(space.wedding.wedding_date)}
       </p>
       <h1 className="mt-2 font-semibold tracking-tight text-4xl sm:text-5xl">{space.title}</h1>
+      {fullNames ? <p className="mt-2 text-sm text-muted">{fullNames}</p> : null}
       <p className="mt-2 text-sm text-muted">
         {[space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
       </p>

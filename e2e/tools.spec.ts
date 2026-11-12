@@ -110,12 +110,14 @@ test("le couple signe un contrat déposé par le prestataire", async ({ page, br
   await expect(page.getByText("Vitrine enregistrée.")).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Léa");
-  await page.getByLabel("Second prénom").fill("Hugo");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Léa");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Hugo");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-07-01");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
-  await page.getByLabel("E-mail du destinataire").fill(coupleEmail);
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du couple").fill(coupleEmail);
+  await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   await expect(page.getByText(coupleEmail)).toBeVisible();
   const link = await page.locator("code").first().innerText();
 

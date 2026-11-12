@@ -7,7 +7,7 @@ import { WeddingDirectory } from "@/components/wedding/wedding-directory";
 import { CoupleCreateForm } from "@/components/account/couple-create-form";
 import { coupleNextActions, daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { categoryLabel } from "@/lib/domain/categories";
-import { InviteVendor } from "@/components/wedding/invite-vendor";
+import { AddVendorInvite } from "@/components/wedding/invite-block";
 import { VendorBubbles } from "@/components/wedding/vendor-bubbles";
 import { publicObjectUrl } from "@/lib/storage";
 import { coupleChecklist, coupleSteps, dedupeTasks, firstRunSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
@@ -316,7 +316,7 @@ async function CoupleHome({
             }))}
           />
         </div>
-        <InviteVendor weddingId={weddingId} />
+        <AddVendorInvite weddingId={weddingId} />
       </section>
     </>
   );

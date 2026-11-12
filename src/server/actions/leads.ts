@@ -82,6 +82,8 @@ export async function createWeddingFromLead(formData: FormData) {
     p_wedding_date: date,
     p_venue_name: lead.place,
     p_venue_city: "",
+    p_partner_one_last: names.oneLast,
+    p_partner_two_last: names.twoLast,
   });
   if (error || !weddingId) redirect("/demandes");
 

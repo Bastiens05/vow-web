@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { DocumentManager } from "@/components/wedding/document-manager";
-import { InviteVendor } from "@/components/wedding/invite-vendor";
+import { AddVendorInvite } from "@/components/wedding/invite-block";
 import { PracticalBoard } from "@/components/wedding/practical-board";
 import { VendorDossier } from "@/components/wedding/vendor-dossier";
+import { coupleFullNames } from "@/lib/domain/format";
 import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
@@ -28,12 +29,13 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
         <HashScroll />
         <header>
           <h2 className="text-3xl font-semibold tracking-tight">Documents</h2>
+          <FullNames wedding={space.wedding} />
           <p className="mt-1 text-sm text-muted">Un espace par prestataire.</p>
         </header>
         {vendors.length === 0 ? (
           <Card>
             <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
-            <InviteVendor weddingId={id} />
+            <AddVendorInvite weddingId={id} />
           </Card>
         ) : null}
         {(quotes ?? []).length > 0 ? (
@@ -71,6 +73,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   return (
     <Card>
       <h2 className="font-semibold tracking-tight text-3xl">Documents</h2>
+      <FullNames wedding={space.wedding} />
       <p className="mt-1 mb-5 text-sm leading-6 text-muted">
         Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
       </p>
@@ -85,6 +88,12 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
       />
     </Card>
   );
+}
+
+function FullNames({ wedding }: { wedding: { partner_one_name: string; partner_one_last_name: string | null; partner_two_name: string; partner_two_last_name: string | null } }) {
+  const full = coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name);
+  if (!full) return null;
+  return <p className="mt-1 text-sm text-muted">{full}</p>;
 }
 
 async function OrphanSheet({ weddingId, kind }: { weddingId: string; kind: "photos" | "guests" }) {

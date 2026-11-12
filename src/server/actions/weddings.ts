@@ -24,12 +24,18 @@ export async function createWedding(_prev: ActionState, formData: FormData): Pro
   }
   const parsed = validateWedding({
     partnerOne: String(formData.get("partner_one") ?? ""),
+    partnerOneLast: String(formData.get("partner_one_last") ?? ""),
     partnerTwo: String(formData.get("partner_two") ?? ""),
+    partnerTwoLast: String(formData.get("partner_two_last") ?? ""),
     weddingDate: String(formData.get("wedding_date") ?? ""),
     venueName: String(formData.get("venue_name") ?? ""),
     venueCity: String(formData.get("venue_city") ?? ""),
   });
   if (!parsed.ok) return { error: parsed.error };
+  const coupleEmail = normalizeEmail(String(formData.get("couple_email") ?? ""));
+  if (coupleEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(coupleEmail)) {
+    return { error: "Indiquez un e-mail valide pour le couple." };
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_wedding", {
@@ -38,8 +44,28 @@ export async function createWedding(_prev: ActionState, formData: FormData): Pro
     p_wedding_date: parsed.value.weddingDate,
     p_venue_name: parsed.value.venueName,
     p_venue_city: parsed.value.venueCity,
+    p_partner_one_last: parsed.value.partnerOneLast,
+    p_partner_two_last: parsed.value.partnerTwoLast,
   });
   if (error || !data) return { error: messageFromError(error) };
+  if (coupleEmail && coupleEmail !== session.profile.email.toLowerCase()) {
+    const token = generateInvitationToken();
+    await supabase.rpc("create_invitation", {
+      p_wedding_id: data,
+      p_email: coupleEmail,
+      p_role: "couple",
+      p_token: token,
+    });
+    const { data: wedding } = await supabase
+      .from("weddings")
+      .select("partner_one_name, partner_two_name")
+      .eq("id", data)
+      .maybeSingle();
+    const title = wedding ? `${wedding.partner_one_name} & ${wedding.partner_two_name}` : "Votre mariage";
+    const fallback = `${siteUrl()}/invitation/${token}`;
+    const url = await magicInvitationUrl({ email: coupleEmail, role: "couple", token, fallback });
+    await sendInvitationEmail({ to: coupleEmail, title, url, role: "couple" });
+  }
   redirect(`/mariage/${data}/inviter`);
 }
 
@@ -61,6 +87,8 @@ export async function createInvitation(_prev: ActionState, formData: FormData): 
     p_email: email,
     p_role: role,
     p_token: generateInvitationToken(),
+    p_invitee_name: String(formData.get("invitee_name") ?? "").trim().slice(0, 120),
+    p_invitee_trade: String(formData.get("invitee_trade") ?? "").trim().slice(0, 40),
   });
   if (error) return { error: messageFromError(error) };
   const token = readToken(data);
@@ -74,6 +102,8 @@ export async function createInvitation(_prev: ActionState, formData: FormData): 
   const fallback = `${siteUrl()}/invitation/${token}`;
   const url = await magicInvitationUrl({ email, role, token, fallback });
   await sendInvitationEmail({ to: email, title, url, role });
+  revalidatePath(`/mariage/${weddingId}`, "layout");
+  revalidatePath("/espace");
   revalidatePath(`/mariage/${weddingId}/inviter`);
   return {
     success: url === fallback
@@ -94,7 +124,13 @@ export async function revokeInvitation(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
   await supabase.from("invitations").delete().eq("id", id).eq("wedding_id", weddingId).is("accepted_at", null);
+  revalidatePath(`/mariage/${weddingId}`, "layout");
+  revalidatePath("/espace");
   revalidatePath(`/mariage/${weddingId}/inviter`);
+}
+
+export async function resendInvitation(formData: FormData) {
+  await createInvitation({}, formData);
 }
 
 export async function acceptInvitation(formData: FormData) {

@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { partitionWeddings, weddingStatus } from "@/lib/domain/access";
-import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
+import { coupleFullNames, formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
 import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import type { WeddingCard } from "@/server/data";
 
@@ -47,6 +47,11 @@ function WeddingGroup({
               <h3 className="mt-1 truncate text-2xl font-semibold tracking-tight">
                 {weddingTitle(wedding.partner_one_name, wedding.partner_two_name)}
               </h3>
+              {coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name) ? (
+                <p className="mt-1 text-sm text-muted">
+                  {coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name)}
+                </p>
+              ) : null}
               <p className="mt-1 text-sm text-muted">
                 {[wedding.venue_name, wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
               </p>

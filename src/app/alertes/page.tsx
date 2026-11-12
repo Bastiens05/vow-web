@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/page-header";
+import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { markAlertsRead } from "@/server/actions/day";
 import { formatDateTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/server";
@@ -25,6 +26,7 @@ export default async function AlertsPage() {
   const notes = data ?? [];
   return (
     <div className="mx-auto w-full max-w-lg px-5 py-8">
+      <RealtimeRefresh channel="alertes-live" subscriptions={[{ table: "wedding_notifications", event: "INSERT" }]} />
       <h1 className="text-4xl font-semibold tracking-tight">Nouveautés</h1>
       <p className="mt-2 text-sm text-muted">
         {couple ? "Les dernières nouvelles de votre mariage." : "Ce qui a bougé sur vos mariages."}

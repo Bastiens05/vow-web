@@ -28,8 +28,10 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await expect(page.getByText("Vitrine publiée.")).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Léa");
-  await page.getByLabel("Second prénom").fill("Hugo");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Léa");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Hugo");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-06-19");
   await page.getByLabel("Lieu", { exact: true }).fill("Château");
   await page.getByLabel("Ville du lieu").fill("Léognan");
@@ -37,8 +39,10 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Secret");
-  await page.getByLabel("Second prénom").fill("Hidden");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Secret");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Hidden");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-08-01");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
@@ -48,8 +52,8 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await page.getByRole("link", { name: "Ouvrir l'espace" }).first().click();
   await page.getByRole("link", { name: "Invitations" }).click();
 
-  await page.getByLabel("E-mail du destinataire").fill(coupleEmail);
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du couple").fill(coupleEmail);
+  await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   const linkText = await page.locator("code").first().innerText();
   const inviteUrl = new URL(linkText.trim());
 

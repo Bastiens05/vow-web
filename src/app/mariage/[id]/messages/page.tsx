@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { InviteVendor } from "@/components/wedding/invite-vendor";
+import { RealtimeRefresh } from "@/components/live/realtime-refresh";
+import { AddVendorInvite } from "@/components/wedding/invite-block";
 import { MessageThread } from "@/components/wedding/message-thread";
 import { Card } from "@/components/ui/card";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
@@ -29,11 +30,12 @@ export default async function MessagesPage({
   if (couple && !active) {
     return (
       <div className="grid gap-3">
+        <RealtimeRefresh channel={`messages-picker-${id}`} subscriptions={[{ table: "messages", event: "INSERT", filter: `wedding_id=eq.${id}` }]} />
         <h2 className="text-3xl font-semibold tracking-tight">Messages</h2>
         {vendors.length === 0 ? (
           <Card>
             <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
-            <InviteVendor weddingId={id} />
+            <AddVendorInvite weddingId={id} />
           </Card>
         ) : null}
         {vendors.map((person) => {

@@ -12,7 +12,9 @@ export type SignupIntent = {
   instagram: string;
   weddingsPerYear: WeddingVolume | "";
   partnerOne: string;
+  partnerOneLast: string;
   partnerTwo: string;
+  partnerTwoLast: string;
   weddingDate: string;
   testerCode: string;
 };
@@ -35,7 +37,9 @@ export function readSignupIntent(form: FormData, role: "vendor" | "couple" | nul
     instagram: text(form, "instagram", 80).replace(/^@/, ""),
     weddingsPerYear: isWeddingVolume(volumeRaw) ? volumeRaw : "",
     partnerOne: text(form, "partner_one", 80),
+    partnerOneLast: text(form, "partner_one_last", 80),
     partnerTwo: text(form, "partner_two", 80),
+    partnerTwoLast: text(form, "partner_two_last", 80),
     weddingDate: text(form, "wedding_date", 10),
     testerCode: text(form, "tester_code", 64),
   };
@@ -46,7 +50,13 @@ export function vendorIntentReady(intent: SignupIntent): boolean {
 }
 
 export function coupleIntentReady(intent: SignupIntent): boolean {
-  return Boolean(intent.partnerOne.length >= 2 && intent.partnerTwo.length >= 2 && /^\d{4}-\d{2}-\d{2}$/.test(intent.weddingDate));
+  return Boolean(
+    intent.partnerOne.length >= 2 &&
+      intent.partnerOneLast.length >= 2 &&
+      intent.partnerTwo.length >= 2 &&
+      intent.partnerTwoLast.length >= 2 &&
+      /^\d{4}-\d{2}-\d{2}$/.test(intent.weddingDate),
+  );
 }
 
 export function intentMetadata(intent: SignupIntent): Record<string, string> {
@@ -65,7 +75,9 @@ export function intentMetadata(intent: SignupIntent): Record<string, string> {
   }
   if (coupleIntentReady(intent)) {
     data.partner_one = intent.partnerOne;
+    data.partner_one_last = intent.partnerOneLast;
     data.partner_two = intent.partnerTwo;
+    data.partner_two_last = intent.partnerTwoLast;
     data.wedding_date = intent.weddingDate;
     data.city = intent.city;
     if (!data.full_name) data.full_name = intent.partnerOne;
@@ -87,7 +99,9 @@ export function intentFromMetadata(metadata: Record<string, unknown> | null | un
     "instagram",
     "weddings_per_year",
     "partner_one",
+    "partner_one_last",
     "partner_two",
+    "partner_two_last",
     "wedding_date",
     "tester_code",
   ]) {

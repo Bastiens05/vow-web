@@ -52,7 +52,9 @@ export function AuthFlow({
   const [instagram, setInstagram] = useState("");
   const [website, setWebsite] = useState("");
   const [partnerOne, setPartnerOne] = useState("");
+  const [partnerOneLast, setPartnerOneLast] = useState("");
   const [partnerTwo, setPartnerTwo] = useState("");
+  const [partnerTwoLast, setPartnerTwoLast] = useState("");
   const [weddingDate, setWeddingDate] = useState("");
   const [testerCode, setTesterCode] = useState("");
   const [weddingsPerYear, setWeddingsPerYear] = useState<WeddingVolume | "">("");
@@ -202,8 +204,12 @@ export function AuthFlow({
           <input type="hidden" name="next" value={nextPath || "/espace"} />
           <input type="hidden" name="create" value="1" />
           <input type="hidden" name="role" value="couple" />
-          <FieldLike label="Premier prénom" name="partner_one" value={partnerOne} onChange={setPartnerOne} autoComplete="given-name" />
-          <FieldLike label="Second prénom" name="partner_two" value={partnerTwo} onChange={setPartnerTwo} autoComplete="off" />
+          <p className="text-sm font-medium">Partenaire 1</p>
+          <FieldLike label="Prénom" name="partner_one" value={partnerOne} onChange={setPartnerOne} autoComplete="given-name" />
+          <FieldLike label="Nom" name="partner_one_last" value={partnerOneLast} onChange={setPartnerOneLast} autoComplete="family-name" />
+          <p className="text-sm font-medium">Partenaire 2</p>
+          <FieldLike label="Prénom" name="partner_two" value={partnerTwo} onChange={setPartnerTwo} autoComplete="off" />
+          <FieldLike label="Nom" name="partner_two_last" value={partnerTwoLast} onChange={setPartnerTwoLast} autoComplete="off" />
           <label className="grid gap-2 text-sm">
             Date du mariage
             <input
@@ -232,7 +238,15 @@ export function AuthFlow({
           <button
             type="submit"
             className="auth-primary"
-            disabled={sending || !isValidEmail(email) || partnerOne.trim().length < 2 || partnerTwo.trim().length < 2 || !weddingDate}
+            disabled={
+              sending ||
+              !isValidEmail(email) ||
+              partnerOne.trim().length < 2 ||
+              partnerOneLast.trim().length < 2 ||
+              partnerTwo.trim().length < 2 ||
+              partnerTwoLast.trim().length < 2 ||
+              !weddingDate
+            }
           >
             {sending ? "Envoi…" : "Recevoir un lien de connexion"}
           </button>
@@ -324,7 +338,9 @@ export function AuthFlow({
                 website,
                 weddings_per_year: weddingsPerYear,
                 partner_one: partnerOne,
+                partner_one_last: partnerOneLast,
                 partner_two: partnerTwo,
+                partner_two_last: partnerTwoLast,
                 wedding_date: weddingDate,
                 tester_code: testerCode,
               }}
