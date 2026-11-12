@@ -35,11 +35,13 @@ export function NavMenu({
   const tabOrder = mobileVendor
     ? inWedding
       ? ["Aperçu", "Jour J", "Messages", "Documents"]
-      : ["Accueil", "Mariages", "Messages", "Nouveautés"]
+      : ["Accueil", "Mariages", "Messages"]
     : ["Accueil", "Jour J", "Messages", "Documents"];
   const usePlus = mobileCouple || mobileVendor;
   const primaryTabs = usePlus ? tabOrder.flatMap((label) => items.filter((item) => item.label === label)) : [];
-  const moreTabs = usePlus ? items.filter((item) => !tabOrder.includes(item.label)) : [];
+  const moreTabs = usePlus
+    ? items.filter((item) => !tabOrder.includes(item.label) && item.label !== "Abonnement" && item.label !== "Demandes")
+    : [];
   const shown = usePlus
     ? primaryTabs
     : variant !== "tab"
@@ -106,7 +108,7 @@ function MoreTab({ items, path }: { items: Item[]; path: string }) {
 }
 
 function isActive(path: string, href: string) {
-  if (href === "/espace" || href === "/" || href === "/mariages" || href === "/messages" || href === "/alertes" || href === "/reglages" || href === "/demandes") {
+  if (href === "/espace" || href === "/" || href === "/mariages" || href === "/messages" || href === "/nouveautes" || href === "/alertes" || href === "/reglages" || href === "/demandes") {
     return path === href;
   }
   if (/^\/mariage\/[^/]+$/.test(href)) return path === href;

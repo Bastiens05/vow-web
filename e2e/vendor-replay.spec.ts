@@ -70,7 +70,7 @@ test("signature, besoins, hors ligne, météo et reset préviennent le bon méti
   await login(vendorAgain, "camille@demo.vow.test");
   await vendorAgain.goto(`/mariage/${weddingId}/documents`);
   await expect(vendorAgain.getByText("Signé").first()).toBeVisible();
-  await vendorAgain.goto("/alertes");
+  await vendorAgain.goto("/nouveautes");
   await expect(vendorAgain.getByText("Le contrat a été signé.").first()).toBeVisible();
 
   await couple.goto(`/mariage/${weddingId}/jour`);

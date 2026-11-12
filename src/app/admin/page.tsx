@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccountNav } from "@/components/layout/account-nav";
 import { redirect } from "next/navigation";
 import { CodeForm } from "@/app/admin/code-form";
 import { TesterOfferBoard, type TesterGrantRow } from "@/components/admin/tester-offer-board";
@@ -27,6 +28,7 @@ export default async function AdminPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
+      <AccountNav admin />
       <p className="text-xs font-medium text-gold-deep">Administration</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">Prestataires</h1>
       <p className="mt-2 text-sm text-muted">Essais, abonnements et codes. Le code saisi ici n&apos;est pas conservé en clair.</p>

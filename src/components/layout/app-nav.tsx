@@ -23,8 +23,8 @@ export async function DesktopNav() {
     return (
       <CoupleSidebar
         items={couple ? context.coupleItems : context.sideItems}
-        weddingName={context.weddingName}
-        countdown={figure}
+        weddingName={couple ? context.weddingName : "Votre espace"}
+        countdown={couple ? figure : null}
         userName={session.vendor?.business_name || session.profile.full_name || "Vous"}
         navLabel={couple ? "Espace mariés" : "Espace prestataire"}
         groups={
@@ -33,12 +33,22 @@ export async function DesktopNav() {
             : [
                 {
                   caption: "Espace",
-                  labels: context.sideItems.map((item) => item.label).filter((label) => label !== "Réglages" && label !== "Admin"),
+                  labels: context.sideItems
+                    .map((item) => item.label)
+                    .filter((label) => !["Réglages", "Admin", "Abonnement", "Demandes"].includes(label)),
                 },
               ]
         }
         extra={
           <SpaceSwitcher vendorHref={context.vendorHref} coupleHref={context.coupleHref} />
+        }
+        account={
+          couple
+            ? undefined
+            : [
+                { href: "/reglages", label: "Réglages", icon: "gear" },
+                ...(session.isAdmin ? [{ href: "/admin", label: "Admin", icon: "gear" as const }] : []),
+              ]
         }
       />
     );

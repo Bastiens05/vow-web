@@ -31,6 +31,7 @@ export function CoupleSidebar({
   groups = GROUPS,
   navLabel = "Espace mariés",
   extra = null,
+  account,
 }: {
   items: Item[];
   weddingName: string;
@@ -39,6 +40,7 @@ export function CoupleSidebar({
   groups?: { caption: string; labels: string[] }[];
   navLabel?: string;
   extra?: ReactNode;
+  account?: Item[];
 }) {
   const path = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
@@ -104,8 +106,18 @@ export function CoupleSidebar({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">{monogram(userName)}</span>
           {collapsed ? null : <span className="min-w-0 truncate text-sm">{userName}</span>}
         </div>
-        {settings ? <RailLink item={settings} active={isActive(path, settings.href)} collapsed={collapsed} /> : null}
-        {admin ? <RailLink item={admin} active={isActive(path, admin.href)} collapsed={collapsed} /> : null}
+        {account && account.length > 0 ? (
+          <div className="mb-1">
+            {account.map((item) => (
+              <RailLink key={item.href} item={item} active={isActive(path, item.href)} collapsed={collapsed} />
+            ))}
+          </div>
+        ) : (
+          <>
+            {settings ? <RailLink item={settings} active={isActive(path, settings.href)} collapsed={collapsed} /> : null}
+            {admin ? <RailLink item={admin} active={isActive(path, admin.href)} collapsed={collapsed} /> : null}
+          </>
+        )}
         <form action={signOut}>
           <button
             type="submit"
@@ -139,7 +151,7 @@ function RailLink({ item, active, collapsed }: { item: Item; active: boolean; co
 }
 
 function isActive(path: string, href: string) {
-  if (href === "/espace" || href === "/reglages" || href === "/admin") return path === href;
+  if (href === "/espace" || href === "/reglages" || href === "/admin" || href === "/abonnement") return path === href;
   if (/^\/mariage\/[^/]+$/.test(href)) return path === href;
   return path === href || path.startsWith(`${href}/`);
 }

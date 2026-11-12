@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccountNav } from "@/components/layout/account-nav";
 import { redirect } from "next/navigation";
 import { PlanPicker, RedeemForm, SubscribeButton } from "@/app/abonnement/offer";
 import { vendorAccess } from "@/lib/domain/billing";
@@ -25,6 +26,7 @@ export default async function SubscriptionPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 lg:py-12">
+      <AccountNav admin={session.isAdmin} />
       <p className="text-xs font-medium text-gold-deep">Prestataires</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">Trois formules.</h1>
       <p className="mt-3 max-w-xl text-base leading-7 text-muted">

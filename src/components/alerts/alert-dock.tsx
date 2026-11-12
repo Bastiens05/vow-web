@@ -19,6 +19,7 @@ export function AlertDock({
   const [userId, setUserId] = useState<string | null>(initialToast ? "known" : null);
   const [unread, setUnread] = useState(initialUnread);
   const [toast, setToast] = useState<string | null>(inApp ? initialToast : null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -101,20 +102,22 @@ export function AlertDock({
 
   if (!userId && !toast) return null;
 
+  const label = calm
+    ? unread > 0
+      ? `Nouveautés, ${unread} nouvelle${unread > 1 ? "s" : ""}`
+      : "Nouveautés"
+    : unread > 0
+      ? `Alertes, ${unread} non lue${unread > 1 ? "s" : ""}`
+      : "Alertes";
+
   return (
-    <>
-      <Link
-        href="/alertes"
+    <div className="relative">
+      <button
+        type="button"
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition active:scale-95 hover:bg-ink/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-        aria-label={
-          calm
-            ? unread > 0
-              ? `Nouveautés, ${unread} nouvelle${unread > 1 ? "s" : ""}`
-              : "Nouveautés"
-            : unread > 0
-              ? `Alertes, ${unread} non lue${unread > 1 ? "s" : ""}`
-              : "Alertes"
-        }
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
           <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2H4.5L6 16Z" />
@@ -123,8 +126,17 @@ export function AlertDock({
         {unread > 0 ? (
           <span className={`absolute right-2 top-2 h-2 w-2 rounded-full ${calm ? "bg-ink" : "bg-danger"}`} aria-hidden="true" />
         ) : null}
-      </Link>
-      {toast ? (
+      </button>
+      {open ? (
+        <div className="absolute right-0 top-12 z-50 w-72 rounded-3xl border border-line bg-ivory p-4 shadow-lg">
+          <p className="text-sm font-medium">Nouveautés</p>
+          {toast ? <p className="mt-2 text-sm leading-6 text-muted">{toast}</p> : <p className="mt-2 text-sm text-muted">Les notifications sont ici.</p>}
+          <Link href="/nouveautes" className="mt-3 inline-flex min-h-11 items-center text-sm underline" onClick={() => setOpen(false)}>
+            Ouvrir les nouveautés
+          </Link>
+        </div>
+      ) : null}
+      {toast && !open ? (
         <div
           role="status"
           className="fixed inset-x-4 bottom-24 z-50 rounded-2xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
@@ -132,6 +144,6 @@ export function AlertDock({
           {toast}
         </div>
       ) : null}
-    </>
+    </div>
   );
 }

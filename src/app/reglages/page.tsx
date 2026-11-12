@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccountNav } from "@/components/layout/account-nav";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ShareForm } from "@/components/account/share-form";
 import { PhoneFactorForm } from "@/components/account/phone-factor";
@@ -36,6 +37,7 @@ export default async function SettingsPage() {
         title="Réglages"
         description="Le compte, l'activité et la sortie."
       />
+      {vendor ? <AccountNav admin={session.isAdmin} /> : null}
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Compte</h2>
         <p className="text-sm text-muted">E-mail de connexion : {session.email}</p>

@@ -51,6 +51,7 @@ export function navigationItems(
       items.push({ href: `${base}/bulles`, label: "Mon dossier", icon: "spark" });
       items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
     }
+    if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
     return items;
   }
   if (!signedIn) {
@@ -65,16 +66,12 @@ export function navigationItems(
       ? [
           { href: "/espace", label: "Accueil", icon: "home" },
           { href: "/mariages", label: "Mariages", icon: "list" },
-          { href: "/demandes", label: "Demandes", icon: "mail" },
           { href: "/messages", label: "Messages", icon: "message" },
-          { href: "/alertes", label: "Nouveautés", icon: "bell" },
-          { href: "/abonnement", label: "Abonnement", icon: "spark" },
           { href: "/reglages", label: "Réglages", icon: "gear" },
         ]
       : [
           { href: "/espace", label: "Accueil", icon: "home" },
           { href: primaryWeddingId ? `/mariage/${primaryWeddingId}` : "/mariages", label: "Mariage", icon: "list" },
-          { href: "/alertes", label: "Nouveautés", icon: "bell" },
           { href: "/reglages", label: "Réglages", icon: "gear" },
         ];
   if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
