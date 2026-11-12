@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthFlow } from "@/components/auth/auth-flow";
 import { isVendorCategory } from "@/lib/domain/categories";
+import { isVendorPlan } from "@/lib/domain/plans";
 import { safeNextPath } from "@/lib/domain/paths";
 import { hasPublicSupabaseEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -29,6 +30,7 @@ export default async function SignupPage({
       inviteToken={params.invite}
       initialCategory={category}
       initialFullName={fullName || undefined}
+      initialPlan={params.plan && isVendorPlan(params.plan) ? params.plan : invite?.plan && isVendorPlan(invite.plan) ? invite.plan : undefined}
     />
   );
 }

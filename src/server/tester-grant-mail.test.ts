@@ -6,11 +6,11 @@ describe("tester grant mail", () => {
     const content = testerGrantEmailContent({
       firstName: "Alex",
       planLabel: "Studio",
-      discountPercent: 30,
+      discountPercent: 40,
       url: "https://vow-web.vercel.app/inscription?role=vendor&email=alex%40example.com&invite=tok",
     });
     expect(content.buttonLabel).toBe("Rejoindre en tant que prestataire");
     expect(content.buttonUrl).toContain("role=vendor");
-    expect(content.body).toContain("30 %");
+    expect(content.body).toContain("40 %");
   });
 });

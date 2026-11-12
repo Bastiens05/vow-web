@@ -45,7 +45,7 @@ export function TesterOfferForm() {
         </SelectInput>
       </Field>
       <Field label="Remise ensuite (%)" hint="Appliquée à vie après l'année offerte. Enregistrée pour plus tard : le paiement reste fermé.">
-        <TextInput name="discount_percent" type="number" min={0} max={100} defaultValue={30} required />
+        <TextInput name="discount_percent" type="number" min={0} max={100} defaultValue={40} required />
       </Field>
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}

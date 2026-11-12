@@ -1,4 +1,5 @@
 import { isVendorCategory, type VendorCategory } from "@/lib/domain/categories";
+import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
 import { isWeddingVolume, type WeddingVolume } from "@/lib/domain/volume";
 
 export type SignupIntent = {
@@ -17,7 +18,12 @@ export type SignupIntent = {
   partnerTwoLast: string;
   weddingDate: string;
   testerCode: string;
+  plan: VendorPlan | null;
 };
+
+function planFrom(value: string): VendorPlan | null {
+  return isVendorPlan(value) ? value : null;
+}
 
 function text(form: FormData, key: string, max: number): string {
   return String(form.get(key) ?? "").trim().slice(0, max);
@@ -42,6 +48,7 @@ export function readSignupIntent(form: FormData, role: "vendor" | "couple" | nul
     partnerTwoLast: text(form, "partner_two_last", 80),
     weddingDate: text(form, "wedding_date", 10),
     testerCode: text(form, "tester_code", 64),
+    plan: planFrom(text(form, "plan", 20)),
   };
 }
 
@@ -83,6 +90,7 @@ export function intentMetadata(intent: SignupIntent): Record<string, string> {
     if (!data.full_name) data.full_name = intent.partnerOne;
   }
   if (intent.testerCode) data.tester_code = intent.testerCode;
+  if (intent.plan) data.plan = intent.plan;
   return data;
 }
 
@@ -104,6 +112,7 @@ export function intentFromMetadata(metadata: Record<string, unknown> | null | un
     "partner_two_last",
     "wedding_date",
     "tester_code",
+    "plan",
   ]) {
     const value = source[key];
     if (typeof value === "string") form.set(key, value);

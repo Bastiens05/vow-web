@@ -32,7 +32,7 @@ const MINIMUM: Record<FeatureKey, VendorPlan | "couple"> = {
 };
 
 export const PLAN_OFFERS = [
-  { id: "essentiel" as const, cents: 2999, label: "Essentiel", price: "29,99 € / mois" },
+  { id: "essentiel" as const, cents: 2900, label: "Essentiel", price: "29 €/mois" },
   { id: "pro" as const, cents: 4900, label: "Pro", price: "49 € / mois" },
   { id: "studio" as const, cents: 8900, label: "Studio", price: "89 € / mois" },
 ];
@@ -162,11 +162,29 @@ export function effectiveVendorPlan(plan: string | null | undefined): VendorPlan
 
 export function testerOfferLabel(freeUntil: string, discountPercent: number): string {
   const date = new Date(freeUntil).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
-  return `Offre testeur : gratuit jusqu'au ${date}, puis -${discountPercent} %`;
+  return `Offre testeur : gratuit jusqu'au ${date}, puis -${discountPercent} % à vie`;
+}
+
+/** Monthly price after a percent off, rounded down to the cent. */
+export function discountedMonthlyCents(cents: number, percent: number): number {
+  if (percent <= 0) return cents;
+  if (percent >= 100) return 0;
+  return Math.floor((cents * (100 - percent)) / 100);
+}
+
+export function formatMonthlyEuros(cents: number): string {
+  const euros = Math.floor(cents / 100);
+  const rest = cents % 100;
+  if (rest === 0) return `${euros} €/mois`;
+  return `${euros},${String(rest).padStart(2, "0")} €/mois`;
 }
 
 export function testerInviteHref(email: string, token: string): string {
   const params = new URLSearchParams({ role: "vendor", email, invite: token });
   return `/inscription?${params.toString()}`;
+}
+
+export function vendorSignupHref(plan: VendorPlan): string {
+  return `/inscription?role=vendor&plan=${plan}`;
 }
 

@@ -25,7 +25,7 @@ export async function createTesterGrant(_prev: ActionState, formData: FormData):
   const lastName = String(formData.get("last_name") ?? "").trim();
   const trade = String(formData.get("trade") ?? "photographer");
   const plan = String(formData.get("plan") ?? "studio");
-  const discount = Number(formData.get("discount_percent") ?? 30);
+  const discount = Number(formData.get("discount_percent") ?? 40);
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: "Indiquez un e-mail valide." };
   if (!isVendorPlan(plan)) return { error: "Formule inconnue." };
   if (!isVendorCategory(trade)) return { error: "Choisissez un métier." };

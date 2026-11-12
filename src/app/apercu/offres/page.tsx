@@ -14,7 +14,7 @@ const invited: TesterGrantRow = {
   trade: "photographer",
   plan: "studio",
   free_until: "2027-11-12T12:00:00.000Z",
-  discount_percent: 30,
+  discount_percent: 40,
   status: "invited",
   token: "apercu-token-invite",
   created_at: "2026-11-12T12:00:00.000Z",
@@ -47,7 +47,7 @@ export default function OffersPreviewPage() {
           Studio comprend Pro, qui comprend Essentiel. Les mariés ne paient jamais. Le paiement en ligne reste fermé.
         </p>
         <div className="mt-8">
-          <PlanPicker current="studio" comped={false} />
+          <PlanPicker current="studio" comped={false} discountPercent={accepted.discount_percent} />
         </div>
         <section className="mt-4 rounded-3xl border border-line bg-paper p-6">
           <p className="text-sm text-muted">Studio Camille · Photographe</p>

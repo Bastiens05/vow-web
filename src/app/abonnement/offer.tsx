@@ -8,7 +8,9 @@ import { cn } from "@/lib/cn";
 import {
   PLAN_OFFERS,
   PLAN_SUMMARIES,
+  discountedMonthlyCents,
   featuresIntroducedIn,
+  formatMonthlyEuros,
   planLabel,
   type VendorPlan,
 } from "@/lib/domain/plans";
@@ -20,9 +22,11 @@ const initial: ActionState = {};
 export function PlanPicker({
   current,
   comped,
+  discountPercent = null,
 }: {
   current: VendorPlan;
   comped: boolean;
+  discountPercent?: number | null;
 }) {
   const [state, action, pending] = useActionState(chooseVendorPlan, initial);
   return (
@@ -48,7 +52,11 @@ export function PlanPicker({
                   )}
                 >
                   <p className="text-sm text-muted">{comped && selected ? planLabel(plan.id, true) : plan.label}</p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight">{plan.price}</p>
+                  <p className="mt-2 text-2xl font-semibold tracking-tight">
+                    {discountPercent != null && discountPercent > 0
+                      ? formatMonthlyEuros(discountedMonthlyCents(plan.cents, discountPercent))
+                      : plan.price}
+                  </p>
                   <p className="mt-3 text-sm leading-6 text-muted">{PLAN_SUMMARIES[plan.id]}</p>
                   <ul className="mt-3 space-y-1 text-sm leading-6">
                     {items.map((item) => (

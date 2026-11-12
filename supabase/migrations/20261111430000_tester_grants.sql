@@ -9,7 +9,7 @@ create table public.tester_grants (
   trade text not null default 'photographer',
   plan text not null default 'studio',
   free_until timestamptz not null,
-  discount_percent integer not null default 30,
+  discount_percent integer not null default 40,
   status text not null default 'invited',
   invited_by uuid references public.profiles (id) on delete set null,
   token text not null unique,

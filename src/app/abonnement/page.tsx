@@ -32,7 +32,11 @@ export default async function SubscriptionPage() {
         reste fermé.
       </p>
       <div className="mt-8">
-        <PlanPicker current={plan} comped={comped} />
+        <PlanPicker
+          current={plan}
+          comped={comped}
+          discountPercent={session.billing?.free_until && session.billing.discount_percent != null && !comped ? session.billing.discount_percent : null}
+        />
       </div>
       <section className="mt-4 rounded-3xl border border-line bg-paper p-6">
         <p className="text-sm text-muted">

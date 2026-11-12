@@ -16,7 +16,7 @@ export async function createSubscriptionCheckout(input: {
     customer_email: input.email,
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": "eur",
-    "line_items[0][price_data][unit_amount]": "2999",
+    "line_items[0][price_data][unit_amount]": "2900",
     "line_items[0][price_data][recurring][interval]": "month",
     "line_items[0][price_data][product_data][name]": "VOW",
   });

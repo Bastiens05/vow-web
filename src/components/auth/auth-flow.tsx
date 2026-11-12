@@ -7,6 +7,7 @@ import { LoginForm } from "@/components/auth/auth-forms";
 import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { isValidEmail } from "@/lib/domain/auth-routing";
+import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
 import { WEDDING_VOLUMES, type WeddingVolume } from "@/lib/domain/volume";
 import { signUp, type ActionState } from "@/server/actions/auth";
@@ -21,6 +22,7 @@ export function AuthFlow({
   inviteToken,
   initialCategory,
   initialFullName,
+  initialPlan,
   notice,
 }: {
   mode: "login" | "signup";
@@ -30,6 +32,7 @@ export function AuthFlow({
   inviteToken?: string;
   initialCategory?: VendorCategory;
   initialFullName?: string;
+  initialPlan?: VendorPlan;
   notice?: ReactNode;
 }) {
   const invite = nextPath.startsWith("/invitation/") || nextPath.startsWith("/equipe/");
@@ -126,6 +129,7 @@ export function AuthFlow({
             <form action={action} className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               {inviteToken ? <input type="hidden" name="invite" value={inviteToken} /> : null}
+              <input type="hidden" name="plan" value={initialPlan && isVendorPlan(initialPlan) ? initialPlan : ""} />
               <input type="hidden" name="category" value={category ?? ""} />
               <div className="flex flex-wrap gap-2">
                 {VENDOR_CATEGORIES.map((value) => (
