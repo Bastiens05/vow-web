@@ -34,7 +34,7 @@ test("le couple alimente chaque métier, et seulement le sien", async ({ browser
     const page = await freshPage(browser);
     await login(page, trade.email);
     await expect(page.getByText(/J-\d+/).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: "Nouveautés" }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Nouveautés/ }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Alertes" })).toHaveCount(0);
     await expect(page.getByText(/\bbulle\b/i)).toHaveCount(0);
     await page.goto(`/mariage/${weddingId}`);

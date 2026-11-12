@@ -70,7 +70,7 @@ async function fanOut(note: { id: string; weddingId: string; body: string }, aut
   });
   }
   revalidatePath(`/mariage/${note.weddingId}/jour`);
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
 }
 
 export async function shiftSlot(
@@ -118,7 +118,7 @@ export async function undoShift(input: {
   });
   if (error) return { error: messageFromError(error) };
   revalidatePath(`/mariage/${input.weddingId}/jour`);
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
   return { success: "Décalage annulé." };
 }
 

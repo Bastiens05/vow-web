@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccountNav } from "@/components/layout/account-nav";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ShareForm } from "@/components/account/share-form";
 import { PhoneFactorForm } from "@/components/account/phone-factor";
@@ -10,6 +11,7 @@ import {
   PasswordForm,
 } from "@/components/account/settings-forms";
 import { BillingControls } from "@/app/abonnement/offer";
+import { ContactFormLink } from "@/components/account/contact-form-link";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { stripeEnabled, stripeTestMode } from "@/server/stripe";
 import { Card } from "@/components/ui/card";
@@ -58,6 +60,7 @@ export default async function SettingsPage() {
         title="Réglages"
         description="Le compte, l'activité et la sortie."
       />
+      {vendor ? <AccountNav admin={session.isAdmin} /> : null}
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Compte</h2>
         <p className="text-sm text-muted">E-mail de connexion : {session.email}</p>
@@ -205,6 +208,35 @@ export default async function SettingsPage() {
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold tracking-tight">Double sécurité par SMS</h2>
           <PhoneFactorForm />
+        </Card>
+      ) : null}
+      {vendor && session.vendor ? (
+        <Card className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Ma vitrine</h2>
+          <p className="text-sm leading-6 text-muted">
+            La page publique et le formulaire de contact à mettre dans votre bio.
+          </p>
+          <ContactFormLink url={`${siteUrl()}/demande/${session.vendor.slug}`} />
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href="/espace/profil" variant="secondary">
+              Modifier la vitrine
+            </ButtonLink>
+            {session.vendor.published ? (
+              <ButtonLink href={`/p/${session.vendor.slug}`} variant="secondary">
+                Voir la page
+              </ButtonLink>
+            ) : null}
+            <ButtonLink href="/demandes" variant="secondary">
+              Demandes reçues
+            </ButtonLink>
+          </div>
+        </Card>
+      ) : null}
+      {vendor ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Abonnement</h2>
+          <p className="text-sm leading-6 text-muted">La formule de votre espace prestataire.</p>
+          <ButtonLink href="/abonnement">Ouvrir l&apos;abonnement</ButtonLink>
         </Card>
       ) : null}
       <Card>

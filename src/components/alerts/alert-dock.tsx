@@ -151,7 +151,7 @@ export function AlertDock({
   return (
     <>
       <Link
-        href="/alertes"
+        href="/nouveautes"
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition active:scale-95 hover:bg-ink/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
         aria-label={
           calm

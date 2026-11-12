@@ -6,7 +6,13 @@ import { coupleFullNames, formatLongDate, todayIso, weddingTitle } from "@/lib/d
 import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import type { WeddingCard } from "@/server/data";
 
-export function WeddingDirectory({ weddings }: { weddings: WeddingCard[] }) {
+export function WeddingDirectory({
+  weddings,
+  upcomingTitle = "À venir",
+}: {
+  weddings: WeddingCard[];
+  upcomingTitle?: string;
+}) {
   const today = todayIso();
   const dated = weddings.map((wedding) => ({
     ...wedding,
@@ -16,7 +22,7 @@ export function WeddingDirectory({ weddings }: { weddings: WeddingCard[] }) {
   const { upcoming, past } = partitionWeddings(dated, today);
   return (
     <div className="space-y-8">
-      <WeddingGroup title="À venir" items={upcoming} today={today} empty="Aucun mariage à venir." />
+      <WeddingGroup title={upcomingTitle} items={upcoming} today={today} empty="Aucun mariage à venir." />
       <WeddingGroup title="Passés" items={past} today={today} empty="Aucun mariage passé." />
     </div>
   );

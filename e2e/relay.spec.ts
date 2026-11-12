@@ -69,7 +69,7 @@ test("le relais et les besoins restent dans le mariage", async ({ page, browser 
   await page.goto(`/mariage/${weddingId}/jour`);
   await page.getByRole("button", { name: "C'est prêt" }).click();
   await expect(page.getByText("Prêt").first()).toBeVisible();
-  await next.goto("/alertes");
+  await next.goto("/nouveautes");
   await expect(next.getByText(/À vous : Cocktail/).first()).toBeVisible();
 
   await page.goto(`/mariage/${weddingId}/besoins`);

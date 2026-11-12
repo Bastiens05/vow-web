@@ -39,13 +39,13 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(title, {
       body: data.body || "",
       icon: "/icon.svg",
-      data: { url: data.url || "/alertes" },
+      data: { url: data.url || "/nouveautes" },
     }),
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/alertes";
+  const url = event.notification.data?.url || "/nouveautes";
   event.waitUntil(self.clients.openWindow(url));
 });

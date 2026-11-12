@@ -17,7 +17,7 @@ test("la page publique n'affiche pas le compte, et un compte ouvert quitte l'acc
   await page.goto("/");
   await page.waitForURL("**/espace**");
   await expect(page.getByRole("link", { name: "Je suis prestataire" })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Nouveautés" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Nouveautés/ }).first()).toBeVisible();
 
   await page.goto("/p/atelier-lumiere");
   await expect(page.getByRole("heading", { name: "Atelier Lumière" })).toBeVisible();
