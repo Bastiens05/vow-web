@@ -59,5 +59,5 @@ export function LineIcon({
   className?: string;
 }) {
   const Icon = ICONS[name];
-  return <Icon className={className} strokeWidth={1.75} aria-hidden />;
+  return <Icon className={className} strokeWidth={1.5} aria-hidden />;
 }

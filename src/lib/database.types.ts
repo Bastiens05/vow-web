@@ -176,6 +176,7 @@ export type Database = {
           is_demo: boolean;
           couple_preview: boolean;
           reminders_enabled: boolean;
+          cover_path: string | null;
           created_at: string;
           updated_at: string;
         },
@@ -190,6 +191,7 @@ export type Database = {
           venue_name?: string;
           venue_city?: string;
           reminders_enabled?: boolean;
+          cover_path?: string | null;
         },
         {
           partner_one_name?: string;
@@ -200,6 +202,7 @@ export type Database = {
           venue_name?: string;
           venue_city?: string;
           reminders_enabled?: boolean;
+          cover_path?: string | null;
         }
       >;
       wedding_members: Table<
@@ -1181,6 +1184,10 @@ export type Database = {
           p_partner_two_last?: string;
         };
         Returns: string;
+      };
+      set_wedding_cover: {
+        Args: { p_wedding: string; p_path: string | null };
+        Returns: undefined;
       };
       my_profile_slice: { Args: { p_wedding: string }; Returns: Json };
       notify_shift_personal: { Args: { p_wedding: string; p_user: string; p_body: string }; Returns: string };

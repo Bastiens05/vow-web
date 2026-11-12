@@ -3,6 +3,7 @@
 import { useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Wordmark } from "@/components/brand/wordmark";
 import { signOut } from "@/server/actions/auth";
 import { LineIcon } from "@/components/ui/line-icon";
 import type { IconName } from "@/components/ui/nav-link";
@@ -50,10 +51,10 @@ export function CoupleSidebar({
   const admin = items.find((item) => item.label === "Admin");
   return (
     <aside
-      className={`sticky top-3 z-20 my-3 ml-3 hidden h-[calc(100dvh-1.5rem)] flex-col rounded-3xl border border-line bg-paper/70 shadow-[0_12px_40px_rgba(0,0,0,0.04)] backdrop-blur-xl transition-[width] duration-200 md:flex ${collapsed ? "w-[4.75rem]" : "w-60"}`}
+      className={`sticky top-3 z-20 my-3 ml-3 hidden h-[calc(100dvh-1.5rem)] flex-col rounded-3xl border border-line bg-[var(--vow-glass)] shadow-[var(--vow-shadow)] backdrop-blur-2xl transition-[width] duration-200 md:flex ${collapsed ? "w-[4.75rem]" : "w-60"}`}
     >
       <div className={`flex items-center gap-2 px-3 pt-3 ${collapsed ? "justify-center" : "justify-between"}`}>
-        {collapsed ? null : <p className="px-1 text-sm font-semibold tracking-[0.22em]">VOW</p>}
+        {collapsed ? null : <Wordmark className="px-1" />}
         <button
           type="button"
           onClick={toggle}
@@ -74,7 +75,7 @@ export function CoupleSidebar({
         {collapsed ? null : (
           <span className="min-w-0">
             <span className="block truncate text-sm font-medium">{weddingName}</span>
-            {countdown ? <span className="block truncate text-xs text-muted">{countdown}</span> : null}
+            {countdown ? <span className="block truncate font-display text-sm font-light text-accent">{countdown}</span> : null}
           </span>
         )}
       </Link>
@@ -129,9 +130,9 @@ function RailLink({ item, active, collapsed }: { item: Item; active: boolean; co
       title={item.label}
       className={`relative flex min-h-10 items-center gap-3 rounded-full px-3 text-sm transition ${
         collapsed ? "justify-center px-0" : ""
-      } ${active ? "bg-ink/[0.07] font-medium text-ink" : "text-muted hover:bg-ink/[0.04] hover:text-ink"}`}
+      } ${active ? "bg-accent-soft font-medium text-ink" : "text-muted hover:bg-ink/[0.04] hover:text-ink"}`}
     >
-      {active ? <span className="absolute left-1.5 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-ink" aria-hidden /> : null}
+      {active ? <span className="absolute left-1.5 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent" aria-hidden /> : null}
       <LineIcon name={item.icon} className="h-[1.15rem] w-[1.15rem]" />
       {collapsed ? <span className="sr-only">{item.label}</span> : <span className="truncate">{item.label}</span>}
     </Link>

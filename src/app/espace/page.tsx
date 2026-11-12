@@ -9,10 +9,12 @@ import { coupleNextActions, daysUntil, heroCountdown } from "@/lib/domain/next-a
 import { categoryLabel } from "@/lib/domain/categories";
 import { AddVendorInvite } from "@/components/wedding/invite-block";
 import { VendorBubbles } from "@/components/wedding/vendor-bubbles";
+import { WeddingStage } from "@/components/wedding/wedding-stage";
 import { publicObjectUrl } from "@/lib/storage";
+import { signCovers } from "@/server/covers";
 import { coupleChecklist, coupleSteps, dedupeTasks, firstRunSteps, openSteps, vendorSteps } from "@/lib/domain/checklist";
 import { compareWeddingTimes, parisClockMinutes, selectLiveStep } from "@/lib/domain/day";
-import { coupleHeroTitle, formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
+import { formatLongDate, formatSlotTime, todayIso, weddingTitle } from "@/lib/domain/format";
 import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
@@ -65,6 +67,7 @@ export default async function DashboardPage() {
       })
     : [];
   const name = isVendor ? session.vendor?.business_name || session.profile.full_name : session.profile.full_name;
+  const coverUrl = !isVendor && primary ? (await signCovers([{ id: primary.id, cover_path: primary.cover_path }])).get(primary.id) ?? null : null;
   const ledger = isVendor && session.vendor ? await vendorLedger(session.vendor.id) : null;
   const supabase = await createClient();
   const { data: recos } = isVendor
@@ -87,12 +90,19 @@ export default async function DashboardPage() {
           actions={realWeddings.length > 0 ? <ButtonLink href="/espace/mariages/nouveau">Nouveau mariage</ButtonLink> : null}
         />
       ) : primary ? (
-        <CoupleHero
-          days={countdown}
-          title={coupleHeroTitle(primary.partner_one_name, primary.partner_two_name)}
-          date={formatLongDate(primary.wedding_date)}
-          venue={[primary.venue_name, primary.venue_city].filter(Boolean).join(" · ")}
-        />
+        <div className="mb-10">
+          <WeddingStage
+            title={weddingTitle(primary.partner_one_name, primary.partner_two_name)}
+            date={formatLongDate(primary.wedding_date)}
+            venue={[primary.venue_name, primary.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
+            figure={heroCountdown(countdown).figure}
+            imageUrl={coverUrl}
+          >
+            <ButtonLink href={`/mariage/${primary.id}`} variant="sharp">
+              Ouvrir l&apos;espace
+            </ButtonLink>
+          </WeddingStage>
+        </div>
       ) : (
         <header className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Votre mariage</h1>
@@ -195,19 +205,6 @@ export default async function DashboardPage() {
       ) : null}
       {isVendor ? <WeddingDirectory weddings={weddings} /> : null}
     </div>
-  );
-}
-
-function CoupleHero({ days, title, date, venue }: { days: number | null; title: string; date: string; venue: string }) {
-  const countdown = heroCountdown(days);
-  const compact = days === null || days <= 0;
-  return (
-    <header className="mb-10">
-      <p className={`${compact ? "text-5xl sm:text-6xl" : "text-7xl sm:text-8xl"} font-semibold tracking-tight`}>{countdown.figure}</p>
-      {countdown.caption ? <p className="mt-2 text-sm text-muted">{countdown.caption}</p> : null}
-      <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
-      <p className="mt-3 text-base text-muted">{[date, venue].filter(Boolean).join(" · ")}</p>
-    </header>
   );
 }
 

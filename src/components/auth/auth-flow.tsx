@@ -2,6 +2,7 @@
 
 import { useActionState, useState, type ChangeEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { Wordmark } from "@/components/brand/wordmark";
 import { AuthDesktopFrame } from "@/components/auth/auth-frame";
 import { LoginForm } from "@/components/auth/auth-forms";
 import { AddressInput } from "@/components/ui/address-input";
@@ -92,7 +93,7 @@ export function AuthFlow({
       <div className="auth-screen auth-step flex min-h-[calc(100dvh-3.5rem)] w-full flex-col px-5 py-10 md:min-h-dvh md:justify-center lg:min-h-dvh lg:justify-start lg:px-16 lg:py-12">
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:flex-none">
           {notice ? <div className="mb-6">{notice}</div> : null}
-          <p className="text-sm font-semibold tracking-[0.28em] lg:sr-only">VOW</p>
+          <Wordmark className="lg:sr-only" />
           <h1 className="mt-6 text-4xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-2 text-base leading-7 text-muted">{intro}</p>
 

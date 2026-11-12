@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Wordmark } from "@/components/brand/wordmark";
 import { Archive, Briefcase, CalendarRange, FolderOpen, MessageCircle, Share2, Sparkles, Users, WifiOff, type LucideIcon } from "lucide-react";
 
 type Audience = "couples" | "vendors";
@@ -70,7 +71,7 @@ export function Landing() {
       <section className="bg-ivory text-ink">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
-            <p className="text-xs font-semibold tracking-[0.28em] text-muted">VOW</p>
+            <Wordmark className="text-muted" />
             <h1 className="mt-5 max-w-xl text-5xl font-semibold tracking-tight text-ink sm:text-6xl lg:text-7xl">
               Du premier contact au jour J.
             </h1>

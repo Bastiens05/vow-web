@@ -12,7 +12,6 @@ import { reminderKindLabel } from "@/lib/domain/reminders";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
 import { todayIso } from "@/lib/domain/format";
-import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import { siteUrl } from "@/lib/env";
 import { recommendVendor } from "@/server/actions/relay";
 import { getWeddingSpace } from "@/server/data";
@@ -111,7 +110,6 @@ export default async function WeddingOverviewPage({
         {space.actingAsCouple || space.role === "couple" ? null : (
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Votre métier</h2>
-          <p className="mt-1 text-3xl font-semibold tracking-tight">{countdownLabel(daysUntil(space.wedding.wedding_date, todayIso()))}</p>
           <p className="mt-1 text-sm text-muted">Le jour J, les mariés tiennent les horaires. Vous suivez la version active.</p>
         </div>
         )}
@@ -176,7 +174,7 @@ export default async function WeddingOverviewPage({
         {showInvite || (reminders.data ?? []).length > 0 ? (
           <SettingsGroup title="Rappels">
             {showInvite ? (
-              <form action={setReminders} className="flex min-h-11 items-center justify-between gap-3 border-b border-black/10 px-4">
+              <form action={setReminders} className="flex min-h-11 items-center justify-between gap-3 border-b border-line px-4">
                 <span className="text-sm font-medium">Rappels avant le mariage</span>
                 <input type="hidden" name="wedding_id" value={id} />
                 <input type="hidden" name="enabled" value={space.wedding.reminders_enabled ? "off" : "on"} />
@@ -184,14 +182,14 @@ export default async function WeddingOverviewPage({
                   type="submit"
                   aria-pressed={space.wedding.reminders_enabled}
                   aria-label={space.wedding.reminders_enabled ? "Rappels activés" : "Rappels coupés"}
-                  className={`relative h-7 w-12 shrink-0 rounded-full ${space.wedding.reminders_enabled ? "bg-ink" : "bg-black/15"}`}
+                  className={`relative h-7 w-12 shrink-0 rounded-full ${space.wedding.reminders_enabled ? "bg-accent" : "bg-mist"}`}
                 >
                   <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-ivory ${space.wedding.reminders_enabled ? "left-5" : "left-0.5"}`} />
                 </button>
               </form>
             ) : null}
             {(reminders.data ?? []).map((reminder) => (
-              <div key={reminder.id} className="flex min-h-11 items-center justify-between gap-3 border-b border-black/10 px-4 text-sm last:border-b-0">
+              <div key={reminder.id} className="flex min-h-11 items-center justify-between gap-3 border-b border-line px-4 text-sm last:border-b-0">
                 <span>{reminderKindLabel(reminder.kind)}</span>
                 <span className="text-muted">J-{reminder.milestone}</span>
               </div>

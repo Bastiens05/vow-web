@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { AlertDock } from "@/components/alerts/alert-dock";
@@ -18,6 +18,7 @@ import { getSession } from "@/server/session";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", weight: ["200", "300", "400"] });
 
 export const metadata: Metadata = {
   title: { default: "VOW", template: "%s · VOW" },
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${inter.variable} h-full antialiased`}>
+    <html lang="fr" className={`${inter.variable} ${outfit.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
         <ChromeFrame
           publicHeader={<PublicHeader />}

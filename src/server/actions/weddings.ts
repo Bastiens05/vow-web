@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { Json } from "@/lib/database.types";
 import { messageFromError } from "@/lib/errors";
 import { generateInvitationToken } from "@/lib/domain/token";
+import { isOwnCoverPath } from "@/lib/domain/cover";
 import { normalizeEmail, validateWedding } from "@/lib/domain/validation";
 import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -131,6 +132,26 @@ export async function revokeInvitation(formData: FormData) {
 
 export async function resendInvitation(formData: FormData) {
   await createInvitation({}, formData);
+}
+
+export async function setWeddingCover(weddingId: string, path: string | null): Promise<ActionState> {
+  const session = await requireSession();
+  if (!/^[0-9a-f-]{36}$/i.test(weddingId)) return { error: "Mariage introuvable." };
+  if (path !== null && !isOwnCoverPath(weddingId, session.userId, path)) {
+    return { error: "Cette photo ne peut pas servir de couverture." };
+  }
+  const supabase = await createClient();
+  const previous = await supabase.from("weddings").select("cover_path").eq("id", weddingId).maybeSingle();
+  const { error } = await supabase.rpc("set_wedding_cover", { p_wedding: weddingId, p_path: path });
+  if (error) return { error: "La photo de couverture n'a pas été enregistrée." };
+  const oldPath = previous.data?.cover_path;
+  if (oldPath && oldPath !== path && isOwnCoverPath(weddingId, session.userId, oldPath)) {
+    await supabase.storage.from("wedding-documents").remove([oldPath]);
+  }
+  revalidatePath(`/mariage/${weddingId}`, "layout");
+  revalidatePath("/mariages");
+  revalidatePath("/espace");
+  return {};
 }
 
 export async function acceptInvitation(formData: FormData) {
