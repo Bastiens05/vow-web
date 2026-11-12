@@ -130,6 +130,7 @@ export function AuthFlow({
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               {inviteToken ? <input type="hidden" name="invite" value={inviteToken} /> : null}
               <input type="hidden" name="plan" value={initialPlan && isVendorPlan(initialPlan) ? initialPlan : ""} />
+              <RoleChoice selected="vendor" />
               <input type="hidden" name="category" value={category ?? ""} />
               <div className="flex flex-wrap gap-2">
                 {VENDOR_CATEGORIES.map((value) => (
@@ -179,7 +180,6 @@ export function AuthFlow({
               <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
-              <RoleChoice selected="vendor" />
               {state.error ? <Alert>{state.error}</Alert> : null}
               <button
                 type="submit"
@@ -194,6 +194,7 @@ export function AuthFlow({
           {mode === "signup" && step === "couple" ? (
             <form action={action} className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
+              <RoleChoice selected="couple" />
               <p className="text-sm font-medium">Partenaire 1</p>
               <FieldLike label="Prénom" name="partner_one" value={partnerOne} onChange={setPartnerOne} autoComplete="given-name" />
               <FieldLike label="Nom" name="partner_one_last" value={partnerOneLast} onChange={setPartnerOneLast} autoComplete="family-name" />
@@ -216,10 +217,8 @@ export function AuthFlow({
                 <span className="sr-only">facultatif</span>
                 <AddressInput name="city" mode="city" value={city} onValueChange={setCity} className="auth-field min-h-14 rounded-2xl px-4 text-lg" />
               </label>
-              <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
-              <RoleChoice selected="couple" />
               {state.error ? <Alert>{state.error}</Alert> : null}
               <button
                 type="submit"
@@ -244,10 +243,10 @@ export function AuthFlow({
           {mode === "signup" && step === "invite" ? (
             <form action={action} className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
+              <RoleChoice selected={lockedRole ?? "couple"} locked={Boolean(lockedRole)} />
               <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
-              <RoleChoice selected={lockedRole ?? "couple"} locked={Boolean(lockedRole)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
               <button type="submit" className="auth-primary" disabled={pending || !isValidEmail(email) || password.length < 8}>
                 {pending ? "Création…" : "Créer mon compte"}

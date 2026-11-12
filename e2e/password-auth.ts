@@ -26,6 +26,7 @@ export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "C
     await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Hugo");
     await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
     await page.getByLabel("Date du mariage").fill("2027-06-19");
+    return;
   }
   await page.getByLabel("Nom complet").waitFor();
 }
