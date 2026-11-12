@@ -9,7 +9,9 @@ import {
   NotificationForm,
   PasswordForm,
 } from "@/components/account/settings-forms";
+import { BillingControls } from "@/app/abonnement/offer";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { stripeEnabled, stripeTestMode } from "@/server/stripe";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { siteUrl } from "@/lib/env";
@@ -121,6 +123,22 @@ export default async function SettingsPage() {
             }))}
             suggestions={documentSuggestions(isVendorCategory(session.vendor.category) ? session.vendor.category : null)}
           />
+        </Card>
+      ) : null}
+      {vendor ? (
+        <Card className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Abonnement</h2>
+          <p className="text-sm leading-6 text-muted">
+            Ajoutez une carte ou un prélèvement SEPA, puis gérez la formule, les factures et la résiliation.
+          </p>
+          <BillingControls
+            enabled={stripeEnabled()}
+            testMode={stripeTestMode()}
+            hasCustomer={Boolean(session.billing?.stripe_customer_id)}
+          />
+          <ButtonLink href="/abonnement" variant="secondary">
+            Voir les formules
+          </ButtonLink>
         </Card>
       ) : null}
       <Card className="space-y-4">

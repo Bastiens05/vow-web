@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { PlanPicker, SubscribeButton } from "@/app/abonnement/offer";
+import { BillingControls, PlanPicker } from "@/app/abonnement/offer";
 import { vendorAccess } from "@/lib/domain/billing";
 import { effectiveVendorPlan, planLabel, testerOfferLabel } from "@/lib/domain/plans";
 import { categoryLabel } from "@/lib/domain/categories";
 import { requireSession } from "@/server/session";
-import { stripeEnabled } from "@/server/stripe";
+import { stripeEnabled, stripeTestMode } from "@/server/stripe";
 
 export const metadata: Metadata = { title: "Abonnement" };
 
-export default async function SubscriptionPage() {
+export default async function SubscriptionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ paiement?: string; regle?: string }>;
+}) {
+  const query = await searchParams;
   const session = await requireSession();
   if (session.profile.role !== "vendor") redirect("/espace");
   const plan = effectiveVendorPlan(session.billing?.plan);
@@ -28,8 +33,8 @@ export default async function SubscriptionPage() {
       <p className="text-xs font-medium text-gold-deep">Prestataires</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">Trois formules.</h1>
       <p className="mt-3 max-w-xl text-base leading-7 text-muted">
-        Studio comprend Pro, qui comprend Essentiel. Les mariés ne paient jamais. Aucune commission. Le paiement en ligne
-        reste fermé.
+        Studio comprend Pro, qui comprend Essentiel. Les mariés ne paient jamais. Aucune commission.{" "}
+        {stripeEnabled() ? "Carte et prélèvement SEPA." : "Le paiement en ligne reste fermé."}
       </p>
       <div className="mt-8">
         <PlanPicker
@@ -64,8 +69,19 @@ export default async function SubscriptionPage() {
                       : "L'essai est terminé. Vos mariages restent enregistrés."}
           </p>
         )}
+        {query.paiement === "indisponible" ? (
+          <p className="mt-3 text-sm">Le paiement n&apos;a pas pu s&apos;ouvrir. Les prix Stripe doivent exister.</p>
+        ) : null}
+        {query.paiement === "client" ? (
+          <p className="mt-3 text-sm">Ajoutez d&apos;abord un moyen de paiement.</p>
+        ) : null}
+        {query.regle === "1" ? <p className="mt-3 text-sm">Moyen de paiement enregistré.</p> : null}
         <div className="mt-6">
-          <SubscribeButton enabled={stripeEnabled()} />
+          <BillingControls
+            enabled={stripeEnabled()}
+            testMode={stripeTestMode()}
+            hasCustomer={Boolean(session.billing?.stripe_customer_id)}
+          />
         </div>
       </section>
     </div>
