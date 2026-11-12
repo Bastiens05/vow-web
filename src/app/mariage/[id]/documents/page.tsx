@@ -16,7 +16,10 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   const couple = space.role === "couple" || space.actingAsCouple;
   const supabase = await createClient();
   if (couple) {
-    const { data } = await supabase.rpc("wedding_directory", { p_wedding_id: id });
+    const [{ data }, { data: quotes }] = await Promise.all([
+      supabase.rpc("wedding_directory", { p_wedding_id: id }),
+      supabase.from("quote_intakes").select("id, email, business_name, file_name, storage_path, status").eq("wedding_id", id).eq("status", "sent"),
+    ]);
     const vendors = (data ?? []).filter((person) => person.member_role === "vendor");
     const photo = vendors.some((person) => person.category === "photographer" || person.category === "videographer" || person.category === "planner");
     const guests = vendors.some((person) => person.category === "caterer" || person.category === "venue" || person.category === "planner");
@@ -31,6 +34,16 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
           <Card>
             <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
             <InviteVendor weddingId={id} />
+          </Card>
+        ) : null}
+        {(quotes ?? []).length > 0 ? (
+          <Card>
+            <h3 className="text-lg font-semibold">Devis déposés</h3>
+            <ul className="mt-3 grid gap-2 text-sm">
+              {(quotes ?? []).map((quote) => (
+                <li key={quote.id}>{quote.business_name || quote.file_name} · {quote.email}</li>
+              ))}
+            </ul>
           </Card>
         ) : null}
         {vendors.map((person) => (

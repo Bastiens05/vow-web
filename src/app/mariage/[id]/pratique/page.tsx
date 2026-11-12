@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { GuidedSetup } from "@/components/wedding/guided-setup";
 import { PracticalBoard } from "@/components/wedding/practical-board";
+import { ProfileForm, ProfileSlice } from "@/components/wedding/profile-form";
 import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
+import { factsFromJson, fieldsForTrade, filledRatio, visibleFacts } from "@/lib/domain/profile";
+import { isVendorCategory } from "@/lib/domain/categories";
 import { canSeeSheet, pratiqueLabel } from "@/lib/domain/trades";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet, getWeddingSpace } from "@/server/data";
@@ -23,6 +26,9 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
   const { data: music } = showMusic
     ? await supabase.from("wedding_music").select("notes").eq("wedding_id", id).maybeSingle()
     : { data: null };
+  const { data: slice } = await supabase.rpc("my_profile_slice", { p_wedding: id });
+  const facts = factsFromJson(slice);
+  const trade = category && isVendorCategory(category) ? category : null;
   if (couple) {
     const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(", ");
     const practical = sheet.practical;
@@ -47,7 +53,10 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
     return (
       <div id="lieu" className="scroll-mt-24">
         <HashScroll />
-        <h2 className="text-3xl font-semibold tracking-tight">Infos du lieu</h2>
+        <h2 className="text-3xl font-semibold tracking-tight">Le mariage, une seule fois</h2>
+        <p className="mt-2 mb-6 text-sm text-muted">Chaque information est saisie ici. Le photographe, le traiteur et les autres n&apos;en reçoivent que la part qui les concerne.</p>
+        <ProfileForm weddingId={id} facts={facts} />
+        <h2 className="mt-10 text-3xl font-semibold tracking-tight">Infos du lieu</h2>
         <p className="mt-2 mb-6 text-sm text-muted">Les photos de groupe et les invités se remplissent dans Documents, chez le photographe ou le traiteur.</p>
         <PracticalBoard
           weddingId={id}
@@ -69,7 +78,13 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
   const label = pratiqueLabel(viewRole, category) ?? "Pratique";
   const title =
     label === "Groupes" ? "Groupes photo" : label === "Invités" ? "Tables et régimes" : label === "Musique" ? "Musique" : label === "Infos" ? "Infos du lieu" : "Infos pratiques";
+  const ratio = filledRatio(facts, trade);
+  const known = fieldsForTrade(trade)
+    .map((field) => ({ key: field.key, label: field.label, value: visibleFacts(facts, trade)[field.key] ?? "" }))
+    .filter((field) => field.value.length > 0);
   return (
+    <div className="grid gap-4">
+      <ProfileSlice facts={known} percent={ratio.percent} />
     <Card>
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       <p className="mt-1 mb-6 text-sm leading-6 text-muted">
@@ -94,5 +109,6 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         canEditMusic={false}
       />
     </Card>
+    </div>
   );
 }

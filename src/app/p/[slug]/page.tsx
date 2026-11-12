@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { categoryLabel } from "@/lib/domain/categories";
+import { featureEnabled } from "@/lib/domain/plans";
+import { publicCoupleName } from "@/lib/domain/references";
 import { formatPriceCents } from "@/lib/domain/price";
 import { publicObjectUrl } from "@/lib/storage";
 import { getPublicVendor } from "@/server/data";
@@ -17,7 +19,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const data = await getPublicVendor(slug);
   if (!data) return { title: "Vitrine" };
-  return { title: data.vendor.business_name, description: data.vendor.description.slice(0, 160) };
+  const description = data.vendor.description.slice(0, 160);
+  return { title: data.vendor.business_name, description, openGraph: { title: data.vendor.business_name, description } };
 }
 
 export default async function PublicVendorPage({ params }: PageProps) {
@@ -35,6 +38,9 @@ export default async function PublicVendorPage({ params }: PageProps) {
     .select("id, rating, body")
     .eq("vendor_id", vendor.id)
     .eq("status", "published");
+  const proven = featureEnabled("references")
+    ? (await supabase.from("proven_references").select("id, month, venue_name, town, review, couple_public_name").eq("vendor_id", vendor.id).eq("published", true)).data ?? []
+    : [];
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       {!vendor.published ? (
@@ -80,6 +86,22 @@ export default async function PublicVendorPage({ params }: PageProps) {
                 {offer.price_cents !== null ? (
                   <p className="mt-3 text-sm text-gold-deep">{formatPriceCents(offer.price_cents)}</p>
                 ) : null}
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {proven.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="font-semibold tracking-tight text-4xl">Mariages vérifiés</h2>
+          <div className="mt-4 grid gap-3">
+            {proven.map((item) => (
+              <Card key={item.id}>
+                <p className="text-sm text-muted">{item.month} · {item.venue_name}{item.town ? `, ${item.town}` : ""}</p>
+                <p className="mt-1 font-semibold">{publicCoupleName(item.couple_public_name)}</p>
+                {item.review ? <p className="mt-2 text-sm leading-6">{item.review}</p> : null}
+                <p className="mt-2 text-xs text-muted">Vérifié par VOW</p>
               </Card>
             ))}
           </div>

@@ -336,9 +336,11 @@ export type Database = {
           notes: string;
           sort_order: number;
           created_at: string;
+          called_at: string | null;
+          place: string;
         },
-        { id?: string; wedding_id: string; title: string; people?: string; notes?: string; sort_order?: number },
-        { title?: string; people?: string; notes?: string; sort_order?: number }
+        { id?: string; wedding_id: string; title: string; people?: string; notes?: string; sort_order?: number; called_at?: string | null; place?: string },
+        { title?: string; people?: string; notes?: string; sort_order?: number; called_at?: string | null; place?: string }
       >;
       guests: Table<
         {
@@ -467,6 +469,116 @@ export type Database = {
           document_sha256: string;
           status?: string;
         },
+        Record<string, never>
+      >;
+      payment_installments: Table<
+        { id: string; quote_id: string; due_on: string; amount_cents: number; collected_on: string | null },
+        { quote_id: string; due_on: string; amount_cents: number; collected_on?: string | null },
+        { due_on?: string; amount_cents?: number; collected_on?: string | null }
+      >;
+      wedding_time_entries: Table<
+        { id: string; wedding_id: string; vendor_id: string; kind: string; minutes: number; note: string },
+        { wedding_id: string; vendor_id: string; kind: string; minutes?: number; note?: string },
+        { kind?: string; minutes?: number; note?: string }
+      >;
+      cashflow_snapshots: Table<
+        { vendor_id: string; month: string; collected_cents: number; scheduled_cents: number; unscheduled_cents: number },
+        { vendor_id: string; month: string; collected_cents?: number; scheduled_cents?: number; unscheduled_cents?: number },
+        { collected_cents?: number; scheduled_cents?: number; unscheduled_cents?: number }
+      >;
+      vendor_cash_settings: Table<
+        { vendor_id: string; thin_cents: number; include_unsigned: boolean },
+        { vendor_id: string; thin_cents?: number; include_unsigned?: boolean },
+        { thin_cents?: number; include_unsigned?: boolean }
+      >;
+      wedding_briefings: Table<
+        { wedding_id: string; pronunciation_note: string; key_people: string },
+        { wedding_id: string; pronunciation_note?: string; key_people?: string },
+        { pronunciation_note?: string; key_people?: string }
+      >;
+      vendor_brief_notes: Table<
+        { wedding_id: string; vendor_id: string; note: string },
+        { wedding_id: string; vendor_id: string; note?: string },
+        { note?: string }
+      >;
+      briefing_listens: Table<
+        { id: string; wedding_id: string; user_id: string; listened_at: string },
+        { wedding_id: string; user_id: string },
+        Record<string, never>
+      >;
+      anniversary_templates: Table<
+        { id: string; vendor_id: string; title: string; body: string; months_after: number; enabled: boolean; require_review: boolean },
+        { vendor_id: string; title: string; body: string; months_after?: number; enabled?: boolean; require_review?: boolean },
+        { title?: string; body?: string; months_after?: number; enabled?: boolean; require_review?: boolean }
+      >;
+      anniversary_queue: Table<
+        { id: string; template_id: string; wedding_id: string; send_on: string; status: string },
+        { template_id: string; wedding_id: string; send_on: string; status?: string },
+        { send_on?: string; status?: string }
+      >;
+      marketing_optouts: Table<
+        { id: string; email: string; vendor_id: string | null; created_at: string },
+        { email: string; vendor_id?: string | null },
+        Record<string, never>
+      >;
+      proven_references: Table<
+        { id: string; vendor_id: string; wedding_id: string | null; month: string; venue_name: string; town: string; review: string; couple_public_name: string | null; published: boolean; confirmed: boolean },
+        { vendor_id: string; month: string; venue_name: string; town?: string; review?: string; couple_public_name?: string | null; published?: boolean; confirmed?: boolean; wedding_id?: string | null },
+        { month?: string; venue_name?: string; town?: string; review?: string; couple_public_name?: string | null; published?: boolean; confirmed?: boolean }
+      >;
+      vendor_credentials: Table<
+        { id: string; vendor_id: string; kind: string; storage_path: string; file_name: string; expires_on: string | null; share_globally: boolean },
+        { vendor_id: string; kind: string; storage_path: string; file_name: string; expires_on?: string | null; share_globally?: boolean },
+        { kind?: string; storage_path?: string; file_name?: string; expires_on?: string | null; share_globally?: boolean }
+      >;
+      credential_shares: Table<
+        { credential_id: string; wedding_id: string },
+        { credential_id: string; wedding_id: string },
+        Record<string, never>
+      >;
+      credential_links: Table<
+        { token: string; credential_id: string; expires_at: string },
+        { token: string; credential_id: string; expires_at: string },
+        { expires_at?: string }
+      >;
+      delivery_tracks: Table<
+        { wedding_id: string; vendor_id: string; promised_on: string; step_index: number; note: string; file_url: string },
+        { wedding_id: string; vendor_id: string; promised_on: string; step_index?: number; note?: string; file_url?: string },
+        { promised_on?: string; step_index?: number; note?: string; file_url?: string }
+      >;
+      crew_members: Table<
+        { id: string; vendor_id: string; name: string; role: string; phone: string; email: string; rate_cents: number; rate_kind: string; notes: string; active: boolean },
+        { vendor_id: string; name: string; role?: string; phone?: string; email?: string; rate_cents?: number; rate_kind?: string; notes?: string; active?: boolean },
+        { name?: string; role?: string; phone?: string; email?: string; rate_cents?: number; rate_kind?: string; notes?: string; active?: boolean }
+      >;
+      crew_assignments: Table<
+        { id: string; wedding_id: string; member_id: string; role: string; status: string; planned_minutes: number; paid: boolean },
+        { wedding_id: string; member_id: string; role?: string; status?: string; planned_minutes?: number; paid?: boolean },
+        { role?: string; status?: string; planned_minutes?: number; paid?: boolean }
+      >;
+      tech_templates: Table<
+        { vendor_id: string; fields: Json },
+        { vendor_id: string; fields?: Json },
+        { fields?: Json }
+      >;
+      wedding_tech: Table<
+        { wedding_id: string; vendor_id: string; fields: Json },
+        { wedding_id: string; vendor_id: string; fields?: Json },
+        { fields?: Json }
+      >;
+      venue_capabilities: Table<
+        { wedding_id: string; fields: Json; share_with_couple: boolean },
+        { wedding_id: string; fields?: Json; share_with_couple?: boolean },
+        { fields?: Json; share_with_couple?: boolean }
+      >;
+      tech_issues: Table<
+        { id: string; wedding_id: string; code: string; message: string; vendor_ids: string[] },
+        { wedding_id: string; code: string; message: string; vendor_ids?: string[] },
+        { code?: string; message?: string; vendor_ids?: string[] }
+      >;
+      cash_notices: Table<
+        { vendor_id: string; month: string },
+        { vendor_id: string; month: string },
         Record<string, never>
       >;
       quotes: Table<
@@ -855,6 +967,7 @@ export type Database = {
           tester_until: string | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          plan: "essentiel" | "pro" | "studio";
           updated_at: string;
         },
         {
@@ -862,6 +975,7 @@ export type Database = {
           status?: "trialing" | "active" | "expired" | "tester";
           trial_ends_at: string;
           tester_until?: string | null;
+          plan?: "essentiel" | "pro" | "studio";
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         },
@@ -869,6 +983,7 @@ export type Database = {
           status?: "trialing" | "active" | "expired" | "tester";
           trial_ends_at?: string;
           tester_until?: string | null;
+          plan?: "essentiel" | "pro" | "studio";
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         }
@@ -930,6 +1045,57 @@ export type Database = {
         },
         { storage_path?: string | null; file_name?: string | null; mime_type?: string | null; label?: string }
       >;
+      brief_sends: Table<
+        { wedding_id: string; user_id: string; sent_on: string },
+        { wedding_id: string; user_id: string; sent_on: string },
+        Record<string, never>
+      >;
+      quote_intakes: Table<
+        {
+          id: string;
+          wedding_id: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          business_name: string;
+          category: string;
+          email: string;
+          phone: string;
+          amount_cents: number | null;
+          status: string;
+          created_at: string;
+        },
+        {
+          wedding_id: string;
+          storage_path: string;
+          file_name: string;
+          mime_type?: string;
+          business_name?: string;
+          category?: string;
+          email?: string;
+          phone?: string;
+          amount_cents?: number | null;
+          status?: string;
+        },
+        {
+          business_name?: string;
+          category?: string;
+          email?: string;
+          phone?: string;
+          amount_cents?: number | null;
+          status?: string;
+        }
+      >;
+      wedding_profile: Table<
+        { wedding_id: string; facts: Json; updated_at: string },
+        { wedding_id: string; facts?: Json; updated_at?: string },
+        { facts?: Json; updated_at?: string }
+      >;
+      profile_field_access: Table<
+        { field_key: string; category: string },
+        { field_key: string; category: string },
+        Record<string, never>
+      >;
       vault_shares: Table<
         { item_id: string; vendor_user_id: string; created_at: string },
         { item_id: string; vendor_user_id: string },
@@ -948,6 +1114,11 @@ export type Database = {
         };
         Returns: string;
       };
+      my_profile_slice: { Args: { p_wedding: string }; Returns: Json };
+      notify_shift_personal: { Args: { p_wedding: string; p_user: string; p_body: string }; Returns: string };
+      due_day_briefs: { Args: { p_day: string }; Returns: { wedding_id: string; user_id: string; email: string }[] };
+      rebuild_cashflow: { Args: Record<string, never>; Returns: undefined };
+      mark_brief_sent: { Args: { p_wedding: string; p_user: string; p_day: string }; Returns: undefined };
       create_invitation: {
         Args: {
           p_wedding_id: string;

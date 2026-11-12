@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DayBoard } from "@/components/wedding/day-board";
+import { PhotoQueue } from "@/components/wedding/photo-queue";
 import { JourCache } from "@/components/wedding/jour-cache";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { parisClockMinutes } from "@/lib/domain/day";
+import { featureEnabled } from "@/lib/domain/plans";
 import { todayIso } from "@/lib/domain/format";
 import { parseTemplateSlots } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/server";
@@ -20,7 +23,10 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
     supabase.rpc("wedding_directory", { p_wedding_id: id }),
     supabase.from("timeline_suggestions").select("id, label, slots").eq("wedding_id", id).order("created_at", { ascending: false }).limit(1),
   ]);
-  const { data: rainRows } = await supabase.from("rain_slots").select("id, title, starts_at, place, sort_order").eq("wedding_id", id).order("sort_order");
+  const [{ data: rainRows }, { data: groups }] = await Promise.all([
+    supabase.from("rain_slots").select("id, title, starts_at, place, sort_order").eq("wedding_id", id).order("sort_order"),
+    supabase.from("photo_groups").select("id, title, place, called_at, sort_order").eq("wedding_id", id).order("sort_order"),
+  ]);
   const rainSlots: SlotView[] = (rainRows ?? []).map((slot) => ({
     id: slot.id,
     title: slot.title,
@@ -52,6 +58,11 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
           ? "Le programme de votre journée, partagé en direct avec vos prestataires."
           : "Le programme du jour, tenu par les mariés. Vous suivez la version active."}
       </p>
+      {featureEnabled("vocal_briefing") ? (
+        <Link href={`/mariage/${id}/briefing`} className="mt-4 inline-flex rounded-2xl bg-ink px-4 py-3 text-sm text-paper">
+          Écouter le briefing
+        </Link>
+      ) : null}
       <JourCache
         weddingId={id}
         slots={slots.map((slot) => ({ startsAt: slot.startsAt, title: slot.title, place: slot.place }))}
@@ -72,6 +83,16 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
               ? { id: suggestion.id, label: suggestion.label, slots: parseTemplateSlots(suggestion.slots) }
               : null
           }
+        />
+        <PhotoQueue
+          weddingId={id}
+          canCall={couple || ["photographer", "videographer", "planner"].includes(space.session.vendor?.category && isVendorCategory(space.session.vendor.category) ? space.session.vendor.category : "")}
+          groups={(groups ?? []).map((group) => ({
+            id: group.id,
+            title: group.title,
+            place: group.place ?? "",
+            called: Boolean(group.called_at),
+          }))}
         />
       </div>
     </div>

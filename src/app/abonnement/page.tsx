@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { RedeemForm, SubscribeButton } from "@/app/abonnement/offer";
-import { PLAN_LABEL, vendorAccess } from "@/lib/domain/billing";
+import { vendorAccess } from "@/lib/domain/billing";
+import { PLAN_OFFERS } from "@/lib/domain/plans";
 import { categoryLabel } from "@/lib/domain/categories";
 import { requireSession } from "@/server/session";
 import { stripeEnabled } from "@/server/stripe";
@@ -23,13 +24,21 @@ export default async function SubscriptionPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 lg:py-12">
       <p className="text-xs font-medium text-gold-deep">Prestataires</p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Un seul plan.</h1>
+      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Trois formules.</h1>
       <p className="mt-3 max-w-xl text-base leading-7 text-muted">
-        Sept jours pour prendre en main l&apos;espace, puis {PLAN_LABEL}. Les mariés ne paient jamais.
+        Studio comprend Pro, qui comprend Essentiel. Les mariés ne paient jamais. Aucune commission. Le paiement en ligne reste fermé.
       </p>
-      <section className="mt-8 rounded-3xl border border-line bg-paper p-6">
+      <ul className="mt-8 grid gap-3 sm:grid-cols-3">
+        {PLAN_OFFERS.map((plan) => (
+          <li key={plan.id} className={`rounded-3xl border p-5 ${ (session.billing?.plan ?? "essentiel") === plan.id ? "border-ink" : "border-line bg-paper" }`}>
+            <p className="text-sm text-muted">{plan.label}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight">{plan.price}</p>
+          </li>
+        ))}
+      </ul>
+      <section className="mt-4 rounded-3xl border border-line bg-paper p-6">
         <p className="text-sm text-muted">{session.vendor?.business_name ?? "Votre activité"}{trade ? ` · ${trade}` : ""}</p>
-        <p className="mt-3 text-4xl font-semibold tracking-tight">{PLAN_LABEL}</p>
+        <p className="mt-3 text-lg font-semibold">Votre formule : {session.billing?.plan ?? "essentiel"}</p>
         <p className="mt-3 text-sm leading-6">
           {access.reason === "trial" && access.daysLeft !== null
             ? `Il vous reste ${access.daysLeft} jour${access.daysLeft > 1 ? "s" : ""} d'essai.`
