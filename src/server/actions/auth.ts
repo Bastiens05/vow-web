@@ -58,7 +58,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     return { error: "Indiquez le métier, le nom de l'activité et la ville." };
   }
   if (role === "couple" && (intent.partnerOne || intent.partnerTwo || intent.weddingDate) && !coupleIntentReady(intent)) {
-    return { error: "Indiquez les deux prénoms et la date du mariage." };
+    return { error: "Indiquez le prénom, le nom et la date du mariage." };
   }
 
   const destination = requested.startsWith("/invitation/") || requested.startsWith("/equipe/") ? requested : "/espace";
@@ -114,7 +114,7 @@ export async function requestEmailCode(_prev: ActionState, formData: FormData): 
     return { error: "Indiquez le métier, le nom de l'activité et la ville." };
   }
   if (create && role === "couple" && (intent.partnerOne || intent.partnerTwo || intent.weddingDate) && !coupleIntentReady(intent)) {
-    return { error: "Indiquez les deux prénoms et la date du mariage." };
+    return { error: "Indiquez le prénom, le nom et la date du mariage." };
   }
 
   const supabase = await createClient();

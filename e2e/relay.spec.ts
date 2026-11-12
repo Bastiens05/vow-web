@@ -13,19 +13,20 @@ test("le relais et les besoins restent dans le mariage", async ({ page, browser 
   await signUpVendor(page, ownerEmail, "Camille Photo");
   await finishOnboarding(page, `Studio ${stamp}`);
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Noé");
-  await page.getByLabel("Second prénom").fill("Alma");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Noé");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Alma");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-08-08");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
   const weddingId = page.url().split("/mariage/")[1]?.split("/")[0] ?? "";
 
-  await page.getByLabel("E-mail du destinataire").fill(coupleEmail);
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du couple").fill(coupleEmail);
+  await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   const coupleLink = await page.locator("code").first().innerText();
-  await page.getByLabel("E-mail du destinataire").fill(nextEmail);
-  await page.getByLabel("Rôle").selectOption("vendor");
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du confrère").fill(nextEmail);
+  await page.getByRole("button", { name: "Inviter un confrère" }).click();
   const vendorLink = await page.locator("li").filter({ hasText: nextEmail }).locator("code").innerText();
 
   const next = await freshPage(browser);

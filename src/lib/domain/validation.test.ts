@@ -26,18 +26,23 @@ describe("validateWedding", () => {
   it("trims a complete wedding", () => {
     const result = validateWedding({
       partnerOne: " Léa ",
+      partnerOneLast: " Martin ",
       partnerTwo: "Hugo",
+      partnerTwoLast: "Bernard",
       weddingDate: "2027-06-19",
       venueName: "Château",
       venueCity: "Léognan",
     });
     expect(result.ok && result.value.partnerOne).toBe("Léa");
+    expect(result.ok && result.value.partnerOneLast).toBe("Martin");
   });
 
   it("requires a real date", () => {
     const result = validateWedding({
       partnerOne: "Léa",
+      partnerOneLast: "Martin",
       partnerTwo: "Hugo",
+      partnerTwoLast: "Bernard",
       weddingDate: "juin",
       venueName: "",
       venueCity: "",

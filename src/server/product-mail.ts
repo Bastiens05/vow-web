@@ -45,12 +45,14 @@ export async function sendInvitationEmail(input: {
   url: string;
   role: "couple" | "vendor";
 }) {
-  const who = input.role === "couple" ? "le mariage" : "l'équipe";
+  const body = input.role === "vendor"
+    ? "Les mariés vous ouvrent leur espace. Le lien vous y dépose directement."
+    : "Votre espace mariage est prêt. Le lien vous y dépose directement.";
   await sendEmail({
     to: input.to,
     subject: `Invitation · ${input.title}`,
     heading: input.title,
-    body: `Un prestataire vous ouvre ${who}. Le lien vous y dépose directement.`,
+    body,
     buttonLabel: "Ouvrir mon espace",
     buttonUrl: input.url,
   });

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatLongDate } from "@/lib/domain/format";
+import { coupleFullNames, formatLongDate } from "@/lib/domain/format";
 import { documentNumber, formatEuros } from "@/lib/domain/money";
 import { stripeEnabled } from "@/server/stripe";
 import { createClient } from "@/lib/supabase/server";
@@ -41,6 +41,11 @@ export default async function QuotesPage({
     <div className="grid gap-4">
       <Card>
         <h2 className="text-3xl font-semibold tracking-tight">Devis et factures</h2>
+        {coupleFullNames(space.wedding.partner_one_name, space.wedding.partner_one_last_name, space.wedding.partner_two_name, space.wedding.partner_two_last_name) ? (
+          <p className="mt-1 text-sm text-muted">
+            {coupleFullNames(space.wedding.partner_one_name, space.wedding.partner_one_last_name, space.wedding.partner_two_name, space.wedding.partner_two_last_name)}
+          </p>
+        ) : null}
         <p className="mt-1 text-sm text-muted">Un numéro par prestataire. Le couple voit les montants, pas ceux des autres métiers.</p>
         {query.paiement === "ferme" ? (
           <div className="mt-4">

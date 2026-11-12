@@ -3,12 +3,18 @@ import { leadStatusLabel, splitCoupleNames } from "./leads";
 
 describe("splitCoupleNames", () => {
   it("splits a couple written with et or &", () => {
-    expect(splitCoupleNames("Marie et Marc")).toEqual({ one: "Marie", two: "Marc" });
-    expect(splitCoupleNames("Léa & Hugo")).toEqual({ one: "Léa", two: "Hugo" });
+    expect(splitCoupleNames("Marie et Marc")).toEqual({ one: "Marie", oneLast: "", two: "Marc", twoLast: "" });
+    expect(splitCoupleNames("Léa & Hugo")).toEqual({ one: "Léa", oneLast: "", two: "Hugo", twoLast: "" });
+    expect(splitCoupleNames("Léa Martin & Hugo Bernard")).toEqual({
+      one: "Léa",
+      oneLast: "Martin",
+      two: "Hugo",
+      twoLast: "Bernard",
+    });
   });
 
   it("keeps a single name usable for a wedding", () => {
-    expect(splitCoupleNames("Camille")).toEqual({ one: "Camille", two: "À venir" });
+    expect(splitCoupleNames("Camille")).toEqual({ one: "Camille", oneLast: "", two: "À venir", twoLast: "" });
   });
 });
 

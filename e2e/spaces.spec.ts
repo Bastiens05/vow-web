@@ -23,8 +23,10 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   await expect(page.getByText("Vitrine enregistrée.")).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Marie");
-  await page.getByLabel("Second prénom").fill("Marc");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Marie");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Marc");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-09-12");
   await page.getByLabel("Lieu", { exact: true }).fill("Château");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
@@ -32,12 +34,11 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   const weddingId = new URL(page.url()).pathname.split("/")[2] ?? "";
   expect(weddingId).toMatch(/^[0-9a-f-]{36}$/i);
 
-  await page.getByLabel("E-mail du destinataire").fill(coupleEmail);
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du couple").fill(coupleEmail);
+  await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   await expect(page.getByText(coupleEmail)).toBeVisible();
-  await page.getByLabel("E-mail du destinataire").fill(catererEmail);
-  await page.getByLabel("Rôle").selectOption("vendor");
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du confrère").fill(catererEmail);
+  await page.getByRole("button", { name: "Inviter un confrère" }).click();
   await expect(page.getByText(catererEmail)).toBeVisible();
 
   const coupleUrl = await invitePath(page, coupleEmail);

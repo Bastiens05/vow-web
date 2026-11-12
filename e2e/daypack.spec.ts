@@ -25,8 +25,10 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await expect(page.getByText("Vitrine enregistrée.")).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Léa");
-  await page.getByLabel("Second prénom").fill("Hugo");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Léa");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Hugo");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-06-19");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
@@ -39,8 +41,8 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await expect(page.getByText("Envoyé")).toBeVisible();
 
   await page.goto(`/mariage/${weddingId}/inviter`);
-  await page.getByLabel("E-mail du destinataire").fill(coupleEmail);
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du couple").fill(coupleEmail);
+  await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   const coupleLink = await page.locator("code").first().innerText();
   const couplePage = await freshPage(browser);
   await couplePage.goto(new URL(coupleLink.trim()).pathname + new URL(coupleLink.trim()).search);
@@ -85,9 +87,8 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   const downloadHref = await page.getByRole("link", { name: "Télécharger" }).getAttribute("href");
 
   await page.goto(`/mariage/${weddingId}/inviter`);
-  await page.getByLabel("E-mail du destinataire").fill(catererEmail);
-  await page.getByLabel("Rôle").selectOption("vendor");
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du confrère").fill(catererEmail);
+  await page.getByRole("button", { name: "Inviter un confrère" }).click();
   const catererLink = await page.locator("code").last().innerText();
   const catererPage = await freshPage(browser);
   await catererPage.goto(new URL(catererLink.trim()).pathname + new URL(catererLink.trim()).search);

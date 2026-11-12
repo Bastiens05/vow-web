@@ -55,24 +55,43 @@ export function AlertDock({
       }
     }
 
-    void load(true);
-    const channel = supabase
-      .channel("wedding-alerts")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "wedding_notifications" },
-        (payload) => {
-          const row = payload.new as { body?: string; author_id?: string };
-          if (!inApp || !row.body || row.author_id === me.current) return;
-          const body = row.body;
-          if (body) {
-            setToast(body);
+    const channel = supabase.channel("wedding-alerts");
+    void (async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!active) return;
+      const currentUserId = session.session?.user.id ?? null;
+      if (currentUserId) {
+        me.current = currentUserId;
+        setUserId(currentUserId);
+      }
+      if (session.session?.access_token) {
+        await supabase.realtime.setAuth(session.session.access_token);
+      }
+      if (!active) return;
+      channel
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "wedding_notifications" },
+          (payload) => {
+            const row = payload.new as { body?: string; author_id?: string };
+            if (!inApp || !row.body || row.author_id === me.current) return;
+            setToast(row.body);
             setUnread((count) => count + 1);
             window.setTimeout(() => setToast(null), 8000);
-          }
-        },
-      )
-      .subscribe();
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notification_reads" },
+          (payload) => {
+            const row = payload.new as { user_id?: string };
+            if (!row.user_id || row.user_id !== me.current) return;
+            setUnread((count) => Math.max(0, count - 1));
+          },
+        )
+        .subscribe();
+      await load(true);
+    })();
 
     return () => {
       active = false;

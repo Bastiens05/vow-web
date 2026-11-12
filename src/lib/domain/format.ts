@@ -43,6 +43,25 @@ export function weddingTitle(partnerOne: string, partnerTwo: string): string {
   return `${partnerOne} & ${partnerTwo}`;
 }
 
+export function joinPersonName(first: string, last: string | null | undefined): string {
+  return [first.trim(), (last ?? "").trim()].filter(Boolean).join(" ");
+}
+
+export function coupleFullNames(
+  oneFirst: string,
+  oneLast: string | null | undefined,
+  twoFirst: string,
+  twoLast: string | null | undefined,
+): string {
+  const one = joinPersonName(oneFirst, oneLast);
+  const two = joinPersonName(twoFirst, twoLast);
+  const hasLast = Boolean((oneLast ?? "").trim() || (twoLast ?? "").trim());
+  if (!hasLast) return "";
+  if (!one) return two;
+  if (!two || two === "À venir" || two === "Couple") return one;
+  return `${one} & ${two}`;
+}
+
 export function coupleHeroTitle(partnerOne: string, partnerTwo: string): string {
   const one = partnerOne.trim();
   const two = partnerTwo.trim();

@@ -87,6 +87,8 @@ export async function confirmQuoteInvite(weddingId: string, _prev: ActionState, 
   invite.set("wedding_id", weddingId);
   invite.set("role", "vendor");
   invite.set("email", email);
+  invite.set("invitee_name", business);
+  invite.set("invitee_trade", category);
   const sent = await createInvitation({}, invite);
   if (sent.error) return sent;
   const amount = Number.isFinite(euros) && euros >= 0 ? Math.round(euros * 100) : null;

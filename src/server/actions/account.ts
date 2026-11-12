@@ -108,13 +108,15 @@ export async function createCoupleWedding(_prev: ActionState, formData: FormData
   const session = await requireSession();
   if (session.profile.role !== "couple") return { error: "Réservé aux mariés." };
   const intent = readSignupIntent(formData, "couple");
-  if (!coupleIntentReady(intent)) return { error: "Indiquez les deux prénoms et la date du mariage." };
+  if (!coupleIntentReady(intent)) return { error: "Indiquez le prénom, le nom et la date du mariage." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_couple_wedding", {
     p_partner_one: intent.partnerOne,
     p_partner_two: intent.partnerTwo,
     p_wedding_date: intent.weddingDate,
     p_city: intent.city,
+    p_partner_one_last: intent.partnerOneLast,
+    p_partner_two_last: intent.partnerTwoLast,
   });
   if (error || !data) return { error: error ? messageFromError(error) : "Le mariage n'a pas pu être créé." };
   revalidatePath("/espace");

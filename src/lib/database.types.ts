@@ -167,7 +167,9 @@ export type Database = {
           id: string;
           created_by: string;
           partner_one_name: string;
+          partner_one_last_name: string | null;
           partner_two_name: string;
+          partner_two_last_name: string | null;
           wedding_date: string;
           venue_name: string;
           venue_city: string;
@@ -181,7 +183,9 @@ export type Database = {
           id?: string;
           created_by: string;
           partner_one_name: string;
+          partner_one_last_name?: string | null;
           partner_two_name: string;
+          partner_two_last_name?: string | null;
           wedding_date: string;
           venue_name?: string;
           venue_city?: string;
@@ -189,7 +193,9 @@ export type Database = {
         },
         {
           partner_one_name?: string;
+          partner_one_last_name?: string | null;
           partner_two_name?: string;
+          partner_two_last_name?: string | null;
           wedding_date?: string;
           venue_name?: string;
           venue_city?: string;
@@ -218,6 +224,8 @@ export type Database = {
           expires_at: string;
           accepted_at: string | null;
           accepted_by: string | null;
+          invitee_name: string;
+          invitee_trade: string;
           created_at: string;
         },
         {
@@ -230,6 +238,8 @@ export type Database = {
           expires_at: string;
           accepted_at?: string | null;
           accepted_by?: string | null;
+          invitee_name?: string;
+          invitee_trade?: string;
         },
         { accepted_at?: string | null; accepted_by?: string | null }
       >;
@@ -1111,6 +1121,8 @@ export type Database = {
           p_wedding_date: string;
           p_venue_name: string;
           p_venue_city: string;
+          p_partner_one_last?: string;
+          p_partner_two_last?: string;
         };
         Returns: string;
       };
@@ -1125,6 +1137,8 @@ export type Database = {
           p_email: string;
           p_role: AppRole;
           p_token: string;
+          p_invitee_name?: string;
+          p_invitee_trade?: string;
         };
         Returns: Json;
       };
@@ -1250,7 +1264,14 @@ export type Database = {
       record_reco_click: { Args: { p_token: string }; Returns: string | null };
       attribute_quote: { Args: { p_lead: string; p_token: string }; Returns: undefined };
       create_couple_wedding: {
-        Args: { p_partner_one: string; p_partner_two: string; p_wedding_date: string; p_city: string };
+        Args: {
+          p_partner_one: string;
+          p_partner_two: string;
+          p_wedding_date: string;
+          p_city: string;
+          p_partner_one_last?: string;
+          p_partner_two_last?: string;
+        };
         Returns: string;
       };
       create_tester_code: {

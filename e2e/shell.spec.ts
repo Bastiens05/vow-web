@@ -11,16 +11,20 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
 
   await signUp(page, email);
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Marie");
-  await page.getByLabel("Second prénom").fill("Marc");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Marie");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Marc");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-06-01");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
   const firstId = new URL(page.url()).pathname.split("/")[2] ?? "";
 
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Léa");
-  await page.getByLabel("Second prénom").fill("Hugo");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Léa");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Hugo");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-08-01");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();

@@ -30,6 +30,8 @@ export async function materializeSignup(supabase: Client, userId: string, intent
       p_partner_two: intent.partnerTwo,
       p_wedding_date: intent.weddingDate,
       p_city: intent.city,
+      p_partner_one_last: intent.partnerOneLast,
+      p_partner_two_last: intent.partnerTwoLast,
     });
   }
 

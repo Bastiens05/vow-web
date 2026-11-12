@@ -15,7 +15,7 @@ export default async function NewWeddingPage() {
       <PageHeader
         eyebrow="Mariage"
         title="Créer un mariage"
-        description="Les prénoms, la date et le lieu. Vous pourrez inviter le couple juste après."
+        description="Le prénom et le nom de chaque partenaire, la date et le lieu. L'e-mail envoie l'invitation tout de suite."
       />
       <Card>
         <WeddingForm />

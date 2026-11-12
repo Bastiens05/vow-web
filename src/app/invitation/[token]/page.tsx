@@ -4,7 +4,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/page-header";
-import { formatLongDate, weddingTitle } from "@/lib/domain/format";
+import { coupleFullNames, formatLongDate, weddingTitle } from "@/lib/domain/format";
 import { invitationPath } from "@/lib/domain/paths";
 import { acceptInvitation } from "@/server/actions/weddings";
 import { previewInvitation } from "@/server/data";
@@ -58,6 +58,11 @@ export default async function InvitationPage({
             <h1 className="mt-2 font-semibold tracking-tight text-4xl">
               {weddingTitle(preview.partnerOne, preview.partnerTwo)}
             </h1>
+            {coupleFullNames(preview.partnerOne, preview.partnerOneLast, preview.partnerTwo, preview.partnerTwoLast) ? (
+              <p className="mt-2 text-sm text-muted">
+                {coupleFullNames(preview.partnerOne, preview.partnerOneLast, preview.partnerTwo, preview.partnerTwoLast)}
+              </p>
+            ) : null}
             <p className="mt-2 text-sm text-muted">
               {formatLongDate(preview.weddingDate)}
               {preview.venueName ? ` · ${preview.venueName}` : ""}
@@ -71,23 +76,25 @@ export default async function InvitationPage({
                 <Alert>{query.error}</Alert>
               </div>
             ) : null}
-            {session ? (
+            {session && session.profile.email.toLowerCase() === preview.email.toLowerCase() ? (
               <form action={acceptInvitation} className="mt-6">
                 <input type="hidden" name="token" value={token} />
                 <Button type="submit">Rejoindre le mariage</Button>
               </form>
+            ) : session ? (
+              <p className="mt-4 text-sm leading-6 text-muted">
+                Vous êtes connecté avec une autre adresse. Ouvrez cette invitation avec {preview.email}.
+              </p>
             ) : (
               <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-                <ButtonLink
-                  href={`/inscription?next=${encodeURIComponent(next)}&email=${encodeURIComponent(preview.email)}&role=${preview.role}`}
-                >
-                  Créer un compte
+                <ButtonLink href={`/connexion?next=${encodeURIComponent(next)}`}>
+                  J&apos;ai déjà un compte
                 </ButtonLink>
                 <ButtonLink
-                  href={`/connexion?next=${encodeURIComponent(next)}`}
+                  href={`/inscription?next=${encodeURIComponent(next)}&email=${encodeURIComponent(preview.email)}&role=${preview.role}`}
                   variant="secondary"
                 >
-                  J&apos;ai déjà un compte
+                  Créer un compte
                 </ButtonLink>
               </div>
             )}

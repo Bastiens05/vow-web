@@ -4,7 +4,9 @@ import { slugify } from "./slug";
 
 export type WeddingDraft = {
   partnerOne: string;
+  partnerOneLast: string;
   partnerTwo: string;
+  partnerTwoLast: string;
   weddingDate: string;
   venueName: string;
   venueCity: string;
@@ -14,16 +16,18 @@ export function validateWedding(
   input: WeddingDraft,
 ): { ok: true; value: WeddingDraft } | { ok: false; error: string } {
   const partnerOne = input.partnerOne.trim();
+  const partnerOneLast = input.partnerOneLast.trim();
   const partnerTwo = input.partnerTwo.trim();
+  const partnerTwoLast = input.partnerTwoLast.trim();
   const venueName = input.venueName.trim();
   const venueCity = input.venueCity.trim();
   const weddingDate = input.weddingDate.trim();
 
-  if (partnerOne.length < 2 || partnerTwo.length < 2) {
-    return { ok: false, error: "Indiquez les deux prénoms (au moins 2 caractères)." };
+  if (partnerOne.length < 2 || partnerTwo.length < 2 || partnerOneLast.length < 2 || partnerTwoLast.length < 2) {
+    return { ok: false, error: "Indiquez le prénom et le nom de chaque partenaire." };
   }
-  if (partnerOne.length > 80 || partnerTwo.length > 80) {
-    return { ok: false, error: "Un prénom est trop long." };
+  if ([partnerOne, partnerOneLast, partnerTwo, partnerTwoLast].some((name) => name.length > 80)) {
+    return { ok: false, error: "Un nom est trop long." };
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(weddingDate) || Number.isNaN(Date.parse(`${weddingDate}T00:00:00Z`))) {
     return { ok: false, error: "Indiquez la date du mariage." };
@@ -31,7 +35,7 @@ export function validateWedding(
   if (venueName.length > 160 || venueCity.length > 120) {
     return { ok: false, error: "Le lieu est trop long." };
   }
-  return { ok: true, value: { partnerOne, partnerTwo, weddingDate, venueName, venueCity } };
+  return { ok: true, value: { partnerOne, partnerOneLast, partnerTwo, partnerTwoLast, weddingDate, venueName, venueCity } };
 }
 
 export function validateMessage(body: string): { ok: true; value: string } | { ok: false; error: string } {

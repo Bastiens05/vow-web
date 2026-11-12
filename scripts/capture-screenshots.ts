@@ -230,12 +230,14 @@ async function main() {
   await login(shotPage, demo.vendorEmail);
   const when = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);
   await shotPage.goto("/espace/mariages/nouveau");
-  await shotPage.getByLabel("Premier prénom").fill("Ava");
-  await shotPage.getByLabel("Second prénom").fill("Noé");
+  await shotPage.getByLabel("Prénom", { exact: true }).nth(0).fill("Ava");
+  await shotPage.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await shotPage.getByLabel("Prénom", { exact: true }).nth(1).fill("Noé");
+  await shotPage.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await shotPage.getByLabel("Date du mariage").fill(when);
   await shotPage.getByRole("button", { name: "Créer le mariage" }).click();
-  await shotPage.getByLabel("E-mail du destinataire").fill(demo.coupleEmail);
-  await shotPage.getByRole("button", { name: "Créer l'invitation" }).click();
+  await shotPage.getByLabel("E-mail du couple").fill(demo.coupleEmail);
+  await shotPage.getByRole("button", { name: "Envoyer l'invitation" }).click();
   const invite = await shotPage.locator("code").first().innerText();
   await shotPage.getByRole("link", { name: "Documents" }).click();
   await shotPage.getByLabel("Ajouter un fichier").setInputFiles({

@@ -18,8 +18,10 @@ test("deux nouveaux prestataires ne voient que leur espace vide", async ({ page,
   await page.goto("/mariages");
   await expect(page.getByRole("link", { name: "Créez votre premier mariage" })).toBeVisible();
   await page.getByRole("link", { name: "Créez votre premier mariage" }).click();
-  await page.getByLabel("Premier prénom").fill("Inès");
-  await page.getByLabel("Second prénom").fill("Paul");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Inès");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Paul");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-06-19");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatLongDate, formatSlotTime, sortTimelineSlots, weddingTitle } from "./format";
+import { coupleFullNames, formatLongDate, formatSlotTime, sortTimelineSlots, weddingTitle } from "./format";
 
 describe("format", () => {
   it("formats a date in french without shifting the day", () => {
@@ -12,6 +12,8 @@ describe("format", () => {
 
   it("joins the couple names", () => {
     expect(weddingTitle("Léa", "Hugo")).toBe("Léa & Hugo");
+    expect(coupleFullNames("Léa", "Martin", "Hugo", "Bernard")).toBe("Léa Martin & Hugo Bernard");
+    expect(coupleFullNames("Léa", null, "Hugo", "")).toBe("");
   });
 });
 

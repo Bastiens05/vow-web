@@ -13,15 +13,17 @@ test("le budget et l'équipe restent isolés", async ({ page, browser }) => {
   await signUpVendor(page, ownerEmail);
   await finishOnboarding(page, `Studio ${stamp}`);
   await page.goto("/espace/mariages/nouveau");
-  await page.getByLabel("Premier prénom").fill("Inès");
-  await page.getByLabel("Second prénom").fill("Paul");
+  await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Inès");
+  await page.getByLabel("Nom", { exact: true }).nth(0).fill("Martin");
+  await page.getByLabel("Prénom", { exact: true }).nth(1).fill("Paul");
+  await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-09-12");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
   const weddingId = page.url().split("/mariage/")[1]?.split("/")[0] ?? "";
 
-  await page.getByLabel("E-mail du destinataire").fill(coupleEmail);
-  await page.getByRole("button", { name: "Créer l'invitation" }).click();
+  await page.getByLabel("E-mail du couple").fill(coupleEmail);
+  await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   const coupleLink = await page.locator("code").first().innerText();
 
   const couple = await freshPage(browser);

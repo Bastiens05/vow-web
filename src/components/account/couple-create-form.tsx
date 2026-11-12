@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { PartnerFields } from "@/components/wedding/partner-fields";
 import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,12 +14,7 @@ export function CoupleCreateForm() {
     <form action={action} className="mb-10 max-w-xl rounded-3xl border border-line bg-paper p-5 sm:p-6">
       <h2 className="text-2xl font-semibold tracking-tight">Créer notre mariage</h2>
       <div className="mt-5 grid gap-4">
-        <Field label="Premier prénom">
-          <TextInput name="partner_one" required autoComplete="given-name" placeholder="Léa" />
-        </Field>
-        <Field label="Second prénom">
-          <TextInput name="partner_two" required autoComplete="off" placeholder="Hugo" />
-        </Field>
+        <PartnerFields />
         <Field label="Date du mariage">
           <TextInput name="wedding_date" type="date" required />
         </Field>
