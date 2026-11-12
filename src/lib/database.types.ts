@@ -1098,6 +1098,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      consume_assistant_turn: { Args: { p_limit: number }; Returns: number };
       wedding_directory: {
         Args: { p_wedding_id: string };
         Returns: {
