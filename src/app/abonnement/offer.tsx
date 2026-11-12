@@ -15,7 +15,7 @@ import {
   type VendorPlan,
 } from "@/lib/domain/plans";
 import type { ActionState } from "@/server/actions/auth";
-import { chooseVendorPlan, redeemTesterCode, startSubscription } from "@/server/actions/billing";
+import { chooseVendorPlan, openBillingPortal, redeemTesterCode, startPaymentSetup } from "@/server/actions/billing";
 
 const initial: ActionState = {};
 
@@ -94,10 +94,50 @@ export function SubscribeButton({ enabled }: { enabled: boolean }) {
       </Button>
     );
   }
+  return <BillingControls enabled hasCustomer={false} testMode={false} />;
+}
+
+export function BillingControls({
+  enabled,
+  hasCustomer,
+  testMode,
+}: {
+  enabled: boolean;
+  hasCustomer: boolean;
+  testMode: boolean;
+}) {
+  if (!enabled) {
+    return (
+      <Button type="button" disabled className="w-full sm:w-auto">
+        Paiement bientôt disponible
+      </Button>
+    );
+  }
   return (
-    <form action={startSubscription}>
-      <Button type="submit">S&apos;abonner</Button>
-    </form>
+    <div className="space-y-3">
+      {testMode ? (
+        <p className="rounded-2xl border border-line bg-ivory px-4 py-3 text-sm">Mode test</p>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <form action={startPaymentSetup}>
+          <Button type="submit">Ajouter un moyen de paiement</Button>
+        </form>
+        {hasCustomer ? (
+          <form action={openBillingPortal}>
+            <Button type="submit" variant="secondary">
+              Gérer mon abonnement
+            </Button>
+          </form>
+        ) : (
+          <Button type="button" variant="secondary" disabled>
+            Gérer mon abonnement
+          </Button>
+        )}
+      </div>
+      {hasCustomer ? null : (
+        <p className="text-sm text-muted">Le portail s&apos;ouvre après l&apos;enregistrement d&apos;un moyen de paiement.</p>
+      )}
+    </div>
   );
 }
 
