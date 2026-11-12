@@ -139,3 +139,26 @@ export async function sendMemberMail(
       ),
   );
 }
+
+export function testerGrantEmailContent(input: { firstName?: string; planLabel: string; discountPercent: number; url: string }) {
+  const who = input.firstName?.trim() ? `${input.firstName.trim()}, ` : "";
+  return {
+    subject: "Invitation à rejoindre VOW",
+    heading: "Vous êtes invité sur VOW",
+    body: `${who}un accès prestataire vous est ouvert : un an avec la formule ${input.planLabel}, puis une remise de ${input.discountPercent} % sur les formules.`,
+    buttonLabel: "Rejoindre en tant que prestataire",
+    buttonUrl: input.url,
+  };
+}
+
+export async function sendTesterGrantEmail(input: {
+  to: string;
+  firstName?: string;
+  planLabel: string;
+  discountPercent: number;
+  url: string;
+}): Promise<boolean> {
+  const content = testerGrantEmailContent(input);
+  return sendEmail({ to: input.to, ...content });
+}
+

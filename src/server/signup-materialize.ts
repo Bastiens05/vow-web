@@ -22,6 +22,9 @@ export async function materializeSignup(supabase: Client, userId: string, intent
         weddings_per_year: intent.weddingsPerYear,
       });
     }
+    if (intent.plan) {
+      await supabase.rpc("choose_vendor_plan", { p_plan: intent.plan });
+    }
   }
 
   if (intent.role === "couple" && coupleIntentReady(intent)) {

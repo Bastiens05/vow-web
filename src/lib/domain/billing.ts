@@ -1,6 +1,6 @@
 export const TRIAL_DAYS = 7;
-export const PLAN_CENTS = 2999;
-export const PLAN_LABEL = "29,99 € TTC / mois";
+export const PLAN_CENTS = 2900;
+export const PLAN_LABEL = "29 € TTC / mois";
 
 export type BillingStatus = "trialing" | "active" | "expired" | "tester";
 

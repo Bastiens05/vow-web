@@ -92,8 +92,8 @@ describe("vendorAccess", () => {
     expect(decision.reason).toBe("active");
   });
 
-  it("prices the single plan at 29,99 €", () => {
-    expect(PLAN_CENTS).toBe(2999);
+  it("prices the single plan at 29 €", () => {
+    expect(PLAN_CENTS).toBe(2900);
   });
 });
 

@@ -32,7 +32,7 @@ const MINIMUM: Record<FeatureKey, VendorPlan | "couple"> = {
 };
 
 export const PLAN_OFFERS = [
-  { id: "essentiel" as const, cents: 2999, label: "Essentiel", price: "29,99 € / mois" },
+  { id: "essentiel" as const, cents: 2900, label: "Essentiel", price: "29 €/mois" },
   { id: "pro" as const, cents: 4900, label: "Pro", price: "49 € / mois" },
   { id: "studio" as const, cents: 8900, label: "Studio", price: "89 € / mois" },
 ];
@@ -88,3 +88,103 @@ export function featureEnabled(featureKey: FeatureKey): boolean {
   if (featureKey === "core" || featureKey === "guest_live") return true;
   return FLAGS[featureKey] === "true";
 }
+
+/** Copy shared by /abonnement and the public pricing section. */
+export const FEATURE_SUMMARIES: Record<Exclude<FeatureKey, "core" | "guest_live">, { title: string; text: string }> = {
+  tech_sheet: {
+    title: "Fiche technique croisée",
+    text: "Accès, puissance, stationnement. Le lieu et les prestataires lisent la même fiche.",
+  },
+  delivery: {
+    title: "Livraison sous contrôle",
+    text: "Les livraisons sont suivies, sans annonce automatique de retard.",
+  },
+  admin_docs: {
+    title: "Dossier administratif",
+    text: "Le dossier pro reste privé, partagé seulement si vous l'ouvrez.",
+  },
+  cashflow: {
+    title: "Trésorerie de saison",
+    text: "Encaissements et charges de la saison, au même endroit.",
+  },
+  references: {
+    title: "Références prouvées",
+    text: "Des références publiées seulement après confirmation du couple.",
+  },
+  anniversary: {
+    title: "Relance d'anniversaire",
+    text: "Un rappel discret, le moment venu, si vous l'avez relu.",
+  },
+  vocal_briefing: {
+    title: "Briefing vocal",
+    text: "Le briefing du jour, au départ, jamais en lecture automatique.",
+  },
+  speech_subtitles: {
+    title: "Sous-titres",
+    text: "Les prises de parole sont sous-titrées pour l'équipe qui en a besoin.",
+  },
+  crew: {
+    title: "Équipe volante",
+    text: "Les renforts du jour sont visibles, sans mélange avec vos clients.",
+  },
+};
+
+export const PLAN_SUMMARIES: Record<VendorPlan, string> = {
+  essentiel: "La vitrine, le couple, le déroulé, et les outils du jour.",
+  pro: "Comprend Essentiel, plus la saison et le suivi des couples.",
+  studio: "Comprend Pro, plus l'équipe volante.",
+};
+
+export type PlanFeatureSummary = { key: Exclude<FeatureKey, "core" | "guest_live">; title: string; text: string };
+
+export function featuresIncludedIn(plan: VendorPlan): PlanFeatureSummary[] {
+  return (Object.keys(FEATURE_SUMMARIES) as PlanFeatureSummary["key"][]).filter((key) =>
+    planIncludes(plan, MINIMUM[key] as VendorPlan),
+  ).map((key) => ({ key, ...FEATURE_SUMMARIES[key] }));
+}
+
+export function featuresIntroducedIn(plan: VendorPlan): PlanFeatureSummary[] {
+  return (Object.keys(FEATURE_SUMMARIES) as PlanFeatureSummary["key"][]).filter((key) => MINIMUM[key] === plan).map((key) => ({
+    key,
+    ...FEATURE_SUMMARIES[key],
+  }));
+}
+
+export function planLabel(plan: VendorPlan, comped = false): string {
+  const offer = PLAN_OFFERS.find((item) => item.id === plan);
+  const label = offer?.label ?? "Essentiel";
+  return comped && plan === "studio" ? `${label} (offert)` : label;
+}
+
+export function effectiveVendorPlan(plan: string | null | undefined): VendorPlan {
+  return plan && isVendorPlan(plan) ? plan : "essentiel";
+}
+
+export function testerOfferLabel(freeUntil: string, discountPercent: number): string {
+  const date = new Date(freeUntil).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
+  return `Offre testeur : gratuit jusqu'au ${date}, puis -${discountPercent} % à vie`;
+}
+
+/** Monthly price after a percent off, rounded down to the cent. */
+export function discountedMonthlyCents(cents: number, percent: number): number {
+  if (percent <= 0) return cents;
+  if (percent >= 100) return 0;
+  return Math.floor((cents * (100 - percent)) / 100);
+}
+
+export function formatMonthlyEuros(cents: number): string {
+  const euros = Math.floor(cents / 100);
+  const rest = cents % 100;
+  if (rest === 0) return `${euros} €/mois`;
+  return `${euros},${String(rest).padStart(2, "0")} €/mois`;
+}
+
+export function testerInviteHref(email: string, token: string): string {
+  const params = new URLSearchParams({ role: "vendor", email, invite: token });
+  return `/inscription?${params.toString()}`;
+}
+
+export function vendorSignupHref(plan: VendorPlan): string {
+  return `/inscription?role=vendor&plan=${plan}`;
+}
+

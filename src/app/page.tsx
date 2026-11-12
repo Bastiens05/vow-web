@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Landing } from "@/components/marketing/landing";
+import { Pricing } from "@/components/marketing/pricing";
 import { landingFor } from "@/lib/domain/auth-routing";
 import { listMyWeddings } from "@/server/data";
 import { getSession } from "@/server/session";
@@ -27,5 +28,10 @@ export default async function HomePage() {
       }),
     );
   }
-  return <Landing />;
+  return (
+    <>
+      <Landing />
+      <Pricing />
+    </>
+  );
 }
