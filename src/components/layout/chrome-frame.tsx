@@ -19,7 +19,7 @@ export function ChromeFrame({
 }) {
   const path = usePathname() ?? "";
   const pub = isPublicPath(path);
-  const authDesk = path === "/connexion" || path === "/inscription" || path === "/bienvenue";
+  const authDesk = path === "/connexion" || path === "/inscription" || path === "/bienvenue" || path === "/mot-de-passe" || path === "/mot-de-passe-oublie";
   if (pub) {
     return (
       <>

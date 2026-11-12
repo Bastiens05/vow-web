@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     token_hash: tokenHash,
   });
   if (error) return failure;
-  const destination = await landingPath(supabase, next, true);
+  const destination = type === "recovery" || next.startsWith("/mot-de-passe") ? "/mot-de-passe" : await landingPath(supabase, next, true);
   const success = NextResponse.redirect(new URL(destination, origin));
   pending.forEach(({ name, value, options }) => success.cookies.set(name, value, options));
   success.cookies.set("vow-auth-next", "", { path: "/", maxAge: 0 });

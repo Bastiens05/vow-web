@@ -1,45 +1,33 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
+import { PasswordField } from "@/components/auth/password-field";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
-import { sendMagicLink, signIn, signUp, type ActionState } from "@/server/actions/auth";
+import { signIn, signUp, type ActionState } from "@/server/actions/auth";
 
 const initial: ActionState = {};
 
-export function LoginForm({ nextPath }: { nextPath: string }) {
+export function LoginForm({ nextPath, initialEmail = "" }: { nextPath: string; initialEmail?: string }) {
   const [state, action, pending] = useActionState(signIn, initial);
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={nextPath} />
       <Field label="E-mail">
-        <TextInput name="email" type="email" autoComplete="email" required />
+        <TextInput name="email" type="email" autoComplete="email" required defaultValue={initialEmail} />
       </Field>
-      <Field label="Mot de passe">
-        <TextInput name="password" type="password" autoComplete="current-password" required minLength={8} />
-      </Field>
+      <PasswordField label="Mot de passe" name="password" autoComplete="current-password" />
       {state.error ? <Alert>{state.error}</Alert> : null}
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Connexion…" : "Se connecter"}
       </Button>
-    </form>
-  );
-}
-
-export function MagicLinkForm({ nextPath }: { nextPath: string }) {
-  const [state, action, pending] = useActionState(sendMagicLink, initial);
-  return (
-    <form action={action} className="space-y-4">
-      <input type="hidden" name="next" value={nextPath} />
-      <Field label="E-mail" hint="Pour un compte déjà créé.">
-        <TextInput name="email" type="email" autoComplete="email" required />
-      </Field>
-      {state.error ? <Alert>{state.error}</Alert> : null}
-      {state.success ? <Alert tone="success">{state.success}</Alert> : null}
-      <Button type="submit" variant="secondary" disabled={pending} className="w-full">
-        {pending ? "Envoi…" : "Recevoir un lien magique"}
-      </Button>
+      <p className="text-center text-sm">
+        <Link href="/mot-de-passe-oublie" className="text-muted underline">
+          Mot de passe oublié ?
+        </Link>
+      </p>
     </form>
   );
 }
@@ -75,9 +63,7 @@ export function SignupForm({
           readOnly={Boolean(defaultEmail)}
         />
       </Field>
-      <Field label="Mot de passe" hint="8 caractères minimum.">
-        <TextInput name="password" type="password" autoComplete="new-password" required minLength={8} />
-      </Field>
+      <PasswordField label="Mot de passe" name="password" autoComplete="new-password" hint="8 caractères minimum." />
       <fieldset className="space-y-2">
         <legend className="mb-1.5 text-sm text-ink">Je suis</legend>
         <div className="grid grid-cols-2 gap-2">

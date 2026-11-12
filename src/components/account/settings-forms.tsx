@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, type ChangeEvent } from "react";
+import { PasswordField } from "@/components/auth/password-field";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
@@ -165,12 +166,8 @@ export function PasswordForm() {
   const [state, action, pending] = useActionState(changePassword, {});
   return (
     <form action={action} className="space-y-3">
-      <Field label="Nouveau mot de passe">
-        <TextInput name="password" type="password" required minLength={8} autoComplete="new-password" />
-      </Field>
-      <Field label="Confirmation">
-        <TextInput name="confirm" type="password" required minLength={8} autoComplete="new-password" />
-      </Field>
+      <PasswordField label="Nouveau mot de passe" name="password" autoComplete="new-password" hint="8 caractères minimum." />
+      <PasswordField label="Confirmation" name="confirm" autoComplete="new-password" />
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
       <Button type="submit" variant="secondary" disabled={pending}>

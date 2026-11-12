@@ -3,6 +3,8 @@ export function isPublicPath(pathname: string): boolean {
     pathname === "/" ||
     pathname === "/connexion" ||
     pathname === "/inscription" ||
+    pathname === "/mot-de-passe" ||
+    pathname === "/mot-de-passe-oublie" ||
     pathname === "/bienvenue" ||
     pathname === "/cgu" ||
     pathname === "/confidentialite" ||

@@ -61,7 +61,7 @@ npx supabase start
 npx supabase migration up
 ```
 
-`supabase/config.toml` désactive la confirmation d'e-mail en local pour que les tests puissent créer un compte sans boîte mail. Les e-mails partent vers Mailpit : `http://127.0.0.1:54324`.
+`supabase/config.toml` désactive la confirmation d'e-mail en local (`enable_confirmations = false`) pour que l'inscription ouvre l'espace tout de suite. Les e-mails de réinitialisation partent vers Mailpit : `http://127.0.0.1:54324`.
 
 Le fichier `supabase/seed.sql` est volontairement vide : le seed passe par l'API Admin, qui reste compatible avec le schéma Auth.
 
@@ -103,11 +103,13 @@ Authentication → URL Configuration :
   - `https://<domaine-vercel>/auth/callback`
   - `https://<domaine-vercel>/auth/confirm`
 
-Authentication → Providers : e-mail activé. En production, laissez la confirmation d'e-mail activée : l'application gère `/auth/callback` (code PKCE) et `/auth/confirm` (`token_hash`). Les modèles d'e-mail par défaut, qui utilisent `{{ .ConfirmationURL }}`, conviennent tant que l'URL de redirection est autorisée.
+Authentication → Providers → Email : e-mail activé, et **« Confirm email » désactivé**. Sinon l'inscription crée le compte mais n'ouvre pas de session, et l'espace n'est pas créé tout de suite. En local, `supabase/config.toml` a déjà `enable_confirmations = false`.
 
-Mot de passe minimum recommandé : 8 caractères. Le formulaire le vérifie déjà.
+L'inscription et la connexion utilisent l'e-mail et un mot de passe d'au moins 8 caractères. Le seul e-mail d'authentification prévu est « Mot de passe oublié ? » : Supabase envoie un lien de réinitialisation vers `/auth/callback?next=/mot-de-passe`, qui dépose la personne sur la page pour choisir un nouveau mot de passe. `/auth/confirm` accepte aussi un `token_hash` de type `recovery`. Les URL autorisées doivent inclure `https://<site>/auth/callback` et `https://<site>/auth/confirm`.
 
-La connexion envoie un lien (`{{ .ConfirmationURL }}` du modèle par défaut). Il passe par Supabase puis revient sur `/auth/callback`, qui ouvre la session. `/auth/confirm` accepte aussi un `token_hash` si le modèle le construit ainsi. Dans le tableau Supabase, les URL autorisées doivent inclure exactement `https://<site>/auth/callback` et `https://<site>/auth/confirm`. Si « Confirm email » est actif, l'inscription affiche « Vérifiez votre boîte mail ». Le champ de code à 6 chiffres n'apparaît que si `NEXT_PUBLIC_AUTH_OTP_CODE=true` et que le modèle contient `{{ .Token }}`. Le mot de passe reste disponible. Google et Apple ne s'affichent que si `NEXT_PUBLIC_AUTH_GOOGLE` ou `NEXT_PUBLIC_AUTH_APPLE` vaut `true`.
+Deux navigateurs, ou deux fenêtres privées, gardent deux sessions. Deux onglets du même profil partagent les cookies : la seconde connexion remplace la première.
+
+La double sécurité par SMS reste cachée tant que `SMS_ENABLED` n'est pas `true`. L'activer ne suffit pas : Supabase a besoin d'un fournisseur SMS (Twilio ou équivalent) et de `[auth.mfa.phone]`. Ne pas l'activer tant que ce fournisseur n'est pas en place.
 
 Les e-mails de l'application (invitation, rappel, acompte, demande de devis, devis, facture, contrat, alerte Jour J) passent par l'API HTTP de Resend. `RESEND_API_KEY` et `EMAIL_FROM` doivent être tous les deux définis. Sinon l'envoi est ignoré et le comportement actuel (lien à copier, alerte dans l'application) reste en place. Les rappels respectent le réglage « Rappels avant le mariage » et le lien de désinscription en bas du message. Les invitations utilisent un lien magique Supabase quand `SUPABASE_SERVICE_ROLE_KEY` est présent : le destinataire arrive dans le mariage. Sans cette clé, le bouton ouvre la page d'invitation.
 
