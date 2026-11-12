@@ -75,7 +75,9 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   });
   if (error) return { error: messageFromError(error) };
   if (!data.session || !data.user) {
-    return { success: "Vérifiez votre boîte mail. Le lien confirme votre compte." };
+    return {
+      error: "Le compte est créé, mais Supabase attend encore une confirmation par e-mail. Coupez « Confirm email » pour entrer tout de suite.",
+    };
   }
   if (!destination.startsWith("/invitation/") && !destination.startsWith("/equipe/")) {
     await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
@@ -202,6 +204,41 @@ function otpError(message: string, code: boolean): string {
     return "Aucun compte pour cette adresse. Créez-le d'abord.";
   }
   return code ? "L'envoi du code a échoué. Réessayez." : "L'envoi du lien a échoué. Réessayez.";
+}
+
+export async function requestPasswordReset(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const email = normalizeEmail(String(formData.get("email") ?? ""));
+  if (!isValidEmail(email)) return { error: "Indiquez un e-mail valide." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl()}/auth/callback?next=/mot-de-passe`,
+  });
+  if (error) return { error: "L'envoi n'a pas abouti. Réessayez dans un instant." };
+  return { success: "Si un compte existe pour cette adresse, un e-mail permet de choisir un nouveau mot de passe." };
+}
+
+export async function setNewPassword(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireSession();
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+  if (password.length < 8) return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+  if (password !== confirm) return { error: "Les deux mots de passe ne correspondent pas." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: messageFromError(error) };
+  redirect("/espace");
+}
+
+export async function preparePhoneFactor(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireSession();
+  if (process.env.SMS_ENABLED !== "true") return { error: "Le SMS n'est pas activé." };
+  const phone = String(formData.get("phone") ?? "").replace(/\s/g, "");
+  if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
+    return { error: "Indiquez le numéro au format international, par exemple +33600000000." };
+  }
+  return {
+    success: "Le numéro est noté ici seulement. L'envoi du code attend un fournisseur SMS dans Supabase. Rien n'est activé.",
+  };
 }
 
 export async function signOut() {

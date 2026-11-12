@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     : await supabase.auth.verifyOtp({ type: type as OtpType, token_hash: tokenHash ?? "" });
   if (error) return failure;
 
-  const destination = await landingPath(supabase, next, true);
+  const destination = type === "recovery" || next.startsWith("/mot-de-passe") ? "/mot-de-passe" : await landingPath(supabase, next, true);
   success.headers.set("location", new URL(destination, origin).toString());
   success.cookies.set("vow-auth-next", "", { path: "/", maxAge: 0 });
   return success;

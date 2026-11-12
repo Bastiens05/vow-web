@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AuthFlow } from "@/components/auth/auth-flow";
 import { Alert } from "@/components/ui/alert";
-import { configuredAuthProviders, otpCodeEnabled } from "@/lib/auth-providers";
 import { safeNextPath } from "@/lib/domain/paths";
 
 export const metadata: Metadata = { title: "Connexion" };
@@ -12,7 +11,6 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string; email?: string }>;
 }) {
   const params = await searchParams;
-  const providers = configuredAuthProviders();
   const notice =
     params.error === "lien" ? (
       <Alert>Le lien a expiré ou n&apos;est plus valide.</Alert>
@@ -24,9 +22,6 @@ export default async function LoginPage({
       mode="login"
       nextPath={safeNextPath(params.next)}
       initialEmail={params.email ?? ""}
-      google={providers.google}
-      apple={providers.apple}
-      otp={otpCodeEnabled()}
       notice={notice}
     />
   );

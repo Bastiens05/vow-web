@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ShareForm } from "@/components/account/share-form";
+import { PhoneFactorForm } from "@/components/account/phone-factor";
 import {
   AccountNameForm,
   BusinessForm,
@@ -121,9 +122,16 @@ export default async function SettingsPage() {
         </Card>
       ) : null}
       <Card className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Mot de passe</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Changer mon mot de passe</h2>
+        <p className="text-sm leading-6 text-muted">Le mot de passe choisi ici remplace l&apos;ancien. Huit caractères au minimum.</p>
         <PasswordForm />
       </Card>
+      {process.env.SMS_ENABLED === "true" ? (
+        <Card className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Double sécurité par SMS</h2>
+          <PhoneFactorForm />
+        </Card>
+      ) : null}
       <Card>
         <h2 className="mb-3 text-lg font-semibold tracking-tight">Sortie</h2>
         <SignOutButton />

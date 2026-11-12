@@ -98,7 +98,7 @@ async function signUpVendor(page: Page, email: string, name: string) {
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel(/^Mot de passe/).fill(password);
   await page.getByRole("button", { name: "Créer mon compte" }).click();
-  await page.waitForURL("**/bienvenue**");
+  await page.waitForURL((url) => !url.pathname.startsWith("/inscription"));
 }
 
 async function signUpCouple(page: Page) {

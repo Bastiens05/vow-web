@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthFlow } from "@/components/auth/auth-flow";
-import { configuredAuthProviders, otpCodeEnabled } from "@/lib/auth-providers";
 import { safeNextPath } from "@/lib/domain/paths";
 
 export const metadata: Metadata = { title: "Inscription" };
@@ -14,7 +13,6 @@ export default async function SignupPage({
   const params = await searchParams;
   const nextPath = safeNextPath(params.next, "");
   const lockedRole = params.role === "vendor" || params.role === "couple" ? params.role : undefined;
-  const providers = configuredAuthProviders();
   if (params.role === "login") redirect(`/connexion?next=${encodeURIComponent(nextPath || "/espace")}`);
   return (
     <AuthFlow
@@ -22,9 +20,6 @@ export default async function SignupPage({
       nextPath={nextPath}
       initialEmail={params.email ?? ""}
       lockedRole={lockedRole}
-      google={providers.google}
-      apple={providers.apple}
-      otp={otpCodeEnabled()}
     />
   );
 }
