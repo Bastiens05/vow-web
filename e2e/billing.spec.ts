@@ -97,7 +97,6 @@ async function signUpVendor(page: Page, email: string) {
 async function signUpCouple(page: Page, email: string) {
   await page.goto("/inscription");
   await revealPasswordSignup(page, "Couple");
-  await page.getByLabel("Nom complet").fill("Léa Martin");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel(/^Mot de passe/).fill(password);
   await page.getByRole("radio", { name: "Couple" }).check();

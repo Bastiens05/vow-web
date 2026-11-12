@@ -56,6 +56,10 @@ export function vendorIntentReady(intent: SignupIntent): boolean {
   return Boolean(intent.category && intent.businessName.length >= 2 && intent.city.length >= 2);
 }
 
+export function coupleProfileName(intent: Pick<SignupIntent, "partnerOne" | "partnerOneLast">): string {
+  return [intent.partnerOne, intent.partnerOneLast].map((part) => part.trim()).filter(Boolean).join(" ").slice(0, 120);
+}
+
 export function coupleIntentReady(intent: SignupIntent): boolean {
   return Boolean(
     intent.partnerOne.length >= 2 &&
@@ -87,7 +91,7 @@ export function intentMetadata(intent: SignupIntent): Record<string, string> {
     data.partner_two_last = intent.partnerTwoLast;
     data.wedding_date = intent.weddingDate;
     data.city = intent.city;
-    if (!data.full_name) data.full_name = intent.partnerOne;
+    if (!data.full_name) data.full_name = coupleProfileName(intent);
   }
   if (intent.testerCode) data.tester_code = intent.testerCode;
   if (intent.plan) data.plan = intent.plan;

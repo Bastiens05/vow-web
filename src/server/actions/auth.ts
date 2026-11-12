@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { isVendorCategory } from "@/lib/domain/categories";
 import { isValidEmail } from "@/lib/domain/auth-routing";
 import { safeNextPath } from "@/lib/domain/paths";
-import { coupleIntentReady, intentMetadata, readSignupIntent, vendorIntentReady } from "@/lib/domain/signup-intent";
+import { coupleIntentReady, coupleProfileName, intentMetadata, readSignupIntent, vendorIntentReady } from "@/lib/domain/signup-intent";
 import { slugify } from "@/lib/domain/slug";
 import { normalizeEmail } from "@/lib/domain/validation";
 import { otpCodeEnabled } from "@/lib/auth-providers";
@@ -45,7 +45,10 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   const password = String(formData.get("password") ?? "");
   const role = readRole(formData.get("role"));
   const intent = readSignupIntent(formData, role);
-  const fullName = intent.fullName || intent.businessName || intent.partnerOne;
+  const coupleName = coupleProfileName(intent);
+  const fullName = role === "couple" && coupleIntentReady(intent)
+    ? coupleName
+    : intent.fullName || intent.businessName || coupleName;
   const requested = safeNextPath(formData.get("next"), "");
 
   if (fullName.length < 2) return { error: "Indiquez votre nom." };
