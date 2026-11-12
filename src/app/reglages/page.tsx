@@ -13,7 +13,6 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
-import { openCoupleDemo } from "@/server/actions/account";
 import { rotateCalendar } from "@/server/actions/suite";
 import { requireSession } from "@/server/session";
 import { AvailabilityForm, TeamInviteForm } from "./extras";
@@ -125,17 +124,6 @@ export default async function SettingsPage() {
         <h2 className="text-lg font-semibold tracking-tight">Mot de passe</h2>
         <PasswordForm />
       </Card>
-      {vendor ? (
-        <Card className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Essai mariés</h2>
-          <p className="text-sm leading-6 text-muted">
-            Un mariage démo, à votre nom, séparé de vos clients. Vous y testez l&apos;espace mariés, puis vous pouvez le supprimer.
-          </p>
-          <form action={openCoupleDemo}>
-            <Button type="submit">Tester l&apos;espace mariés</Button>
-          </form>
-        </Card>
-      ) : null}
       <Card>
         <h2 className="mb-3 text-lg font-semibold tracking-tight">Sortie</h2>
         <SignOutButton />

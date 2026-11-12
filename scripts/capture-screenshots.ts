@@ -194,11 +194,6 @@ async function main() {
       });
       await page.locator("main").screenshot({ path: `${outDir}/mobile-fiche-photographe.png` });
       console.log("mobile-fiche-photographe");
-      await page.goto("/espace");
-      await page.getByRole("button", { name: "Tester l'espace mariés" }).click();
-      await page.getByText("Vous testez l'espace mariés.").waitFor();
-      await page.screenshot({ path: `${outDir}/mobile-demo-maries.png` });
-      console.log("mobile-demo-maries");
     }
 
     await context.close();

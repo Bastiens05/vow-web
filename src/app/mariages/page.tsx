@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { WeddingDirectory } from "@/components/wedding/wedding-directory";
-import { openCoupleDemo } from "@/server/actions/account";
 import { listMyWeddings } from "@/server/data";
 import { requireSession } from "@/server/session";
 
@@ -31,13 +30,6 @@ export default async function WeddingsPage() {
             {vendor ? <ButtonLink href="/espace/mariages/nouveau">Créez votre premier mariage</ButtonLink> : <p>Une invitation vous ouvrira l&apos;espace.</p>}
           </EmptyState>
         </div>
-      ) : null}
-      {vendor ? (
-        <form action={openCoupleDemo} className="mb-8">
-          <Button type="submit" variant="secondary">
-            Tester l&apos;espace mariés
-          </Button>
-        </form>
       ) : null}
       <WeddingDirectory weddings={weddings} />
     </div>

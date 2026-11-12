@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isVendorCategory } from "@/lib/domain/categories";
+import { coupleIntentReady, readSignupIntent } from "@/lib/domain/signup-intent";
 import { slugify } from "@/lib/domain/slug";
 import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
@@ -103,27 +104,19 @@ export async function saveLogo(path: string): Promise<ActionState> {
   return { success: "Logo enregistré." };
 }
 
-export async function openCoupleDemo() {
+export async function createCoupleWedding(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireSession();
-  if (session.profile.role !== "vendor") redirect("/espace");
+  if (session.profile.role !== "couple") return { error: "Réservé aux mariés." };
+  const intent = readSignupIntent(formData, "couple");
+  if (!coupleIntentReady(intent)) return { error: "Indiquez les deux prénoms et la date du mariage." };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("open_couple_demo");
-  if (error || !data) redirect("/espace");
+  const { data, error } = await supabase.rpc("create_couple_wedding", {
+    p_partner_one: intent.partnerOne,
+    p_partner_two: intent.partnerTwo,
+    p_wedding_date: intent.weddingDate,
+    p_city: intent.city,
+  });
+  if (error || !data) return { error: error ? messageFromError(error) : "Le mariage n'a pas pu être créé." };
+  revalidatePath("/espace");
   redirect(`/mariage/${data}`);
-}
-
-export async function leaveCouplePreview(formData: FormData) {
-  await requireSession();
-  const weddingId = String(formData.get("wedding_id") ?? "");
-  const supabase = await createClient();
-  await supabase.rpc("leave_couple_preview", { p_wedding_id: weddingId });
-  revalidatePath(`/mariage/${weddingId}`);
-  redirect(weddingId ? `/mariage/${weddingId}` : "/espace");
-}
-
-export async function deleteCoupleDemo() {
-  await requireSession();
-  const supabase = await createClient();
-  await supabase.rpc("delete_couple_demo");
-  redirect("/mariages");
 }
