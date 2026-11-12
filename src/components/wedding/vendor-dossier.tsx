@@ -4,11 +4,10 @@ import { SignaturePanel } from "@/components/wedding/signature-panel";
 import { Card } from "@/components/ui/card";
 import { categoryLabel, isVendorCategory, type VendorCategory } from "@/lib/domain/categories";
 import { canSeeSheet } from "@/lib/domain/trades";
-import { requestsFor } from "@/lib/domain/vault";
 import { stripeEnabled } from "@/server/stripe";
+import { DocumentRequests } from "@/components/wedding/document-requests-panel";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet } from "@/server/data";
-import { shareVaultFromForm } from "@/server/actions/vault";
 
 export async function VendorDossier({
   weddingId,
@@ -38,11 +37,6 @@ export async function VendorDossier({
   const showGuests = tradeCategory !== null && canSeeSheet("vendor", tradeCategory, "guests");
   const sheet = await getPracticalSheet(weddingId, { photos: showPhotos, guests: showGuests });
   const supabase = await createClient();
-  const { data: vault } = await supabase.from("vault_items").select("id, kind, label, file_name").eq("wedding_id", weddingId);
-  const { data: shares } = await supabase.from("vault_shares").select("item_id, vendor_user_id").eq("vendor_user_id", vendorId);
-  const shared = new Set((shares ?? []).map((row) => row.item_id));
-  const items = vault ?? [];
-  const requests = requestsFor(tradeCategory);
   const { data: profile } = await supabase.from("vendor_profiles").select("id").eq("user_id", vendorId).maybeSingle();
   const { data: deposits } = profile
     ? await supabase.from("deposits").select("id, amount_cents, status").eq("wedding_id", weddingId).eq("vendor_id", profile.id)
@@ -58,36 +52,7 @@ export async function VendorDossier({
         {phone || email ? <p className="mt-2 text-sm text-muted">{[phone, email].filter(Boolean).join(" · ")}</p> : null}
       </header>
       <Card>
-        <h3 className="text-lg font-semibold tracking-tight">Documents demandés</h3>
-        <ul className="mt-4 divide-y divide-line">
-          {requests.map((request) => {
-            const match = items.find((item) => item.kind === request.kind);
-            const ready = Boolean(match && shared.has(match.id));
-            return (
-              <li key={request.kind} className="flex items-center justify-between gap-3 py-3">
-                <span className="inline-flex items-center gap-2 text-sm">
-                  <span className={`h-2 w-2 rounded-full ${ready ? "bg-ok" : "bg-muted"}`} aria-hidden />
-                  {request.label}
-                </span>
-                {couple && match && !ready ? (
-                  <form action={shareVaultFromForm}>
-                    <input type="hidden" name="wedding_id" value={weddingId} />
-                    <input type="hidden" name="item_id" value={match.id} />
-                    <input type="hidden" name="vendor_user_id" value={vendorId} />
-                    <button type="submit" className="text-sm underline">Partager</button>
-                  </form>
-                ) : (
-                  <span className="text-xs text-muted">{ready ? "Partagé" : couple ? "Dans le coffre" : "En attente"}</span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-        {couple ? (
-          <Link href={`/mariage/${weddingId}/coffre`} className="mt-3 inline-flex min-h-11 items-center text-sm underline">
-            Ouvrir le coffre
-          </Link>
-        ) : null}
+        <DocumentRequests weddingId={weddingId} vendorUserId={vendorId} vendorName={name} couple={couple} />
       </Card>
       <Card>
         <h3 className="text-lg font-semibold tracking-tight">Contrats</h3>

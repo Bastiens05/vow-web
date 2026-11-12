@@ -1054,6 +1054,72 @@ export type Database = {
           revoked_at?: string | null;
         }
       >;
+      vendor_document_templates: Table<
+        {
+          id: string;
+          vendor_id: string;
+          title: string;
+          note: string;
+          required: boolean;
+          offset_days: number | null;
+          position: number;
+          created_at: string;
+        },
+        {
+          vendor_id: string;
+          title: string;
+          note?: string;
+          required?: boolean;
+          offset_days?: number | null;
+          position?: number;
+        },
+        {
+          title?: string;
+          note?: string;
+          required?: boolean;
+          offset_days?: number | null;
+          position?: number;
+        }
+      >;
+      wedding_document_requests: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          template_id: string | null;
+          title: string;
+          note: string;
+          required: boolean;
+          due_on: string | null;
+          position: number;
+          status: "needed" | "sent" | "validated" | "correction";
+          file_path: string | null;
+          file_name: string | null;
+          correction_note: string;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        },
+        {
+          wedding_id: string;
+          vendor_id: string;
+          template_id?: string | null;
+          title: string;
+          note?: string;
+          required?: boolean;
+          due_on?: string | null;
+          position?: number;
+          status?: "needed" | "sent" | "validated" | "correction";
+        },
+        {
+          status?: "needed" | "sent" | "validated" | "correction";
+          file_path?: string | null;
+          file_name?: string | null;
+          correction_note?: string;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+        }
+      >;
       tester_codes: Table<
         {
           id: string;
@@ -1352,6 +1418,12 @@ export type Database = {
         };
         Returns: string;
       };
+      add_wedding_document_request: {
+        Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };
+        Returns: string;
+      };
+      submit_document_request: { Args: { p_id: string; p_path: string; p_name: string }; Returns: undefined };
+      review_document_request: { Args: { p_id: string; p_status: string; p_note: string }; Returns: undefined };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       undo_timeline_shift: {
         Args: {

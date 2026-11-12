@@ -16,6 +16,9 @@ import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { rotateCalendar } from "@/server/actions/suite";
 import { requireSession } from "@/server/session";
+import { ClientDocumentSettings } from "@/components/account/client-document-settings";
+import { documentSuggestions } from "@/lib/domain/client-documents";
+import { isVendorCategory } from "@/lib/domain/categories";
 import { AvailabilityForm, TeamInviteForm } from "./extras";
 
 export const metadata: Metadata = { title: "Réglages" };
@@ -25,6 +28,14 @@ export default async function SettingsPage() {
   const vendor = session.profile.role === "vendor";
   const owner = Boolean(session.vendor && session.vendor.user_id === session.userId);
   const supabase = await createClient();
+  const { data: templates } = owner && session.vendor
+    ? await supabase
+        .from("vendor_document_templates")
+        .select("id, title, note, required, offset_days")
+        .eq("vendor_id", session.vendor.id)
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true })
+    : { data: [] };
   const { data: feedToken } = await supabase.rpc("ensure_calendar_feed");
   const feed = feedToken ? `${siteUrl()}/api/calendar/${feedToken}` : "";
   const webcal = feed.replace(/^https?:/, "webcal:");
@@ -64,6 +75,20 @@ export default async function SettingsPage() {
               </ButtonLink>
             ) : null}
           </div>
+        </Card>
+      ) : null}
+      {owner && session.vendor ? (
+        <Card>
+          <ClientDocumentSettings
+            templates={(templates ?? []).map((item) => ({
+              id: item.id,
+              title: item.title,
+              note: item.note,
+              required: item.required,
+              offsetDays: item.offset_days,
+            }))}
+            suggestions={documentSuggestions(isVendorCategory(session.vendor.category) ? session.vendor.category : null)}
+          />
         </Card>
       ) : null}
       <Card className="space-y-4">
