@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { CodeForm } from "@/app/admin/code-form";
-import { TesterOfferBoard, type TesterGrantRow } from "@/components/admin/tester-offer-board";
+import { TesterOfferBoard, type ShareCodeRow, type TesterGrantRow } from "@/components/admin/tester-offer-board";
 import { categoryLabel } from "@/lib/domain/categories";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { vendorAccess } from "@/lib/domain/billing";
@@ -19,7 +18,7 @@ export default async function AdminPage() {
     supabase.from("vendor_profiles").select("id, business_name, category, city, user_id, weddings_per_year").order("business_name"),
     supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
     supabase.from("profiles").select("id, email, full_name"),
-    supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, access_until").order("created_at", { ascending: false }),
+    supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, grant_type, plan, discount_percent, code_text, revoked_at, created_at").order("created_at", { ascending: false }),
     supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, grant_type, status, token, created_at").order("created_at", { ascending: false }),
     supabase.from("grant_notices").select("grant_id, activated_at"),
   ]);
@@ -31,7 +30,7 @@ export default async function AdminPage() {
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
       <p className="text-xs font-medium text-gold-deep">Administration</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">Prestataires</h1>
-      <p className="mt-2 text-sm text-muted">Essais, abonnements et codes. Le code saisi ici n&apos;est pas conservé en clair.</p>
+      <p className="mt-2 text-sm text-muted">Essais, abonnements et invitations.</p>
       <div className="mt-8 overflow-x-auto rounded-3xl border border-line bg-paper">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead className="text-muted">
@@ -74,34 +73,20 @@ export default async function AdminPage() {
         grants={(grants ?? []).flatMap((grant): TesterGrantRow[] =>
           isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan, pending: pendingGrants.has(grant.id) }] : [],
         )}
+        codes={(codes ?? []).map((code): ShareCodeRow => ({
+          id: code.id,
+          label: code.label,
+          codeText: code.code_text,
+          maxUses: code.max_uses,
+          useCount: code.use_count,
+          expiresAt: code.expires_at,
+          grantType: code.grant_type === "tester" || code.grant_type === "lifetime" ? code.grant_type : null,
+          plan: code.plan && isVendorPlan(code.plan) ? code.plan : null,
+          discountPercent: code.discount_percent,
+          revoked: Boolean(code.revoked_at),
+          createdAt: code.created_at,
+        }))}
       />
-      <section className="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-3xl border border-line bg-paper p-5">
-          <h2 className="text-lg font-semibold tracking-tight">Nouveau code</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Sans date de fin, l&apos;accès reste ouvert. Le nombre d&apos;utilisations est un maximum.
-          </p>
-          <div className="mt-4">
-            <CodeForm />
-          </div>
-        </div>
-        <div className="rounded-3xl border border-line bg-paper p-5">
-          <h2 className="text-lg font-semibold tracking-tight">Codes</h2>
-          <ul className="mt-4 divide-y divide-line">
-            {(codes ?? []).length === 0 ? <li className="py-3 text-sm text-muted">Aucun code.</li> : null}
-            {(codes ?? []).map((code) => (
-              <li key={code.id} className="py-3 text-sm">
-                <p className="font-medium">{code.label}</p>
-                <p className="text-muted">
-                  {code.use_count}/{code.max_uses} utilisations
-                  {code.access_until ? ` · jusqu'au ${new Date(code.access_until).toLocaleDateString("fr-FR")}` : " · sans date de fin"}
-                  {code.expires_at ? ` · saisir avant le ${new Date(code.expires_at).toLocaleDateString("fr-FR")}` : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
     </div>
   );
 }

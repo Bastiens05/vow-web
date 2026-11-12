@@ -1108,6 +1108,11 @@ export type Database = {
           use_count: number;
           expires_at: string | null;
           access_until: string | null;
+          grant_type: "tester" | "lifetime" | null;
+          plan: "essentiel" | "pro" | "studio" | null;
+          discount_percent: number | null;
+          code_text: string | null;
+          revoked_at: string | null;
           created_at: string;
         },
         {
@@ -1118,6 +1123,11 @@ export type Database = {
           use_count?: number;
           expires_at?: string | null;
           access_until?: string | null;
+          grant_type?: "tester" | "lifetime" | null;
+          plan?: "essentiel" | "pro" | "studio" | null;
+          discount_percent?: number | null;
+          code_text?: string | null;
+          revoked_at?: string | null;
         },
         {
           label?: string;
@@ -1125,6 +1135,11 @@ export type Database = {
           use_count?: number;
           expires_at?: string | null;
           access_until?: string | null;
+          grant_type?: "tester" | "lifetime" | null;
+          plan?: "essentiel" | "pro" | "studio" | null;
+          discount_percent?: number | null;
+          code_text?: string | null;
+          revoked_at?: string | null;
         }
       >;
       recommendation_events: Table<
@@ -1379,6 +1394,18 @@ export type Database = {
         Args: { p_label: string; p_code: string; p_max_uses: number; p_expires: string | null; p_access_until: string | null };
         Returns: string;
       };
+      create_share_code: {
+        Args: {
+          p_grant_type: string;
+          p_plan: string;
+          p_discount: number | null;
+          p_max_uses: number;
+          p_expires: string | null;
+          p_code: string;
+        };
+        Returns: string;
+      };
+      revoke_share_code: { Args: { p_id: string }; Returns: undefined };
       redeem_tester_code: { Args: { p_code: string }; Returns: string };
       choose_vendor_plan: { Args: { p_plan: string }; Returns: string };
       lookup_tester_invite: {

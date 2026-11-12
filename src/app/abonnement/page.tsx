@@ -70,10 +70,10 @@ export default async function SubscriptionPage() {
       </section>
       {!comped ? (
         <section className="mt-4 rounded-3xl border border-line bg-paper p-6">
-          <h2 className="text-lg font-semibold tracking-tight">Code test</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Code d&apos;invitation</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Un code ouvre l&apos;accès, sans paiement. Le nombre d&apos;utilisations et la date de fin sont fixés par
-            l&apos;administration.
+            Le même code qu&apos;à l&apos;inscription. Il applique la formule offerte : un an puis la remise, ou une
+            formule à vie.
           </p>
           <div className="mt-4">
             <RedeemForm />
