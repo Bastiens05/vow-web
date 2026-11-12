@@ -24,6 +24,14 @@ export async function applyTimelineTemplate(weddingId: string, formData: FormDat
     slots = builtinTemplate(templateId)?.slots ?? [];
   }
   if (slots.length === 0) return;
+  const mode = String(formData.get("mode") ?? "");
+  const existing = await supabase.from("timeline_slots").select("id", { count: "exact", head: true }).eq("wedding_id", weddingId);
+  const already = existing.count ?? 0;
+  if (already > 0 && mode !== "add" && mode !== "replace") return;
+  if (mode === "replace") {
+    const removed = await supabase.from("timeline_slots").delete().eq("wedding_id", weddingId);
+    if (removed.error) return;
+  }
   const { error } = await supabase.from("timeline_slots").insert(
     slots.map((slot, index) => ({
       wedding_id: weddingId,

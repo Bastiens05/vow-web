@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextInput } from "@/components/ui/field";
 import { addStop } from "@/server/actions/daypack";
 
@@ -17,7 +18,7 @@ export function StopForm({ weddingId }: { weddingId: string }) {
           <TextInput name="label" required placeholder="Cérémonie" />
         </Field>
         <Field label="Adresse">
-          <TextInput name="address" required placeholder="Château de la Louvière, Léognan" />
+          <AddressInput name="address" required placeholder="Château de la Louvière, Léognan" weddingId={weddingId} />
         </Field>
         <Field label="Heure">
           <TextInput name="starts_at" type="time" />

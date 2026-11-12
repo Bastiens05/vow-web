@@ -5,7 +5,7 @@ import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace } from "@/server/data";
 
-export const metadata: Metadata = { title: "Bulles" };
+export const metadata: Metadata = { title: "Documents" };
 
 export default async function BubblesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -19,8 +19,8 @@ export default async function BubblesPage({ params }: { params: Promise<{ id: st
   const vendors = (data ?? []).filter((person) => person.member_role === "vendor");
   return (
     <div className="grid gap-3">
-      <h2 className="text-3xl font-semibold tracking-tight">Bulles</h2>
-      <p className="text-sm text-muted">Un dossier par prestataire. Vous n&apos;y mettez que ce qui le concerne.</p>
+      <h2 className="text-3xl font-semibold tracking-tight">Documents</h2>
+      <p className="text-sm text-muted">Un espace par prestataire. Vous n&apos;y mettez que ce qui le concerne.</p>
       {vendors.length === 0 ? <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p> : null}
       {vendors.map((person) => {
         const trade = person.category && isVendorCategory(person.category) ? categoryLabel(person.category) : "Prestataire";

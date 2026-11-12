@@ -4,14 +4,16 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextInput } from "@/components/ui/field";
 import { ProgrammeStart } from "@/components/wedding/programme-start";
-import { addMinutesToTime } from "@/lib/domain/day";
+import { addMinutesToTime, compareWeddingTimes, programmeSpan, stepKind, stepPhases } from "@/lib/domain/day";
 import { formatSlotTime } from "@/lib/domain/format";
 import type { TemplateSlot } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/client";
 import { shiftSlot, undoShift } from "@/server/actions/day";
 import { assignStep, markReady } from "@/server/actions/relay";
+import { chooseDayVersion, duplicateRainProgramme, resetProgramme, restoreProgramme, updateRainSlot } from "@/server/actions/programme";
 import { addTimelineSlot, deleteTimelineSlot, updateTimelineSlot } from "@/server/actions/space";
 import type { SlotView } from "@/server/data";
 
@@ -22,6 +24,10 @@ export function DayBoard({
   userId,
   vendors = [],
   suggestion = null,
+  weddingDay = false,
+  nowMinutes = 0,
+  rainSlots = [],
+  rainActive = false,
 }: {
   weddingId: string;
   slots: SlotView[];
@@ -29,6 +35,10 @@ export function DayBoard({
   userId: string;
   vendors?: { userId: string; fullName: string }[];
   suggestion?: { id: string; label: string; slots: TemplateSlot[] } | null;
+  weddingDay?: boolean;
+  nowMinutes?: number;
+  rainSlots?: SlotView[];
+  rainActive?: boolean;
 }) {
   const router = useRouter();
   const [overrides, setOverrides] = useState<Record<string, string>>({});
@@ -46,6 +56,10 @@ export function DayBoard({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [shiftingId, setShiftingId] = useState<string | null>(null);
   const [offerTemplate, setOfferTemplate] = useState(false);
+  const [version, setVersion] = useState<"sun" | "rain">(canControl && rainActive ? "rain" : "sun");
+  const [menu, setMenu] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetUndo, setResetUndo] = useState<{ raw: string; noteId: string } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -124,10 +138,72 @@ export function DayBoard({
   }
 
   const names = new Map(vendors.map((vendor) => [vendor.userId, vendor.fullName]));
+  const shown = [...(version === "rain" ? rainSlots : live)].sort((a, b) => compareWeddingTimes(a.startsAt, b.startsAt));
+  const phases = stepPhases(shown.map((slot) => slot.startsAt), nowMinutes, weddingDay && version === "sun");
+  const span = programmeSpan(shown);
+  const pastCount = phases.filter((phase) => phase === "past").length;
+  const fill = !weddingDay || version !== "sun" || shown.length === 0 ? 0 : shown.length === 1 ? (phases[0] === "past" ? 100 : 40) : (pastCount / (shown.length - 1)) * 100;
+
+  async function activate(next: boolean) {
+    const result = await chooseDayVersion(weddingId, next);
+    if (result.error) setError(result.error);
+    else setVersion(next ? "rain" : "sun");
+    router.refresh();
+  }
+
+  async function clearProgramme() {
+    const raw = JSON.stringify(live.map((slot) => ({ title: slot.title, startsAt: slot.startsAt.slice(0, 5), place: slot.place, notes: slot.notes })));
+    const result = await resetProgramme(weddingId);
+    setConfirmReset(false);
+    setMenu(false);
+    if (result.error) setError(result.error);
+    else setResetUndo({ raw, noteId: result.noteId ?? "" });
+    router.refresh();
+  }
 
   return (
-    <div className="space-y-6">
-      {live.length === 0 ? <ProgrammeStart weddingId={weddingId} canApply={canControl} suggestion={suggestion} /> : null}
+    <div id="programme" className="scroll-mt-24 space-y-6">
+      {canControl ? (
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex rounded-full border border-line p-1 text-sm">
+            <button type="button" className={`min-h-11 rounded-full px-3 ${version === "sun" ? "bg-ink text-ivory" : ""}`} onClick={() => setVersion("sun")}>
+              Beau temps{rainActive ? "" : " · actif"}
+            </button>
+            <button type="button" className={`min-h-11 rounded-full px-3 ${version === "rain" ? "bg-ink text-ivory" : ""}`} onClick={() => setVersion("rain")}>
+              Mauvais temps{rainActive ? " · actif" : ""}
+            </button>
+          </div>
+          <div className="relative">
+            <button type="button" aria-label="Autres actions" className="min-h-11 px-3 text-lg" onClick={() => setMenu((value) => !value)}>
+              …
+            </button>
+            {menu ? (
+              <div className="absolute right-0 z-20 mt-1 w-56 rounded-2xl border border-line bg-paper p-2 shadow-lg">
+                <button type="button" className="block min-h-11 w-full rounded-xl px-3 text-left text-sm" onClick={() => void activate(version === "rain")}>
+                  {version === "rain" ? "Montrer cette version aux prestataires" : "Revenir au beau temps pour les prestataires"}
+                </button>
+                {version === "sun" ? (
+                  <button type="button" className="block min-h-11 w-full rounded-xl px-3 text-left text-sm" onClick={() => setConfirmReset(true)}>
+                    Réinitialiser le programme
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      {canControl && version === "rain" && rainSlots.length === 0 ? (
+        <button type="button" className="min-h-11 text-sm underline" onClick={() => void duplicateRainProgramme(weddingId).then(() => router.refresh())}>
+          Dupliquer le programme beau temps
+        </button>
+      ) : null}
+      {!canControl && rainActive ? <p className="text-sm text-muted">Version mauvais temps.</p> : null}
+      {span ? (
+        <p className="text-sm text-muted">
+          {formatSlotTime(span.first).replace(":", "h")} – {formatSlotTime(span.last).replace(":", "h")} · {span.count} étapes · {Math.round(span.minutes / 60)} h
+        </p>
+      ) : null}
+      {version === "sun" && live.length === 0 ? <ProgrammeStart weddingId={weddingId} canApply={canControl} suggestion={suggestion} hasSteps={false} /> : null}
       {live.length > 0 && !canControl ? (
         <div>
           <button type="button" className="text-sm underline active:opacity-70" onClick={() => setOfferTemplate((value) => !value)}>
@@ -146,13 +222,18 @@ export function DayBoard({
           {live.filter((slot) => slot.ready).length}/{live.length} étapes prêtes
         </p>
       ) : null}
-      {live.length > 0 ? <ol className="relative ml-1 border-l border-line">
-        {live.map((slot) => {
+      {shown.length > 0 ? <ol className="relative">
+        <span className="absolute bottom-3 left-[7px] top-3 w-px bg-line" aria-hidden />
+        <span className="absolute left-[7px] top-3 w-px bg-ink" style={{ height: `${fill}%` }} aria-hidden />
+        {weddingDay && version === "sun" ? <span className="vow-now absolute left-[3px] z-10 h-2.5 w-2.5 rounded-full bg-ink" style={{ top: `calc(0.75rem + ${fill}% - 5px)` }} aria-label="Maintenant" /> : null}
+        {shown.map((slot, index) => {
           const concerned = slot.assigneeIds.map((id) => names.get(id)).filter((name): name is string => Boolean(name));
           const shifting = shiftingId === slot.id;
+          const phase = phases[index] ?? "planned";
           return (
-          <li key={slot.id} className="relative pb-8 pl-6">
-            <span className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full bg-ink" aria-hidden />
+          <li key={slot.id} className={`relative pb-6 pl-8 ${phase === "past" ? "opacity-60" : ""}`}>
+            <span className={`absolute left-[3px] top-3 h-2.5 w-2.5 rounded-full ${phase === "current" ? "bg-ink vow-now" : "bg-ink"}`} aria-hidden />
+            <div className={`rounded-3xl border bg-paper p-4 ${phase === "current" ? "border-ink" : "border-line"}`}>
             {canControl ? (
               <button
                 type="button"
@@ -183,6 +264,7 @@ export function DayBoard({
             {canControl ? (
               <>
                 <div className="mt-3 flex gap-4">
+                  {version === "sun" ? (
                   <button
                     type="button"
                     className="text-sm text-muted underline active:opacity-70"
@@ -191,14 +273,15 @@ export function DayBoard({
                   >
                     Décaler
                   </button>
+                  ) : null}
                   <button type="button" className="text-sm text-muted underline active:opacity-70" onClick={() => setEditingId((current) => (current === slot.id ? null : slot.id))}>
                     {editingId === slot.id ? "Fermer" : "Modifier"}
                   </button>
                 </div>
                 {editingId === slot.id ? (
-                  <StepEditor weddingId={weddingId} slot={slot} vendors={vendors} />
+                  version === "rain" ? <RainEditor weddingId={weddingId} slot={slot} /> : <StepEditor weddingId={weddingId} slot={slot} vendors={vendors} />
                 ) : null}
-                {shifting ? (
+                {shifting && version === "sun" ? (
                   <div className="mt-4 space-y-3">
                     <label className="flex items-center gap-2 text-sm text-muted">
                       <input type="checkbox" checked={cascade} onChange={(event) => setCascade(event.target.checked)} className="h-4 w-4 accent-ink" />
@@ -223,14 +306,40 @@ export function DayBoard({
                 ) : null}
               </>
             ) : null}
+            </div>
           </li>
           );
         })}
       </ol> : null}
+      {confirmReset ? (
+        <div role="dialog" aria-label="Réinitialiser le programme" className="rounded-3xl border border-line bg-paper p-4">
+          <p className="text-sm">Tout le programme sera supprimé. Vos prestataires seront prévenus.</p>
+          <div className="mt-3 flex gap-2">
+            <Button type="button" variant="secondary" onClick={() => void clearProgramme()}>Supprimer</Button>
+            <Button type="button" variant="ghost" onClick={() => setConfirmReset(false)}>Annuler</Button>
+          </div>
+        </div>
+      ) : null}
+      {resetUndo ? (
+        <div role="status" className="fixed bottom-28 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#2c2c2e] px-4 py-2 text-sm text-white shadow-lg">
+          Programme retiré.
+          <button
+            type="button"
+            className="font-medium underline"
+            onClick={() => {
+              const current = resetUndo;
+              setResetUndo(null);
+              void restoreProgramme(weddingId, current.raw, current.noteId).then(() => router.refresh());
+            }}
+          >
+            Annuler
+          </button>
+        </div>
+      ) : null}
       {canControl ? <AddStep weddingId={weddingId} /> : null}
       {undo ? (
         <div role="status" className="fixed bottom-28 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#2c2c2e] px-4 py-2 text-sm text-white shadow-lg">
-          Prestataires prévenus
+          Vos prestataires ont été prévenus du nouvel horaire.
           <button type="button" className="font-medium underline active:opacity-70" onClick={() => void cancelShift()}>
             Annuler
           </button>
@@ -241,14 +350,51 @@ export function DayBoard({
   );
 }
 
+const KIND_LABEL: Record<string, string> = {
+  prep: "Préparatifs",
+  ceremony: "Cérémonie",
+  drink: "Cocktail",
+  photo: "Photos",
+  dinner: "Dîner",
+  party: "Soirée",
+  other: "Étape",
+};
+
 function StepSummary({ slot, concerned }: { slot: SlotView; concerned: string[] }) {
+  const kind = stepKind(slot.title);
   return (
     <>
+      <p className="text-xs text-muted">{KIND_LABEL[kind]}</p>
       <p className="text-3xl font-semibold tracking-tight tabular-nums">{formatSlotTime(slot.startsAt).replace(":", "h")}</p>
       <h3 className="mt-1 text-xl font-semibold tracking-tight">{slot.title}</h3>
       {slot.place ? <p className="text-sm text-muted">{slot.place}</p> : <p className="text-sm text-muted">Lieu à préciser</p>}
-      <p className="mt-2 text-sm">{concerned.length > 0 ? concerned.join(", ") : "Aucun prestataire"}</p>
+      <p className="mt-2 flex flex-wrap gap-1">
+        {concerned.length === 0 ? <span className="text-sm text-muted">Aucun prestataire</span> : null}
+        {concerned.map((name) => (
+          <span key={name} className="rounded-full bg-mist px-2 py-1 text-xs">{name}</span>
+        ))}
+      </p>
     </>
+  );
+}
+
+function RainEditor({ weddingId, slot }: { weddingId: string; slot: SlotView }) {
+  const [state, formAction, pending] = useActionState(updateRainSlot.bind(null, weddingId), {});
+  return (
+    <form action={formAction} className="mt-3 grid gap-3 sm:grid-cols-2">
+      <input type="hidden" name="id" value={slot.id} />
+      <Field label="Étape">
+        <TextInput name="title" required defaultValue={slot.title} />
+      </Field>
+      <Field label="Heure">
+        <TextInput name="starts_at" type="time" required defaultValue={formatSlotTime(slot.startsAt)} />
+      </Field>
+      <Field label="Lieu">
+        <AddressInput name="place" defaultValue={slot.place} weddingId={weddingId} />
+      </Field>
+      {state.error ? <Alert>{state.error}</Alert> : null}
+      <Button type="submit" variant="secondary" disabled={pending}>{pending ? "…" : "Enregistrer"}</Button>
+    </form>
   );
 }
 
@@ -264,7 +410,7 @@ function AddStep({ weddingId }: { weddingId: string }) {
         <TextInput name="starts_at" type="time" required />
       </Field>
       <Field label="Lieu">
-        <TextInput name="place" placeholder="Jardin" />
+        <AddressInput name="place" placeholder="Jardin" weddingId={weddingId} />
       </Field>
       {state.error ? (
         <div className="sm:col-span-2">
@@ -303,7 +449,7 @@ function StepEditor({
         <TextInput name="starts_at" type="time" required defaultValue={formatSlotTime(slot.startsAt)} />
       </Field>
       <Field label="Lieu">
-        <TextInput name="place" defaultValue={slot.place} />
+        <AddressInput name="place" defaultValue={slot.place} weddingId={weddingId} />
       </Field>
       <Field label={`Prestataire pour ${slot.title}`}>
         <select
@@ -400,7 +546,7 @@ function PushToggle() {
   if (!key) {
     return (
       <p className="text-sm text-muted">
-        Les alertes s’affichent dans VOW. Les notifications du téléphone s’activent quand les clés push sont configurées.
+        Les nouveautés s&apos;affichent dans VOW. Les notifications du téléphone s&apos;activent quand les clés sont configurées.
       </p>
     );
   }
@@ -436,10 +582,10 @@ function PushToggle() {
             headers: { "content-type": "application/json" },
             body: JSON.stringify(json),
           });
-          setStatus(response.ok ? "Alertes activées sur cet appareil." : "Activation impossible pour le moment.");
+          setStatus(response.ok ? "Notifications activées sur cet appareil." : "Activation impossible pour le moment.");
         }}
       >
-        Activer les alertes sur cet appareil
+        Activer les notifications sur cet appareil
       </Button>
       {status ? <p className="mt-2 text-sm text-muted">{status}</p> : null}
     </div>

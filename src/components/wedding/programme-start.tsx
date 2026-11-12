@@ -12,10 +12,12 @@ function clock(value: string) {
 export function ProgrammeStart({
   weddingId,
   canApply,
+  hasSteps = false,
   suggestion,
 }: {
   weddingId: string;
   canApply: boolean;
+  hasSteps?: boolean;
   suggestion: { id: string; label: string; slots: TemplateSlot[] } | null;
 }) {
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -38,16 +40,17 @@ export function ProgrammeStart({
       {canApply && suggestion ? (
         <div className="rounded-3xl border border-line bg-paper px-4 py-4">
           <p className="text-sm">Suggestion reçue : {suggestion.label}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <form action={apply}>
-              <input type="hidden" name="suggestion_id" value={suggestion.id} />
-              <Button type="submit">Appliquer</Button>
-            </form>
+          <div className="mt-3">
             <Button type="button" variant="secondary" onClick={() => setShowSuggestion((value) => !value)}>
               Voir les étapes
             </Button>
           </div>
-          {showSuggestion ? <StepPreview slots={suggestion.slots} /> : null}
+          {showSuggestion ? (
+            <>
+              <StepPreview slots={suggestion.slots} />
+              <ApplyChoices action={apply} suggestionId={suggestion.id} hasSteps={hasSteps} />
+            </>
+          ) : null}
         </div>
       ) : null}
       <ul className="grid gap-3">
@@ -73,16 +76,60 @@ export function ProgrammeStart({
           <h3 className="mt-2 text-lg font-semibold tracking-tight">{preview.label}</h3>
           <p className="mt-1 text-sm text-muted">Un point de départ. Rien n&apos;est posé tant que vous ne confirmez pas.</p>
           <StepPreview slots={preview.slots} />
-          <form action={canApply ? apply : suggest} className="mt-4 flex flex-wrap gap-2">
-            <input type="hidden" name="template_id" value={preview.id} />
-            <Button type="submit">{canApply ? "Utiliser ce programme" : "Suggérer au couple"}</Button>
-            <Button type="button" variant="ghost" onClick={() => setPreviewId(null)}>
-              Fermer
-            </Button>
-          </form>
+          {canApply ? (
+            <ApplyChoices action={apply} templateId={preview.id} hasSteps={hasSteps} />
+          ) : (
+            <form action={suggest} className="mt-4">
+              <input type="hidden" name="template_id" value={preview.id} />
+              <Button type="submit" variant="secondary">Suggérer au couple</Button>
+            </form>
+          )}
+          <Button type="button" variant="ghost" className="mt-2" onClick={() => setPreviewId(null)}>
+            Fermer
+          </Button>
         </div>
       ) : null}
     </div>
+  );
+}
+
+function ApplyChoices({
+  action,
+  templateId,
+  suggestionId,
+  hasSteps,
+}: {
+  action: (formData: FormData) => Promise<void>;
+  templateId?: string;
+  suggestionId?: string;
+  hasSteps: boolean;
+}) {
+  return (
+    <form action={action} className="mt-4 flex flex-wrap gap-2">
+      {templateId ? <input type="hidden" name="template_id" value={templateId} /> : null}
+      {suggestionId ? <input type="hidden" name="suggestion_id" value={suggestionId} /> : null}
+      {hasSteps ? (
+        <>
+          <input type="hidden" name="mode" value="replace" />
+          <Button type="submit" variant="secondary" name="choice" value="replace">
+            Remplacer
+          </Button>
+          <Button type="submit" variant="ghost" formAction={async (formData) => {
+            formData.set("mode", "add");
+            await action(formData);
+          }}>
+            Ajouter
+          </Button>
+        </>
+      ) : (
+        <>
+          <input type="hidden" name="mode" value="add" />
+          <Button type="submit" variant="secondary">
+            {suggestionId ? "Appliquer" : "Utiliser ce programme"}
+          </Button>
+        </>
+      )}
+    </form>
   );
 }
 

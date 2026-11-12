@@ -290,6 +290,11 @@ export type Database = {
         { id?: string; slot_id: string; author_id: string; body: string },
         { body?: string }
       >;
+      wedding_music: Table<
+        { wedding_id: string; notes: string },
+        { wedding_id: string; notes?: string },
+        { notes?: string }
+      >;
       wedding_practical: Table<
         {
           wedding_id: string;
@@ -708,9 +713,24 @@ export type Database = {
         { total_cents?: number }
       >;
       budget_lines: Table<
-        { id: string; wedding_id: string; label: string; amount_cents: number; sort_order: number },
-        { wedding_id: string; label: string; amount_cents: number; sort_order?: number },
-        { label?: string; amount_cents?: number }
+        {
+          id: string;
+          wedding_id: string;
+          label: string;
+          amount_cents: number;
+          sort_order: number;
+          paid: boolean;
+          vendor_user_id: string | null;
+        },
+        {
+          wedding_id: string;
+          label: string;
+          amount_cents: number;
+          sort_order?: number;
+          paid?: boolean;
+          vendor_user_id?: string | null;
+        },
+        { label?: string; amount_cents?: number; paid?: boolean; vendor_user_id?: string | null }
       >;
       wedding_sites: Table<
         { wedding_id: string; slug: string; published: boolean; place: string; programme: string; note: string },
@@ -1039,6 +1059,8 @@ export type Database = {
       clear_timeline_step: { Args: { p_slot: string; p_user: string }; Returns: undefined };
       mark_step_ready: { Args: { p_slot: string }; Returns: Json };
       set_rain_plan: { Args: { p_wedding: string; p_active: boolean }; Returns: string };
+      note_couple_change: { Args: { p_wedding: string; p_body: string }; Returns: string };
+      retract_couple_note: { Args: { p_id: string }; Returns: undefined };
       due_weather_weddings: {
         Args: Record<string, never>;
         Returns: {

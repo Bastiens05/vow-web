@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { InviteVendor } from "@/components/wedding/invite-vendor";
+import { VendorBubbles, type VendorBubblePerson } from "@/components/wedding/vendor-bubbles";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
+import { publicObjectUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace } from "@/server/data";
 
-export const metadata: Metadata = { title: "Équipe" };
+export const metadata: Metadata = { title: "Prestataires" };
 
 export default async function DirectoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,17 +16,40 @@ export default async function DirectoryPage({ params }: { params: Promise<{ id: 
   const supabase = await createClient();
   const { data } = await supabase.rpc("wedding_directory", { p_wedding_id: id });
   const people = (data ?? []).filter((person) => (couple ? person.member_role === "vendor" : true));
+  const logos = await logoMap(people.map((person) => person.user_id));
+
+  if (couple) {
+    const bubbles: VendorBubblePerson[] = people.map((person) => ({
+      userId: person.user_id,
+      businessName: person.business_name,
+      fullName: person.full_name,
+      category: person.category,
+      phone: person.phone,
+      email: person.email,
+      logoUrl: logos.get(person.user_id) ?? null,
+    }));
+    return (
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight">Prestataires</h2>
+        <p className="mt-1 text-sm text-muted">Appuyez sur un prestataire pour ouvrir son espace.</p>
+        {bubbles.length === 0 ? <p className="mt-6 text-sm text-muted">Aucun prestataire pour l&apos;instant.</p> : null}
+        <div className="mt-8">
+          <VendorBubbles weddingId={id} people={bubbles} />
+        </div>
+        <InviteVendor weddingId={id} />
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4">
-      <Card>
-        <h2 className="text-3xl font-semibold tracking-tight">{couple ? "Prestataires" : "Équipe"}</h2>
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight">Équipe</h2>
         <p className="mt-1 text-sm text-muted">
-          {couple
-            ? "Les prestataires de votre mariage, avec leur métier et un moyen de les joindre."
-            : "Chacun voit qui travaille sur ce mariage. Le téléphone et l'e-mail n'apparaissent que si le prestataire les a ouverts."}
+          Chacun voit qui travaille sur ce mariage. Le téléphone et l&apos;e-mail n&apos;apparaissent que si le prestataire les a ouverts.
         </p>
-      </Card>
-      {people.length === 0 ? <Card><p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p></Card> : null}
+      </div>
+      {people.length === 0 ? <Card><p className="text-sm text-muted">Personne pour l&apos;instant.</p></Card> : null}
       {people.map((person) => {
         const trade = person.category && isVendorCategory(person.category) ? categoryLabel(person.category) : null;
         return (
@@ -34,22 +59,24 @@ export default async function DirectoryPage({ params }: { params: Promise<{ id: 
               {person.member_role === "couple" ? "Couple" : trade || "Prestataire"}
               {person.business_name ? ` · ${person.full_name}` : ""}
             </p>
-            {person.phone ? (
-              <a className="block text-sm underline" href={`tel:${person.phone}`}>
-                {person.phone}
-              </a>
-            ) : null}
-            {person.email ? (
-              <a className="block text-sm underline" href={`mailto:${person.email}`}>
-                {person.email}
-              </a>
-            ) : null}
-            <Link href={`/mariage/${id}/messages?avec=${person.user_id}`} className="inline-flex min-h-11 items-center text-sm underline">
-              Écrire
-            </Link>
+            {person.phone ? <a className="block text-sm underline" href={`tel:${person.phone}`}>{person.phone}</a> : null}
+            {person.email ? <a className="block text-sm underline" href={`mailto:${person.email}`}>{person.email}</a> : null}
           </Card>
         );
       })}
     </div>
   );
+}
+
+async function logoMap(userIds: string[]) {
+  const map = new Map<string, string>();
+  if (userIds.length === 0) return map;
+  const supabase = await createClient();
+  const { data } = await supabase.from("vendor_profiles").select("user_id, logo_path").in("user_id", userIds);
+  for (const row of data ?? []) {
+    if (!row.logo_path) continue;
+    const url = publicObjectUrl("vendor-media", row.logo_path);
+    if (url) map.set(row.user_id, url);
+  }
+  return map;
 }

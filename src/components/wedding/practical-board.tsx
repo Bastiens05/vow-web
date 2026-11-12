@@ -3,8 +3,9 @@
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
-import { addGuest, addPhotoGroup, deleteGuest, deletePhotoGroup, savePractical } from "@/server/actions/sheets";
+import { addGuest, addPhotoGroup, deleteGuest, deletePhotoGroup, saveMusic, savePractical } from "@/server/actions/sheets";
 import type { GuestRow, PhotoGroupRow, PracticalRow } from "@/server/data";
 
 export function PracticalBoard({
@@ -15,9 +16,14 @@ export function PracticalBoard({
   canEditDetails,
   showPhotos,
   showGuests,
+  showMusic = false,
+  musicNotes = "",
   canEditPhotos,
   canEditGuests,
+  canEditMusic = false,
   showDetails = true,
+  photosId = "photos",
+  guestsId = "guests",
 }: {
   weddingId: string;
   practical: PracticalRow | null;
@@ -26,16 +32,47 @@ export function PracticalBoard({
   canEditDetails: boolean;
   showPhotos: boolean;
   showGuests: boolean;
+  showMusic?: boolean;
+  musicNotes?: string;
   canEditPhotos: boolean;
   canEditGuests: boolean;
+  canEditMusic?: boolean;
   showDetails?: boolean;
+  photosId?: string;
+  guestsId?: string;
 }) {
   return (
     <div className="space-y-8">
+      {showMusic ? <Music weddingId={weddingId} notes={musicNotes} canEdit={canEditMusic} /> : null}
       {showDetails ? <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} /> : null}
-      {showPhotos ? <Groups weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
-      {showGuests ? <Guests weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
+      {showPhotos ? <Groups id={photosId} weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
+      {showGuests ? <Guests id={guestsId} weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
     </div>
+  );
+}
+
+function Music({ weddingId, notes, canEdit }: { weddingId: string; notes: string; canEdit: boolean }) {
+  const action = saveMusic.bind(null, weddingId);
+  const [state, formAction, pending] = useActionState(action, {});
+  const field = (
+    <Field label="Musique" hint="Pour le DJ. Les autres métiers ne voient pas cette note.">
+      <TextArea name="music_notes" defaultValue={notes} disabled={!canEdit} />
+    </Field>
+  );
+  return (
+    <section>
+      <h3 className="text-lg font-semibold tracking-tight">Musique</h3>
+      {canEdit ? (
+        <form action={formAction} className="mt-3 space-y-3">
+          {field}
+          {state.error ? <Alert>{state.error}</Alert> : null}
+          {state.success ? <Alert tone="success">{state.success}</Alert> : null}
+          <Button type="submit" disabled={pending}>{pending ? "Enregistrement…" : "Enregistrer la musique"}</Button>
+        </form>
+      ) : (
+        <div className="mt-3">{field}</div>
+      )}
+    </section>
   );
 }
 
@@ -60,14 +97,14 @@ function DetailsForm({
       </Field>
       <div className="sm:col-span-2">
         <Field label="Adresse postale">
-          <TextArea name="postal_address" defaultValue={practical?.postal_address ?? ""} disabled={!canEdit} className="min-h-20" />
+          <AddressInput name="postal_address" defaultValue={practical?.postal_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
         </Field>
       </div>
       <Field label="Adresse de la cérémonie">
-        <TextArea name="ceremony_address" defaultValue={practical?.ceremony_address ?? ""} disabled={!canEdit} className="min-h-20" />
+        <AddressInput name="ceremony_address" defaultValue={practical?.ceremony_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
       </Field>
       <Field label="Adresse de la réception">
-        <TextArea name="reception_address" defaultValue={practical?.reception_address ?? ""} disabled={!canEdit} className="min-h-20" />
+        <AddressInput name="reception_address" defaultValue={practical?.reception_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
       </Field>
       <div className="sm:col-span-2">
         <Field label="Contacts utiles" hint="Témoins, parents, régisseur. Un par ligne.">
@@ -94,11 +131,11 @@ function DetailsForm({
   );
 }
 
-function Groups({ weddingId, groups, canEdit }: { weddingId: string; groups: PhotoGroupRow[]; canEdit: boolean }) {
+function Groups({ id, weddingId, groups, canEdit }: { id: string; weddingId: string; groups: PhotoGroupRow[]; canEdit: boolean }) {
   const action = addPhotoGroup.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <section>
+    <section id={id} className="scroll-mt-24">
       <h2 className="text-lg font-semibold tracking-tight">Photos de groupe</h2>
       <p className="mt-1 mb-4 text-sm text-muted">L’ordre de passage, les personnes, une note pour le photographe.</p>
       <ol className="space-y-2">
@@ -143,11 +180,11 @@ function Groups({ weddingId, groups, canEdit }: { weddingId: string; groups: Pho
   );
 }
 
-function Guests({ weddingId, guests, canEdit }: { weddingId: string; guests: GuestRow[]; canEdit: boolean }) {
+function Guests({ id, weddingId, guests, canEdit }: { id: string; weddingId: string; guests: GuestRow[]; canEdit: boolean }) {
   const action = addGuest.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <section>
+    <section id={id} className="scroll-mt-24">
       <h2 className="text-lg font-semibold tracking-tight">Invités</h2>
       <p className="mt-1 mb-4 text-sm text-muted">Table et régime, pour le traiteur et le plan de salle.</p>
       <div className="overflow-x-auto rounded-2xl border border-line">

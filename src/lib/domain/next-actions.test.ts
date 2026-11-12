@@ -7,6 +7,13 @@ describe("daysUntil", () => {
     expect(countdownLabel(0)).toBe("C'est aujourd'hui");
     expect(countdownLabel(12)).toBe("J-12");
   });
+
+  it("shows J-10 for a wedding on 21 November 2026 when today is 11 November", () => {
+    expect(daysUntil("2026-11-21", "2026-11-11")).toBe(10);
+    expect(countdownLabel(daysUntil("2026-11-21", "2026-11-11"))).toBe("J-10");
+    expect(daysUntil("2026-11-21", "2026-11-12")).toBe(9);
+    expect(countdownLabel(daysUntil("2026-11-21", "2026-11-12"))).toBe("J-9");
+  });
 });
 
 describe("coupleNextActions", () => {

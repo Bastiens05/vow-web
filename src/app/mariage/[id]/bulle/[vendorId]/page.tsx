@@ -10,9 +10,9 @@ import { requestsFor } from "@/lib/domain/vault";
 import { stripeEnabled } from "@/server/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet, getWeddingSpace } from "@/server/data";
-import { shareVaultItem } from "@/server/actions/vault";
+import { shareVaultFromForm } from "@/server/actions/vault";
 
-export const metadata: Metadata = { title: "Bulle" };
+export const metadata: Metadata = { title: "Prestataire" };
 
 export default async function BubblePage({ params }: { params: Promise<{ id: string; vendorId: string }> }) {
   const { id, vendorId } = await params;
@@ -38,13 +38,12 @@ export default async function BubblePage({ params }: { params: Promise<{ id: str
     ? await supabase.from("deposits").select("id, amount_cents, status, due_on").eq("wedding_id", id).eq("vendor_id", profile.id)
     : { data: [] };
   const { data: signatures } = await supabase.from("signature_requests").select("*").eq("wedding_id", id).eq("requested_by", vendorId);
-  const shareAction = shareVaultItem.bind(null, id, {});
 
   return (
     <div className="grid gap-4">
       <header>
         <p className="text-xs uppercase tracking-[0.16em] text-muted">{trade}</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">{person?.business_name || profile?.business_name || "Votre bulle"}</h2>
+        <h2 className="mt-1 text-3xl font-semibold tracking-tight">{person?.business_name || profile?.business_name || person?.full_name || "Prestataire"}</h2>
         {person?.phone || person?.email ? (
           <p className="mt-2 text-sm text-muted">{[person?.phone, person?.email].filter(Boolean).join(" · ")}</p>
         ) : null}
@@ -58,11 +57,12 @@ export default async function BubblePage({ params }: { params: Promise<{ id: str
             return (
               <li key={request.kind} className="flex items-center justify-between gap-3 py-3">
                 <span className="inline-flex items-center gap-2 text-sm">
-                  <span className={`h-2 w-2 rounded-full ${ready ? "bg-ok" : "bg-danger"}`} aria-hidden />
+                  <span className={`h-2 w-2 rounded-full ${ready ? "bg-ok" : "bg-muted"}`} aria-hidden />
                   {request.label}
                 </span>
                 {couple && match && !ready ? (
-                  <form action={async (formData) => { await shareAction(formData); }}>
+                  <form action={shareVaultFromForm}>
+                    <input type="hidden" name="wedding_id" value={id} />
                     <input type="hidden" name="item_id" value={match.id} />
                     <input type="hidden" name="vendor_user_id" value={vendorId} />
                     <button type="submit" className="text-sm underline active:opacity-70">Partager</button>

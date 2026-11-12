@@ -70,6 +70,7 @@ describe("migration", () => {
       "tester_redemptions",
       "vault_items",
       "vault_shares",
+      "wedding_music",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

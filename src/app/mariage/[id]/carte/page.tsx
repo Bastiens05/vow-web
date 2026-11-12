@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { StopForm } from "@/components/wedding/stop-form";
-import { appleMapsUrl, googleDirectionsUrl, googleMapsUrl } from "@/lib/domain/maps";
+import { appleMapsUrl, googleDirectionsUrl, googleMapsUrl, type MapPoint } from "@/lib/domain/maps";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace } from "@/server/data";
 
@@ -11,10 +11,15 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const { id } = await params;
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
-  const [{ data }, { data: rain }] = await Promise.all([
+  const [{ data }, { data: rain }, { data: weather }] = await Promise.all([
     supabase.from("wedding_stops").select("*").eq("wedding_id", id).order("sort_order").order("starts_at"),
     supabase.from("rain_plans").select("active").eq("wedding_id", id).maybeSingle(),
+    supabase.from("weather_settings").select("latitude, longitude").eq("wedding_id", id).maybeSingle(),
   ]);
+  const point: MapPoint | null =
+    weather?.latitude != null && weather.longitude != null
+      ? { latitude: weather.latitude, longitude: weather.longitude }
+      : null;
   const { data: rainStops } = rain?.active
     ? await supabase.from("rain_stops").select("id, label, address").eq("wedding_id", id).order("sort_order")
     : { data: [] };
@@ -40,10 +45,10 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
             <h3 className="text-xl font-semibold">{stop.label}</h3>
             <p className="text-sm">{stop.address}</p>
             <div className="flex flex-wrap gap-2">
-              <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={googleMapsUrl(stop.address)}>
+              <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={googleMapsUrl(stop.address, index === 0 ? point : null)}>
                 Google Maps
               </a>
-              <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={appleMapsUrl(stop.address)}>
+              <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={appleMapsUrl(stop.address, index === 0 ? point : null)}>
                 Plans
               </a>
               {previous ? (

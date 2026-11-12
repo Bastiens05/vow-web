@@ -125,18 +125,20 @@ export function NotificationForm({
   push,
   email,
   reminders,
+  calm = false,
 }: {
   inApp: boolean;
   push: boolean;
   email: boolean;
   reminders: boolean;
+  calm?: boolean;
 }) {
   const [state, action, pending] = useActionState(saveNotificationPrefs, {});
   return (
     <form action={action} className="space-y-3">
       <label className="flex min-h-11 items-center gap-3 text-sm">
         <input type="checkbox" name="notify_in_app" defaultChecked={inApp} className="h-5 w-5" />
-        Afficher les alertes dans l&apos;application
+        {calm ? "Afficher les nouveautés dans l'application" : "Afficher les alertes dans l'application"}
       </label>
       <label className="flex min-h-11 items-center gap-3 text-sm">
         <input type="checkbox" name="notify_push" defaultChecked={push} className="h-5 w-5" />
@@ -153,7 +155,7 @@ export function NotificationForm({
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
       <Button type="submit" variant="secondary" disabled={pending}>
-        {pending ? "Enregistrement…" : "Enregistrer les alertes"}
+        {pending ? "Enregistrement…" : calm ? "Enregistrer" : "Enregistrer les alertes"}
       </Button>
     </form>
   );

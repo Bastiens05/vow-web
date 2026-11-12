@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { AuthDesktopFrame } from "@/components/auth/auth-frame";
+import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { LoginForm, SignupForm } from "@/components/auth/auth-forms";
 import { OtpInput } from "@/components/auth/otp-input";
@@ -148,7 +149,17 @@ export function AuthFlow({
             ))}
           </div>
           <FieldLike label="Nom de l'activité" name="business_name" value={businessName} onChange={setBusinessName} autoComplete="organization" />
-          <FieldLike label="Ville" name="city" value={city} onChange={setCity} autoComplete="address-level2" />
+          <label className="grid gap-2 text-sm">
+            Ville
+            <AddressInput
+              name="city"
+              required
+              mode="city"
+              value={city}
+              onValueChange={setCity}
+              className="auth-field min-h-14 rounded-2xl px-4 text-lg"
+            />
+          </label>
           <fieldset className="grid gap-2">
             <legend className="text-sm">Combien de mariages faites-vous par an ?</legend>
             <p className="text-xs text-muted">Facultatif.</p>
@@ -204,7 +215,17 @@ export function AuthFlow({
               className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
             />
           </label>
-          <FieldLike label="Ville" name="city" value={city} onChange={setCity} autoComplete="address-level2" optional />
+          <label className="grid gap-2 text-sm">
+            Ville
+            <span className="sr-only">facultatif</span>
+            <AddressInput
+              name="city"
+              mode="city"
+              value={city}
+              onValueChange={setCity}
+              className="auth-field min-h-14 rounded-2xl px-4 text-lg"
+            />
+          </label>
           <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" />
           {sent.error ? <Alert>{sent.error}</Alert> : null}
           {sent.success?.startsWith("link:") ? <Alert tone="success">Vérifiez votre boîte mail. Le lien ouvre votre espace.</Alert> : null}

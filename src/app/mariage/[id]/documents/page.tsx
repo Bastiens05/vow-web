@@ -1,16 +1,58 @@
 import type { Metadata } from "next";
 import { DocumentManager } from "@/components/wedding/document-manager";
+import { InviteVendor } from "@/components/wedding/invite-vendor";
+import { PracticalBoard } from "@/components/wedding/practical-board";
+import { VendorDossier } from "@/components/wedding/vendor-dossier";
+import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { getWeddingSpace, listDocuments } from "@/server/data";
+import { getPracticalSheet, getWeddingSpace, listDocuments } from "@/server/data";
 
 export const metadata: Metadata = { title: "Documents" };
 
 export default async function DocumentsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const space = await getWeddingSpace(id);
-  const documents = await listDocuments(id);
+  const couple = space.role === "couple" || space.actingAsCouple;
   const supabase = await createClient();
+  if (couple) {
+    const { data } = await supabase.rpc("wedding_directory", { p_wedding_id: id });
+    const vendors = (data ?? []).filter((person) => person.member_role === "vendor");
+    const photo = vendors.some((person) => person.category === "photographer" || person.category === "videographer" || person.category === "planner");
+    const guests = vendors.some((person) => person.category === "caterer" || person.category === "venue" || person.category === "planner");
+    return (
+      <div className="grid gap-10">
+        <HashScroll />
+        <header>
+          <h2 className="text-3xl font-semibold tracking-tight">Documents</h2>
+          <p className="mt-1 text-sm text-muted">Un espace par prestataire.</p>
+        </header>
+        {vendors.length === 0 ? (
+          <Card>
+            <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
+            <InviteVendor weddingId={id} />
+          </Card>
+        ) : null}
+        {vendors.map((person) => (
+          <VendorDossier
+            key={person.user_id}
+            weddingId={id}
+            vendorId={person.user_id}
+            couple
+            businessName={person.business_name}
+            fullName={person.full_name}
+            category={person.category}
+            phone={person.phone}
+            email={person.email}
+            fallbackCategory={null}
+          />
+        ))}
+        {!photo ? <OrphanSheet weddingId={id} kind="photos" /> : null}
+        {!guests ? <OrphanSheet weddingId={id} kind="guests" /> : null}
+      </div>
+    );
+  }
+  const documents = await listDocuments(id);
   const { data: requests } = await supabase.from("signature_requests").select("*").eq("wedding_id", id);
   const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
   return (
@@ -27,6 +69,26 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
         requests={requests ?? []}
         canRequest={space.host}
         canSign={space.actingAsCouple}
+      />
+    </Card>
+  );
+}
+
+async function OrphanSheet({ weddingId, kind }: { weddingId: string; kind: "photos" | "guests" }) {
+  const sheet = await getPracticalSheet(weddingId, { photos: kind === "photos", guests: kind === "guests" });
+  return (
+    <Card>
+      <PracticalBoard
+        weddingId={weddingId}
+        practical={null}
+        groups={sheet.groups}
+        guests={sheet.guests}
+        canEditDetails={false}
+        showDetails={false}
+        showPhotos={kind === "photos"}
+        showGuests={kind === "guests"}
+        canEditPhotos={kind === "photos"}
+        canEditGuests={kind === "guests"}
       />
     </Card>
   );

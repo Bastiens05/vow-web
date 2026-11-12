@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/field";
 import { VENDOR_CATEGORIES, categoryLabel } from "@/lib/domain/categories";
 import type { Tables } from "@/lib/database.types";
@@ -35,7 +36,7 @@ export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | nu
           </SelectInput>
         </Field>
         <Field label="Ville">
-          <TextInput name="city" required defaultValue={vendor?.city ?? ""} placeholder="Bordeaux" />
+          <AddressInput name="city" required mode="city" defaultValue={vendor?.city ?? ""} placeholder="Bordeaux" />
         </Field>
         <Field label="Zone" hint="Le territoire que vous couvrez.">
           <TextInput name="zone" defaultValue={vendor?.zone ?? ""} placeholder="Bordeaux et le vignoble" />

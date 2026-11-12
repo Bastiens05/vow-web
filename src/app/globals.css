@@ -31,7 +31,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-inter), "Inter", "Helvetica Neue", Arial, sans-serif;
   --color-ivory: var(--vow-bg);
   --color-paper: var(--vow-paper);
   --color-ink: var(--vow-ink);
@@ -61,6 +61,28 @@ body {
   color: var(--vow-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+@keyframes vow-now {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--vow-ink) 40%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+
+.vow-now {
+  animation: vow-now 2.4s ease-out infinite;
 }
 
 ::selection {

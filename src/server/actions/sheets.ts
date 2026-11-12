@@ -97,6 +97,16 @@ export async function addGuest(weddingId: string, _prev: ActionState, formData: 
   return {};
 }
 
+export async function saveMusic(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireSession();
+  const notes = String(formData.get("music_notes") ?? "").trim().slice(0, 2000);
+  const supabase = await createClient();
+  const { error } = await supabase.from("wedding_music").upsert({ wedding_id: weddingId, notes });
+  if (error) return { error: messageFromError(error) };
+  revalidatePath(path(weddingId));
+  return { success: "Musique enregistrée." };
+}
+
 export async function deleteGuest(formData: FormData) {
   await requireSession();
   const weddingId = String(formData.get("wedding_id") ?? "");

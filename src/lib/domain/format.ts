@@ -1,3 +1,5 @@
+import { compareWeddingTimes } from "@/lib/domain/day";
+
 export function formatLongDate(isoDate: string | null): string {
   if (!isoDate) return "Date à confirmer";
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate);
@@ -57,7 +59,7 @@ export type TimelineSlotLike = {
 
 export function sortTimelineSlots<T extends TimelineSlotLike>(slots: readonly T[]): T[] {
   return [...slots].sort((a, b) => {
-    const byTime = a.startsAt.localeCompare(b.startsAt);
+    const byTime = compareWeddingTimes(a.startsAt, b.startsAt);
     if (byTime !== 0) return byTime;
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
     return (a.createdAt ?? "").localeCompare(b.createdAt ?? "");

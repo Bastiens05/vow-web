@@ -8,10 +8,12 @@ export function AlertDock({
   initialToast = null,
   initialUnread = 0,
   inApp = true,
+  calm = false,
 }: {
   initialToast?: string | null;
   initialUnread?: number;
   inApp?: boolean;
+  calm?: boolean;
 }) {
   const me = useRef<string | null>(null);
   const [userId, setUserId] = useState<string | null>(initialToast ? "known" : null);
@@ -85,13 +87,23 @@ export function AlertDock({
       <Link
         href="/alertes"
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition active:scale-95 hover:bg-ink/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-        aria-label={unread > 0 ? `Alertes, ${unread} non lue${unread > 1 ? "s" : ""}` : "Alertes"}
+        aria-label={
+          calm
+            ? unread > 0
+              ? `Nouveautés, ${unread} nouvelle${unread > 1 ? "s" : ""}`
+              : "Nouveautés"
+            : unread > 0
+              ? `Alertes, ${unread} non lue${unread > 1 ? "s" : ""}`
+              : "Alertes"
+        }
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
           <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2H4.5L6 16Z" />
           <path d="M10 19a2 2 0 0 0 4 0" />
         </svg>
-        {unread > 0 ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger" aria-hidden="true" /> : null}
+        {unread > 0 ? (
+          <span className={`absolute right-2 top-2 h-2 w-2 rounded-full ${calm ? "bg-ink" : "bg-danger"}`} aria-hidden="true" />
+        ) : null}
       </Link>
       {toast ? (
         <div

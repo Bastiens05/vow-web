@@ -101,7 +101,7 @@ export async function sendDayAlert(weddingId: string, _prev: ActionState, formDa
   if (error) return { error: messageFromError(error) };
   const note = readNote(data);
   if (note) await fanOut(note, session.userId);
-  return { success: "Alerte envoyée aux prestataires." };
+  return { success: "Les prestataires sont prévenus." };
 }
 
 export async function markAlertsRead() {
@@ -132,5 +132,5 @@ export async function savePushSubscription(subscription: {
     { onConflict: "endpoint" },
   );
   if (error) return { error: messageFromError(error) };
-  return { success: "Alertes activées sur cet appareil." };
+  return { success: "Les nouveautés arriveront sur cet appareil." };
 }

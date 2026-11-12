@@ -1,9 +1,7 @@
-import { Button } from "@/components/ui/button";
+import { BudgetBoard, type BudgetRow } from "@/components/wedding/budget-board";
 import { Card } from "@/components/ui/card";
-import { Field, TextInput } from "@/components/ui/field";
-import { formatEuros } from "@/lib/domain/money";
+import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { createClient } from "@/lib/supabase/server";
-import { saveBudget } from "@/server/actions/suite";
 import { getWeddingSpace } from "@/server/data";
 
 export default async function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,45 +17,58 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
     );
   }
   const supabase = await createClient();
-  const [{ data: budget }, { data: lines }] = await Promise.all([
+  const [{ data: budget }, { data: lines }, { data: directory }, { data: quotes }] = await Promise.all([
     supabase.from("wedding_budgets").select("total_cents").eq("wedding_id", id).maybeSingle(),
-    supabase.from("budget_lines").select("id, label, amount_cents").eq("wedding_id", id).order("sort_order"),
+    supabase.from("budget_lines").select("id, label, amount_cents, paid, vendor_user_id, sort_order").eq("wedding_id", id).order("sort_order"),
+    supabase.rpc("wedding_directory", { p_wedding_id: id }),
+    supabase.from("quotes").select("vendor_id, amount_cents, status").eq("wedding_id", id).in("status", ["accepted", "invoiced"]),
   ]);
-  const spent = (lines ?? []).reduce((sum, line) => sum + line.amount_cents, 0);
+  const vendors = (directory ?? []).filter((person) => person.member_role === "vendor");
+  const { data: profiles } = vendors.length
+    ? await supabase.from("vendor_profiles").select("id, user_id").in("user_id", vendors.map((person) => person.user_id))
+    : { data: [] as { id: string; user_id: string }[] };
+  const userByProfile = new Map((profiles ?? []).map((profile) => [profile.id, profile.user_id]));
+  const quoted = new Map<string, number>();
+  for (const quote of quotes ?? []) {
+    const userId = userByProfile.get(quote.vendor_id);
+    if (!userId) continue;
+    quoted.set(userId, (quoted.get(userId) ?? 0) + quote.amount_cents);
+  }
+  const usedVendors = new Set<string>();
+  const rows: BudgetRow[] = [];
+  for (const person of vendors) {
+    const line = (lines ?? []).find((item) => item.vendor_user_id === person.user_id);
+    const trade = person.category && isVendorCategory(person.category) ? categoryLabel(person.category) : "Prestataire";
+    usedVendors.add(person.user_id);
+    rows.push({
+      key: person.user_id,
+      id: line?.id ?? null,
+      label: person.business_name || person.full_name || trade,
+      trade,
+      euros: (line?.amount_cents ?? quoted.get(person.user_id) ?? 0) / 100,
+      paid: line?.paid ?? false,
+      vendorUserId: person.user_id,
+    });
+  }
+  for (const line of lines ?? []) {
+    if (line.vendor_user_id && usedVendors.has(line.vendor_user_id)) continue;
+    rows.push({
+      key: line.id,
+      id: line.id,
+      label: line.label,
+      trade: "",
+      euros: line.amount_cents / 100,
+      paid: line.paid,
+      vendorUserId: line.vendor_user_id,
+    });
+  }
   return (
-    <div className="grid gap-4">
-      <Card>
+    <div className="grid gap-3">
+      <header>
         <h2 className="text-3xl font-semibold tracking-tight">Budget</h2>
-        <p className="mt-1 text-sm text-muted">Visible seulement par vous. Rien n&apos;est envoyé aux prestataires.</p>
-        <p className="mt-4 text-sm text-muted">Global {formatEuros(budget?.total_cents ?? 0)} · réparti {formatEuros(spent)}</p>
-        <BudgetForm weddingId={id} total={budget?.total_cents ?? 0} />
-      </Card>
-      <ul className="grid gap-2">
-        {(lines ?? []).map((line) => (
-          <li key={line.id} className="flex min-h-11 items-center justify-between rounded-2xl bg-paper px-4">
-            <span>{line.label}</span>
-            <span className="text-sm text-muted">{formatEuros(line.amount_cents)}</span>
-          </li>
-        ))}
-      </ul>
+        <p className="mt-1 text-sm text-muted">Visible seulement par vous.</p>
+      </header>
+      <BudgetBoard weddingId={id} totalCents={budget?.total_cents ?? 0} rows={rows} />
     </div>
-  );
-}
-
-function BudgetForm({ weddingId, total }: { weddingId: string; total: number }) {
-  return (
-    <form action={saveBudget} className="mt-4 grid gap-3">
-      <input type="hidden" name="wedding_id" value={weddingId} />
-      <Field label="Budget global (€)">
-        <TextInput name="total" inputMode="decimal" defaultValue={total ? String(total / 100) : ""} required />
-      </Field>
-      <Field label="Ligne (facultatif)">
-        <TextInput name="label" placeholder="Traiteur" />
-      </Field>
-      <Field label="Montant de la ligne (€)">
-        <TextInput name="amount" inputMode="decimal" />
-      </Field>
-      <Button type="submit">Enregistrer</Button>
-    </form>
   );
 }

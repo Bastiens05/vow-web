@@ -148,6 +148,7 @@ async function main() {
     { onConflict: "wedding_id,user_id" },
   );
   if (membersError) throw membersError;
+  await seedCrew();
 
   await admin.from("messages").delete().eq("wedding_id", demo.weddingId);
   const { error: messagesError } = await admin.from("messages").insert([
@@ -440,6 +441,50 @@ async function main() {
   console.log(`Traiteur : ${demo.catererEmail} / ${demoPassword}`);
   console.log(`Vitrine : /p/${demo.slug}`);
   console.log(`Mariage : /mariage/${demo.weddingId}`);
+}
+
+const CREW = [
+  { id: "a1111111-1111-4111-8111-111111111101", profile: "b1111111-1111-4111-8111-111111111101", email: "video@demo.vow.test", name: "Lina Bernard", business: "Lina Films", category: "videographer" as const, slug: "lina-films" },
+  { id: "a1111111-1111-4111-8111-111111111102", profile: "b1111111-1111-4111-8111-111111111102", email: "dj@demo.vow.test", name: "Marc Elbaz", business: "Marc Son", category: "dj" as const, slug: "marc-son" },
+  { id: "a1111111-1111-4111-8111-111111111103", profile: "b1111111-1111-4111-8111-111111111103", email: "fleurs@demo.vow.test", name: "Chloé Fleurs", business: "Atelier Chloé", category: "florist" as const, slug: "atelier-chloe" },
+  { id: "a1111111-1111-4111-8111-111111111104", profile: "b1111111-1111-4111-8111-111111111104", email: "lieu@demo.vow.test", name: "Domaine Louvière", business: "Château de la Louvière", category: "venue" as const, slug: "chateau-louviere" },
+  { id: "a1111111-1111-4111-8111-111111111105", profile: "b1111111-1111-4111-8111-111111111105", email: "planner@demo.vow.test", name: "Inès Planner", business: "Inès et co", category: "planner" as const, slug: "ines-co" },
+  { id: "a1111111-1111-4111-8111-111111111106", profile: "b1111111-1111-4111-8111-111111111106", email: "beaute@demo.vow.test", name: "Sara Beauté", business: "Sara Beauté", category: "beauty" as const, slug: "sara-beaute" },
+  { id: "a1111111-1111-4111-8111-111111111107", profile: "b1111111-1111-4111-8111-111111111107", email: "officiant@demo.vow.test", name: "Paul Rivière", business: "Paul Cérémonies", category: "officiant" as const, slug: "paul-ceremonies" },
+];
+
+async function seedCrew() {
+  for (const person of CREW) {
+    await ensureUser(person.id, person.email, "vendor", person.name);
+  }
+  const { error: profileError } = await admin.from("profiles").upsert(
+    CREW.map((person) => ({ id: person.id, role: "vendor" as const, full_name: person.name, email: person.email })),
+  );
+  if (profileError) throw profileError;
+  for (const person of CREW) {
+    const { error } = await admin.from("vendor_profiles").upsert({
+      id: person.profile,
+      user_id: person.id,
+      business_name: person.business,
+      slug: person.slug,
+      category: person.category,
+      city: "Bordeaux",
+      zone: "Gironde",
+      description: `${person.business}, présent sur le mariage de Léa et Hugo.`,
+      contact_email: person.email,
+      contact_phone: "",
+      website: "",
+      starting_price_cents: null,
+      currency: "EUR",
+      published: true,
+    });
+    if (error) throw error;
+  }
+  const { error: membersError } = await admin.from("wedding_members").upsert(
+    CREW.map((person) => ({ wedding_id: demo.weddingId, user_id: person.id, member_role: "vendor" as const })),
+    { onConflict: "wedding_id,user_id" },
+  );
+  if (membersError) throw membersError;
 }
 
 async function ensureUser(id: string, email: string, role: "vendor" | "couple", fullName: string) {

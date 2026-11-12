@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AddressInput } from "@/components/ui/address-input";
 import { Field, TextInput } from "@/components/ui/field";
 import { savePractical } from "@/server/actions/sheets";
 import type { Tables } from "@/lib/database.types";
@@ -24,7 +25,7 @@ export function GuidedSetup({
   const action = savePractical.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   if (skipped) {
-    return <p className="text-sm text-muted">Vous pourrez compléter ces infos plus tard, depuis n&apos;importe quelle bulle.</p>;
+    return <p className="text-sm text-muted">Vous pourrez compléter ces infos plus tard, depuis l&apos;espace de chaque prestataire.</p>;
   }
   return (
     <form action={formAction} className="space-y-6">
@@ -38,10 +39,10 @@ export function GuidedSetup({
       </p>
       <div className={step === 0 ? "grid gap-4" : "hidden"}>
         <Field label="Cérémonie" hint={venue ? `Déjà connu : ${venue}` : undefined}>
-          <TextInput name="ceremony_address" defaultValue={practical?.ceremony_address || venue} />
+          <AddressInput name="ceremony_address" defaultValue={practical?.ceremony_address || venue} weddingId={weddingId} placeholder="12 rue des Tilleuls, 33000 Bordeaux" />
         </Field>
         <Field label="Réception">
-          <TextInput name="reception_address" defaultValue={practical?.reception_address || venue} />
+          <AddressInput name="reception_address" defaultValue={practical?.reception_address || venue} weddingId={weddingId} />
         </Field>
       </div>
       <div className={step === 1 ? undefined : "hidden"}>
@@ -57,7 +58,11 @@ export function GuidedSetup({
           <TextInput name="partner_two_phone" defaultValue={practical?.partner_two_phone ?? ""} />
         </Field>
       </div>
-      <input type="hidden" name="postal_address" value={practical?.postal_address ?? ""} />
+      <div className={step === 0 ? undefined : "hidden"}>
+        <Field label="Adresse postale" hint="Facultatif. Un nom de lieu libre reste possible.">
+          <AddressInput name="postal_address" defaultValue={practical?.postal_address ?? ""} weddingId={weddingId} />
+        </Field>
+      </div>
       <input type="hidden" name="key_contacts" value={practical?.key_contacts ?? ""} />
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}

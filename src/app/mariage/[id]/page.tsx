@@ -12,6 +12,7 @@ import { reminderKindLabel } from "@/lib/domain/reminders";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
 import { todayIso } from "@/lib/domain/format";
+import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import { siteUrl } from "@/lib/env";
 import { recommendVendor } from "@/server/actions/relay";
 import { getWeddingSpace } from "@/server/data";
@@ -110,7 +111,8 @@ export default async function WeddingOverviewPage({
         {space.actingAsCouple || space.role === "couple" ? null : (
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Votre métier</h2>
-          <p className="mt-1 text-sm text-muted">Le jour J, le couple tient les horaires.</p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight">{countdownLabel(daysUntil(space.wedding.wedding_date, todayIso()))}</p>
+          <p className="mt-1 text-sm text-muted">Le jour J, les mariés tiennent les horaires. Vous suivez la version active.</p>
         </div>
         )}
         <SettingsGroup title="Préparer">

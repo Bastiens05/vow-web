@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import type { VendorCategory } from "@/lib/domain/categories";
-import { pratiqueLabel } from "@/lib/domain/trades";
-import { NavLink, type IconName } from "@/components/ui/nav-link";
+import { LineIcon } from "@/components/ui/line-icon";
+import { NavLink } from "@/components/ui/nav-link";
+import { navigationItems, type NavItem } from "@/components/layout/navigation-items";
 
-type Item = { href: string; label: string; icon: IconName };
+type Item = NavItem;
 
 export function NavMenu({
   role,
@@ -26,18 +27,20 @@ export function NavMenu({
   isAdmin?: boolean;
 }) {
   const path = usePathname() ?? "";
-  const items = itemsFor(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
-  const inWedding = Boolean(weddingIdFrom(path));
+  const items = navigationItems(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
+  const inWedding = /^\/mariage\/[^/]+/.test(path);
   const couple = role === "couple" || actingAsCouple;
   const mobileCouple = couple && variant === "tab";
-  const tabOrder = ["Accueil", "Jour J", "Messages", "Documents"];
-  const primaryTabs = mobileCouple
-    ? tabOrder.flatMap((label) => items.filter((item) => item.label === label))
-    : [];
-  const moreTabs = mobileCouple
-    ? items.filter((item) => !["Accueil", "Jour J", "Messages", "Documents"].includes(item.label))
-    : [];
-  const shown = mobileCouple
+  const mobileVendor = role === "vendor" && !actingAsCouple && variant === "tab";
+  const tabOrder = mobileVendor
+    ? inWedding
+      ? ["Aperçu", "Jour J", "Messages", "Documents"]
+      : ["Accueil", "Mariages", "Messages", "Nouveautés"]
+    : ["Accueil", "Jour J", "Messages", "Documents"];
+  const usePlus = mobileCouple || mobileVendor;
+  const primaryTabs = usePlus ? tabOrder.flatMap((label) => items.filter((item) => item.label === label)) : [];
+  const moreTabs = usePlus ? items.filter((item) => !tabOrder.includes(item.label)) : [];
+  const shown = usePlus
     ? primaryTabs
     : variant !== "tab"
       ? items
@@ -65,7 +68,7 @@ export function NavMenu({
       {shown.map((item) => (
         <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
       ))}
-      {mobileCouple ? <MoreTab items={moreTabs} path={path} /> : null}
+      {usePlus ? <MoreTab items={moreTabs} path={path} /> : null}
     </nav>
   );
 }
@@ -79,15 +82,11 @@ function MoreTab({ items, path }: { items: Item[]; path: string }) {
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
-        className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
+        className={`flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-xs font-medium transition active:scale-95 ${active || open ? "text-ink" : "text-muted"}`}
         onClick={() => setOpen(true)}
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-          <circle cx="6" cy="12" r="1.2" fill="currentColor" />
-          <circle cx="12" cy="12" r="1.2" fill="currentColor" />
-          <circle cx="18" cy="12" r="1.2" fill="currentColor" />
-        </svg>
-        Plus
+        <LineIcon name="more" />
+        <span className="text-xs leading-none">Plus</span>
       </button>
       {open ? (
         <div className="fixed inset-0 z-50">
@@ -104,83 +103,6 @@ function MoreTab({ items, path }: { items: Item[]; path: string }) {
       ) : null}
     </>
   );
-}
-
-function weddingIdFrom(path: string) {
-  const match = /^\/mariage\/([^/]+)/.exec(path);
-  return match?.[1] ?? null;
-}
-
-function itemsFor(
-  path: string,
-  role: "vendor" | "couple" | null,
-  category: VendorCategory | null,
-  signedIn: boolean,
-  primaryWeddingId: string | null,
-  actingAsCouple: boolean,
-  isAdmin: boolean,
-): Item[] {
-  const weddingId = primaryWeddingId;
-  if ((role === "couple" || actingAsCouple) && signedIn) {
-    const base = weddingId ? `/mariage/${weddingId}` : "";
-    const items: Item[] = [
-      { href: "/espace", label: "Accueil", icon: "home" },
-      { href: base ? `${base}/jour` : "/espace", label: "Jour J", icon: "clock" },
-      { href: base ? `${base}/messages` : "/messages", label: "Messages", icon: "message" },
-      { href: base ? `${base}/bulles` : "/espace", label: "Documents", icon: "file" },
-      { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "spark" },
-      { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
-      { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "spark" },
-      { href: base ? `${base}/coffre` : "/espace", label: "Coffre", icon: "file" },
-      { href: "/reglages", label: "Réglages", icon: "gear" },
-    ];
-    if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
-    return items;
-  }
-  const currentWedding = weddingIdFrom(path);
-  if (currentWedding && signedIn && role) {
-    const view = actingAsCouple ? "couple" : role;
-    const base = `/mariage/${currentWedding}`;
-    const sheet = pratiqueLabel(view, actingAsCouple ? null : category);
-    const items: Item[] = [
-      { href: base, label: "Aperçu", icon: "home" },
-      { href: `${base}/messages`, label: "Messages", icon: "message" },
-      { href: `${base}/jour`, label: "Jour J", icon: "clock" },
-      { href: `${base}/documents`, label: "Documents", icon: "file" },
-    ];
-    if (sheet) items.push({ href: `${base}/pratique`, label: sheet, icon: "people" });
-    if (view === "vendor") {
-      items.push({ href: `${base}/bulles`, label: "Ma bulle", icon: "spark" });
-      items.push({ href: `${base}/inviter`, label: "Invitations", icon: "user" });
-    }
-    return items;
-  }
-  if (!signedIn) {
-    return [
-      { href: "/", label: "Accueil", icon: "home" },
-      { href: "/connexion", label: "Connexion", icon: "user" },
-      { href: "/inscription", label: "Compte", icon: "spark" },
-    ];
-  }
-  const items: Item[] =
-    role === "vendor"
-      ? [
-          { href: "/espace", label: "Accueil", icon: "home" },
-          { href: "/mariages", label: "Mariages", icon: "list" },
-          { href: "/demandes", label: "Demandes", icon: "mail" },
-          { href: "/messages", label: "Messages", icon: "message" },
-          { href: "/alertes", label: "Alertes", icon: "bell" },
-          { href: "/abonnement", label: "Abonnement", icon: "spark" },
-          { href: "/reglages", label: "Réglages", icon: "gear" },
-        ]
-      : [
-          { href: "/espace", label: "Accueil", icon: "home" },
-          { href: primaryWeddingId ? `/mariage/${primaryWeddingId}` : "/mariages", label: "Mariage", icon: "list" },
-          { href: "/alertes", label: "Alertes", icon: "bell" },
-          { href: "/reglages", label: "Réglages", icon: "gear" },
-        ];
-  if (isAdmin) items.push({ href: "/admin", label: "Admin", icon: "gear" });
-  return items;
 }
 
 function isActive(path: string, href: string) {
