@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
+import { FileDrop } from "@/components/ui/file-drop";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
 import { addVaultItem, removeVaultItem } from "@/server/actions/vault";
@@ -70,19 +71,18 @@ export function VaultBoard({
                 <span className={`h-2.5 w-2.5 rounded-full ${files.length ? "bg-ok" : "bg-danger"}`} aria-hidden />
                 <span className="text-sm font-medium">{item.label}</span>
               </span>
-              <label className="min-h-11 cursor-pointer text-sm text-muted">
-                {pending === item.kind ? "Envoi…" : "Ajouter"}
-                <input
-                  type="file"
-                  className="sr-only"
+              <div className="mt-3">
+                <FileDrop
+                  accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.doc,.docx,.txt"
                   disabled={pending === item.kind}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                    const next = event.target.files?.[0];
-                    event.target.value = "";
+                  hint="PDF, Word, texte ou image · 10 Mo maximum."
+                  progress={pending === item.kind ? 40 : null}
+                  onFiles={(files) => {
+                    const next = files[0];
                     if (next) void upload(item.kind, item.label, next);
                   }}
                 />
-              </label>
+              </div>
             </div>
             {files.length === 0 ? <p className="mt-2 text-xs text-muted">À déposer</p> : null}
             <ul className="mt-2 grid gap-2">

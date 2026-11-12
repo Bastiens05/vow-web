@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState, type ChangeEvent } from "react";
+import { useActionState, useState } from "react";
 import { PasswordField } from "@/components/auth/password-field";
+import { FileDrop } from "@/components/ui/file-drop";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
@@ -79,10 +80,7 @@ export function LogoField({ userId, logoPath }: { userId: string; logoPath: stri
   const [pending, setPending] = useState(false);
   const src = logoPath ? publicObjectUrl("vendor-media", logoPath) : null;
 
-  async function onChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+  async function onFile(file: File) {
     const check = validateUpload(file, "photo");
     if (!check.ok) {
       setError(check.error);
@@ -112,10 +110,16 @@ export function LogoField({ userId, logoPath }: { userId: string; logoPath: stri
       ) : (
         <p className="text-sm text-muted">Pas encore de logo.</p>
       )}
-      <label className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line bg-paper px-4 text-sm font-medium">
-        {pending ? "Envoi…" : "Choisir un logo"}
-        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={onChange} />
-      </label>
+      <FileDrop
+        accept="image/jpeg,image/png,image/webp"
+        disabled={pending}
+        hint="JPG, PNG ou WebP · le logo de votre activité."
+        progress={pending ? 60 : null}
+        onFiles={(files) => {
+          const file = files[0];
+          if (file) void onFile(file);
+        }}
+      />
       {error ? <Alert>{error}</Alert> : null}
     </div>
   );

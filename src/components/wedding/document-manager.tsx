@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { FileDrop } from "@/components/ui/file-drop";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatFileSize } from "@/lib/domain/format";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
@@ -33,43 +34,46 @@ export function DocumentManager({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [chosen, setChosen] = useState<string[]>([]);
+  const [progress, setProgress] = useState<number | null>(null);
 
-  async function onChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    const check = validateUpload(file, "document");
-    if (!check.ok) {
-      setError(check.error);
-      return;
-    }
+  async function onFiles(files: File[]) {
+    setChosen(files.map((file) => file.name));
     setPending(true);
     setError(null);
     const supabase = createClient();
-    const path = `${weddingId}/${userId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-    const uploaded = await supabase.storage.from("wedding-documents").upload(path, file, {
-      contentType: file.type,
-      upsert: false,
-    });
-    if (uploaded.error) {
-      setPending(false);
-      setError(uploaded.error.message);
-      return;
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      if (!file) continue;
+      const check = validateUpload(file, "document");
+      if (!check.ok) {
+        setError(check.error);
+        continue;
+      }
+      setProgress(Math.round((index / files.length) * 100));
+      const path = `${weddingId}/${userId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+      const uploaded = await supabase.storage.from("wedding-documents").upload(path, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+      if (uploaded.error) {
+        setError(uploaded.error.message);
+        continue;
+      }
+      const inserted = await supabase.from("documents").insert({
+        wedding_id: weddingId,
+        uploaded_by: userId,
+        storage_path: path,
+        file_name: file.name.slice(0, 180),
+        mime_type: file.type,
+        size_bytes: file.size,
+      });
+      if (inserted.error) {
+        await supabase.storage.from("wedding-documents").remove([path]);
+        setError(inserted.error.message);
+      }
     }
-    const inserted = await supabase.from("documents").insert({
-      wedding_id: weddingId,
-      uploaded_by: userId,
-      storage_path: path,
-      file_name: file.name.slice(0, 180),
-      mime_type: file.type,
-      size_bytes: file.size,
-    });
-    if (inserted.error) {
-      await supabase.storage.from("wedding-documents").remove([path]);
-      setPending(false);
-      setError(inserted.error.message);
-      return;
-    }
+    setProgress(100);
     setPending(false);
     router.refresh();
   }
@@ -143,17 +147,15 @@ export function DocumentManager({
           );
         })}
       </ul>
-      <label className="block text-sm">
-        Ajouter un fichier
-        <input
-          type="file"
-          className="mt-2 block w-full text-sm"
-          onChange={onChange}
-          disabled={pending}
-          accept=".pdf,.txt,.doc,.docx,.jpg,.jpeg,.png,.webp,application/pdf,text/plain,image/jpeg,image/png,image/webp"
-        />
-      </label>
-      {pending ? <p className="text-sm text-muted">Envoi…</p> : null}
+      <FileDrop
+        accept=".pdf,.txt,.doc,.docx,.jpg,.jpeg,.png,.webp,application/pdf,text/plain,image/jpeg,image/png,image/webp"
+        multiple
+        disabled={pending}
+        hint="PDF, Word, texte, JPG, PNG ou WebP · 10 Mo maximum."
+        names={chosen}
+        progress={progress}
+        onFiles={(files) => void onFiles(files)}
+      />
       {error ? <Alert>{error}</Alert> : null}
     </div>
   );

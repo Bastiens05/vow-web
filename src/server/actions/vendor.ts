@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { messageFromError } from "@/lib/errors";
 import { validateOffer, validateVendorProfile } from "@/lib/domain/validation";
+import { emptyPromo, parsePromo } from "@/lib/domain/promo";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 import type { ActionState } from "@/server/actions/auth";
@@ -62,6 +63,16 @@ export async function addOffer(_prev: ActionState, formData: FormData): Promise<
     price: String(formData.get("price") ?? ""),
   });
   if (!parsed.ok) return { error: parsed.error };
+  const promo = parsePromo({
+    enabled: formData.get("promo") === "on",
+    kind: String(formData.get("promo_kind") ?? ""),
+    value: String(formData.get("promo_value") ?? ""),
+    label: String(formData.get("promo_label") ?? ""),
+    starts: String(formData.get("promo_starts_on") ?? ""),
+    ends: String(formData.get("promo_ends_on") ?? ""),
+    priceCents: parsed.value.priceCents,
+  });
+  if (!promo.ok) return { error: promo.error };
 
   const supabase = await createClient();
   const { error } = await supabase.from("vendor_offers").insert({
@@ -69,11 +80,45 @@ export async function addOffer(_prev: ActionState, formData: FormData): Promise<
     title: parsed.value.title,
     description: parsed.value.description,
     price_cents: parsed.value.priceCents,
+    ...(promo.value ?? emptyPromo),
   });
   if (error) return { error: messageFromError(error) };
   revalidatePath("/espace/profil");
   revalidatePath(`/p/${session.vendor.slug}`);
   return { success: "Offre ajoutée." };
+}
+
+export async function saveOfferPromo(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const session = await requireSession();
+  if (!session.vendor) return { error: "Enregistrez d'abord votre vitrine." };
+  const id = String(formData.get("id") ?? "");
+  const price = parsePromoPrice(String(formData.get("price_cents") ?? ""));
+  const promo = parsePromo({
+    enabled: formData.get("remove") !== "on",
+    kind: String(formData.get("promo_kind") ?? ""),
+    value: String(formData.get("promo_value") ?? ""),
+    label: String(formData.get("promo_label") ?? ""),
+    starts: String(formData.get("promo_starts_on") ?? ""),
+    ends: String(formData.get("promo_ends_on") ?? ""),
+    priceCents: price,
+  });
+  if (!promo.ok) return { error: promo.error };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("vendor_offers")
+    .update(promo.value ?? emptyPromo)
+    .eq("id", id)
+    .eq("vendor_id", session.vendor.id);
+  if (error) return { error: messageFromError(error) };
+  revalidatePath("/espace/profil");
+  revalidatePath(`/p/${session.vendor.slug}`);
+  return { success: promo.value ? "Promo enregistrée." : "Promo retirée." };
+}
+
+function parsePromoPrice(value: string): number | null {
+  if (!value.trim()) return null;
+  const cents = Number(value);
+  return Number.isInteger(cents) ? cents : null;
 }
 
 export async function deleteOffer(formData: FormData) {

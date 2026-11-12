@@ -131,6 +131,11 @@ export type Database = {
           title: string;
           description: string;
           price_cents: number | null;
+          promo_kind: "percent" | "amount" | null;
+          promo_value: number | null;
+          promo_label: string;
+          promo_starts_on: string | null;
+          promo_ends_on: string | null;
           sort_order: number;
           created_at: string;
         },
@@ -140,9 +145,24 @@ export type Database = {
           title: string;
           description?: string;
           price_cents?: number | null;
+          promo_kind?: "percent" | "amount" | null;
+          promo_value?: number | null;
+          promo_label?: string;
+          promo_starts_on?: string | null;
+          promo_ends_on?: string | null;
           sort_order?: number;
         },
-        { title?: string; description?: string; price_cents?: number | null; sort_order?: number }
+        {
+          title?: string;
+          description?: string;
+          price_cents?: number | null;
+          promo_kind?: "percent" | "amount" | null;
+          promo_value?: number | null;
+          promo_label?: string;
+          promo_starts_on?: string | null;
+          promo_ends_on?: string | null;
+          sort_order?: number;
+        }
       >;
       vendor_photos: Table<
         {
