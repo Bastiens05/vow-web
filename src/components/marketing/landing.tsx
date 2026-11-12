@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Archive, Briefcase, CalendarRange, FolderOpen, MessageCircle, Share2, Sparkles, Users, WifiOff, type LucideIcon } from "lucide-react";
+import { PLAN_OFFERS, PLAN_SUMMARIES, featuresIncludedIn, type VendorPlan } from "@/lib/domain/plans";
 
 type Audience = "couples" | "vendors";
 type Feature = { title: string; text: string; icon: LucideIcon };
@@ -117,7 +118,67 @@ export function Landing() {
         </div>
         <p className="mt-10 text-sm text-muted">Imaginé près de Bordeaux, pour tous les métiers du mariage.</p>
       </section>
+      <Pricing />
     </div>
+  );
+}
+
+function monthlyPrice(cents: number): string {
+  const euros = Math.floor(cents / 100);
+  const centsPart = cents % 100;
+  if (centsPart === 0) return `${euros} €/mois`;
+  return `${euros},${String(centsPart).padStart(2, "0")} €/mois`;
+}
+
+function Pricing() {
+  return (
+    <section id="tarifs" className="border-t border-line bg-ivory">
+      <div className="mx-auto max-w-6xl px-5 py-16 lg:py-24">
+        <p className="text-xs font-semibold tracking-[0.28em] text-muted">Prestataires</p>
+        <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">Trois formules. Les mariés ne paient pas.</h2>
+        <p className="mt-4 max-w-xl text-base leading-7 text-muted">
+          Studio comprend Pro, qui comprend Essentiel. Aucune commission. L&apos;espace des mariés reste gratuit.
+        </p>
+        <ul className="mt-10 grid gap-4 lg:grid-cols-3">
+          {PLAN_OFFERS.map((plan) => (
+            <PlanCard key={plan.id} id={plan.id} cents={plan.cents} />
+          ))}
+        </ul>
+        <p className="mt-8 text-sm text-muted">
+          Vous vous mariez ?{" "}
+          <Link href="/inscription?role=couple" className="underline">
+            L&apos;espace mariés est gratuit.
+          </Link>
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function PlanCard({ id, cents }: { id: VendorPlan; cents: number }) {
+  const studio = id === "studio";
+  const items = featuresIncludedIn(id);
+  return (
+    <li className={studio ? "flex flex-col rounded-[28px] bg-ink p-6 text-ivory lg:p-8" : "flex flex-col rounded-[28px] border border-line bg-paper p-6 lg:p-8"}>
+      <p className={studio ? "text-sm text-ivory/70" : "text-sm text-muted"}>{PLAN_OFFERS.find((plan) => plan.id === id)?.label}</p>
+      <p className="mt-3 text-4xl font-semibold tracking-tight">{monthlyPrice(cents)}</p>
+      <p className={studio ? "mt-4 text-sm leading-6 text-ivory/80" : "mt-4 text-sm leading-6 text-muted"}>{PLAN_SUMMARIES[id]}</p>
+      <ul className="mt-6 space-y-2 text-sm leading-6">
+        {items.map((item) => (
+          <li key={item.key}>{item.title}</li>
+        ))}
+      </ul>
+      <Link
+        href={`/inscription?role=vendor&plan=${id}`}
+        className={
+          studio
+            ? "mt-auto inline-flex min-h-12 w-full items-center justify-center rounded-full bg-ivory px-5 text-sm font-medium text-ink"
+            : "mt-auto inline-flex min-h-12 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-medium text-ivory"
+        }
+      >
+        Choisir {PLAN_OFFERS.find((plan) => plan.id === id)?.label}
+      </Link>
+    </li>
   );
 }
 
