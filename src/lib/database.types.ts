@@ -978,6 +978,7 @@ export type Database = {
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           plan: "essentiel" | "pro" | "studio";
+          comped: boolean;
           updated_at: string;
         },
         {
@@ -986,6 +987,7 @@ export type Database = {
           trial_ends_at: string;
           tester_until?: string | null;
           plan?: "essentiel" | "pro" | "studio";
+          comped?: boolean;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         },
@@ -994,6 +996,7 @@ export type Database = {
           trial_ends_at?: string;
           tester_until?: string | null;
           plan?: "essentiel" | "pro" | "studio";
+          comped?: boolean;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         }
@@ -1279,6 +1282,7 @@ export type Database = {
         Returns: string;
       };
       redeem_tester_code: { Args: { p_code: string }; Returns: string };
+      choose_vendor_plan: { Args: { p_plan: string }; Returns: string };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       undo_timeline_shift: {
         Args: {
