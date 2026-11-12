@@ -27,12 +27,13 @@ export async function DesktopNav() {
     return (
       <CoupleSidebar
         items={couple ? context.coupleItems : context.sideItems}
-        weddingName={couple ? context.weddingName : studio || "Votre espace"}
+        weddingName={couple ? context.weddingName : "Votre espace"}
         countdown={couple ? figure : null}
         userName={studio || session.profile.full_name || "Vous"}
         navLabel={couple ? "Espace mariés" : "Espace prestataire"}
         identityHref={couple ? undefined : "/espace"}
         identityLogo={couple ? null : logo}
+        identityMark={couple ? undefined : studio || "Votre espace"}
         live={
           !couple && session.profile.role === "vendor"
             ? {
@@ -62,7 +63,7 @@ export async function DesktopNav() {
                   caption: inWedding ? "" : "Espace",
                   labels: context.sideItems
                     .map((item) => item.label)
-                    .filter((label) => !["Réglages", "Admin", "Abonnement", "Demandes", "Aperçu"].includes(label)),
+                    .filter((label) => !["Réglages", "Admin", "Aperçu"].includes(label)),
                 },
               ]
         }

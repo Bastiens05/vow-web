@@ -36,6 +36,7 @@ export function CoupleSidebar({
   account,
   identityHref,
   identityLogo = null,
+  identityMark,
   section = null,
   live = null,
 }: {
@@ -49,6 +50,7 @@ export function CoupleSidebar({
   account?: Item[];
   identityHref?: string;
   identityLogo?: string | null;
+  identityMark?: string;
   section?: { title: string; backHref: string; backLabel: string } | null;
   live?: {
     role: "vendor" | "couple" | null;
@@ -64,7 +66,7 @@ export function CoupleSidebar({
   const items = live
     ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
     : itemsProp;
-  const openedId = /^\/mariage\/([^/]+)/.exec(path)?.[1] ?? null;
+  const openedId = /^\/mariage\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i.exec(path)?.[1] ?? null;
   const vendorInside = Boolean(live && live.role === "vendor" && !live.actingAsCouple && openedId);
   const activeSection = vendorInside
     ? {
@@ -75,7 +77,9 @@ export function CoupleSidebar({
     : section;
   const activeGroups = vendorInside
     ? [{ caption: "", labels: items.map((item) => item.label).filter((label) => !["Réglages", "Admin"].includes(label)) }]
-    : groups;
+    : live?.role === "vendor" && !live.actingAsCouple
+      ? [{ caption: "Espace", labels: ["Accueil", "Mariages", "Demandes", "Messages", "Nouveautés", "Abonnement"] }]
+      : groups;
   function toggle() {
     window.localStorage.setItem("vow-sidebar", collapsed ? "full" : "icons");
     window.dispatchEvent(new Event("vow-sidebar"));
@@ -110,7 +114,7 @@ export function CoupleSidebar({
           />
         ) : (
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
-            {monogram(weddingName)}
+            {monogram(identityMark || weddingName)}
           </span>
         )}
         {collapsed ? null : (

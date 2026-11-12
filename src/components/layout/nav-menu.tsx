@@ -28,7 +28,7 @@ export function NavMenu({
 }) {
   const path = usePathname() ?? "";
   const items = navigationItems(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
-  const inWedding = /^\/mariage\/[^/]+/.test(path);
+  const inWedding = /^\/mariage\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?:\/|$)/i.test(path);
   const couple = role === "couple" || actingAsCouple;
   const mobileCouple = couple && variant === "tab";
   const mobileVendor = role === "vendor" && !actingAsCouple && variant === "tab";
@@ -39,9 +39,7 @@ export function NavMenu({
     : ["Accueil", "Jour J", "Messages", "Documents"];
   const usePlus = mobileCouple || mobileVendor;
   const primaryTabs = usePlus ? tabOrder.flatMap((label) => items.filter((item) => item.label === label)) : [];
-  const moreTabs = usePlus
-    ? items.filter((item) => !tabOrder.includes(item.label) && item.label !== "Abonnement" && item.label !== "Demandes")
-    : [];
+  const moreTabs = usePlus ? items.filter((item) => !tabOrder.includes(item.label)) : [];
   const shown = usePlus
     ? primaryTabs
     : variant !== "tab"

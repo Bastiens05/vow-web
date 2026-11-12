@@ -1,34 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { navigationItems } from "./navigation-items";
 
+const weddingId = "ac7f5c8d-4d7a-42ff-ae97-66f51f135cba";
+
 describe("navigation prestataire", () => {
-  const items = navigationItems("/espace", "vendor", "photographer", true, null, false, false);
-
-  it("retire Demandes et Abonnement du menu principal", () => {
-    expect(items.map((item) => item.label)).toEqual(["Accueil", "Mariages", "Messages", "Réglages"]);
+  it("garde la navigation globale sur l'accueil et la liste des mariages", () => {
+    const expected = ["Accueil", "Mariages", "Demandes", "Messages", "Nouveautés", "Abonnement", "Réglages"];
+    expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
+    expect(navigationItems("/mariages", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
   });
 
-  it("laisse Admin hors du menu principal, pour le bas de menu", () => {
-    const admin = navigationItems("/espace", "vendor", "photographer", true, null, false, true);
-    expect(admin.map((item) => item.label)).toContain("Admin");
-    expect(admin.map((item) => item.label)).not.toContain("Abonnement");
-    expect(admin.map((item) => item.label)).not.toContain("Demandes");
-    expect(admin.map((item) => item.label)).not.toContain("Nouveautés");
+  it("n'ouvre pas le menu d'un mariage depuis /mariages", () => {
+    const labels = navigationItems("/mariages", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label);
+    expect(labels).not.toContain("Aperçu");
+    expect(labels).not.toContain("Jour J");
+    expect(labels).not.toContain("Invitations");
   });
 
-  it("place Admin en bas du menu d'un mariage", () => {
-    const wedding = navigationItems(
-      "/mariage/ac7f5c8d-4d7a-42ff-ae97-66f51f135cba",
-      "vendor",
-      "photographer",
-      true,
-      "ac7f5c8d-4d7a-42ff-ae97-66f51f135cba",
-      false,
-      true,
-    );
-    expect(wedding.at(-1)).toEqual({ href: "/admin", label: "Admin", icon: "gear" });
-    expect(wedding.map((item) => item.label)).not.toContain("Nouveautés");
-    expect(wedding.map((item) => item.label)).not.toContain("Aperçu");
+  it("réserve le menu du mariage aux routes /mariage/<id>", () => {
+    const wedding = navigationItems(`/mariage/${weddingId}`, "vendor", "photographer", true, weddingId, false, true);
     expect(wedding[0]?.label).toBe("Messages");
+    expect(wedding.map((item) => item.label)).toEqual(
+      expect.arrayContaining(["Jour J", "Brief", "Documents", "Groupes", "Mon dossier", "Invitations", "Admin"]),
+    );
+    expect(wedding.map((item) => item.label)).not.toContain("Aperçu");
+    expect(wedding.at(-1)).toEqual({ href: "/admin", label: "Admin", icon: "gear" });
   });
 });
