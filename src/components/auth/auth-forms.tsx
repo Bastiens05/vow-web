@@ -24,7 +24,7 @@ export function LoginForm({ nextPath, initialEmail = "" }: { nextPath: string; i
         {pending ? "Connexion…" : "Se connecter"}
       </Button>
       <p className="text-center text-sm">
-        <Link href="/mot-de-passe-oublie" className="text-muted underline">
+        <Link href="/mot-de-passe-oublie" className="text-accent">
           Mot de passe oublié ?
         </Link>
       </p>

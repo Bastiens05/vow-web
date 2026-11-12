@@ -28,7 +28,8 @@ export function renderEmail(content: EmailContent): { html: string; text: string
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
     <tr><td align="center" style="padding:32px 16px">
       <table role="presentation" width="100%" style="max-width:480px">
-        <tr><td style="font-size:14px;font-weight:700;letter-spacing:0.28em">VOW</td></tr>
+        <tr><td style="color:#c8a46a;font-size:12px;letter-spacing:0.5em;padding-left:1.6em">✦</td></tr>
+        <tr><td style="font-size:18px;font-weight:400;letter-spacing:0.5em;color:#1c1b19">VOW</td></tr>
         <tr><td style="padding-top:28px;font-size:28px;line-height:1.2;font-weight:650">${heading}</td></tr>
         <tr><td style="padding-top:12px;font-size:16px;line-height:1.5;color:#5c584f">${body}</td></tr>
         <tr><td style="padding-top:28px">

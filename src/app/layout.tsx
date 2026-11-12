@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Instrument_Serif, Inter } from "next/font/google";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { AlertDock } from "@/components/alerts/alert-dock";
@@ -18,16 +18,22 @@ import { getSession } from "@/server/session";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const instrument = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-instrument" });
 
 export const metadata: Metadata = {
   title: { default: "VOW", template: "%s · VOW" },
   description: "L'espace partagé entre les prestataires de mariage et les couples.",
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    title: "VOW",
+    description: "L'espace commun des prestataires et des mariés.",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${inter.variable} h-full antialiased`}>
+    <html lang="fr" className={`${inter.variable} ${instrument.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
         <ChromeFrame
           publicHeader={<PublicHeader />}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Logo } from "@/components/brand/logo";
 import { Archive, Briefcase, CalendarRange, FolderOpen, MessageCircle, Share2, Sparkles, Users, WifiOff, type LucideIcon } from "lucide-react";
 
 type Audience = "couples" | "vendors";
@@ -67,36 +68,32 @@ export function Landing() {
   const [audience, setAudience] = useState<Audience>("couples");
   return (
     <div>
-      <section className="bg-ivory text-ink">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.28em] text-muted">VOW</p>
-            <h1 className="mt-5 max-w-xl text-5xl font-semibold tracking-tight text-ink sm:text-6xl lg:text-7xl">
-              Du premier contact au jour J.
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
-              Un seul espace pour les prestataires de mariage. La vitrine, le couple, le déroulé, et les outils que les
-              agendas ne font pas.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/inscription?role=vendor"
-                className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-5 text-sm font-medium text-ivory"
-              >
-                Je suis prestataire
-              </Link>
-              <Link
-                href="/inscription?role=couple"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink/20 px-5 text-sm font-medium text-ink"
-              >
-                Nous nous marions
-              </Link>
-            </div>
-            <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-muted">
-              J&apos;ai déjà un compte
+      <section
+        className="relative flex min-h-[70vh] items-end bg-[#121110] text-[#f7f3ec]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to top, rgba(18,17,16,0.82), rgba(18,17,16,0.25)), url(/hero/lieu.jpg)",
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+        }}
+      >
+        <div className="mx-auto w-full max-w-6xl px-5 py-16 lg:py-24">
+          <Logo variant="white" />
+          <h1 className="mt-6 max-w-xl font-serif text-5xl font-normal tracking-tight text-[#f7f3ec] sm:text-6xl lg:text-7xl">
+            Le mariage, orchestré.
+          </h1>
+          <p className="mt-6 max-w-xl text-lg leading-8 text-[#f7f3ec]/80">L&apos;espace commun des prestataires et des mariés.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/inscription?role=vendor" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#1c1b19] px-5 text-sm font-medium text-[#f7f3ec]">
+              Je suis prestataire
+            </Link>
+            <Link href="/inscription?role=couple" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#fbf8f3] px-5 text-sm font-medium text-[#1c1b19]">
+              Nous nous marions
             </Link>
           </div>
-          <RelayCard />
+          <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-[#f7f3ec]/80">
+            J&apos;ai déjà un compte
+          </Link>
         </div>
       </section>
       <section id="ce-qui-compte" className="mx-auto max-w-6xl px-5 py-16 lg:py-24">
@@ -165,8 +162,8 @@ function FeatureColumn({
       <ul className="mt-4 grid gap-3">
         {items.map((item) => (
           <li key={item.title} className="flex gap-4 rounded-3xl border border-line bg-paper px-4 py-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-ivory text-ink">
-              <item.icon className="h-4 w-4" strokeWidth={1.6} aria-hidden />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-accent">
+              <item.icon className="h-4 w-4" strokeWidth={1.5} aria-hidden />
             </span>
             <div className="min-w-0">
               <p className="font-semibold tracking-tight">{item.title}</p>
@@ -179,25 +176,3 @@ function FeatureColumn({
   );
 }
 
-function RelayCard() {
-  return (
-    <div className="rounded-[2rem] border border-line bg-mist p-6 text-ink">
-      <p className="text-xs font-medium text-muted">Jour J · aperçu</p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight">Le relais avance.</p>
-      <ol className="mt-6 space-y-3">
-        <li className="flex items-center justify-between rounded-2xl bg-ivory px-4 py-3">
-          <span>Préparatifs</span>
-          <span className="text-xs font-medium">Prêt</span>
-        </li>
-        <li className="flex items-center justify-between rounded-2xl bg-ink px-4 py-3 text-ivory">
-          <span>Cérémonie</span>
-          <span className="text-xs">À vous</span>
-        </li>
-        <li className="flex items-center justify-between rounded-2xl bg-ivory px-4 py-3 text-muted">
-          <span>Cocktail</span>
-          <span className="text-xs">Ensuite</span>
-        </li>
-      </ol>
-    </div>
-  );
-}

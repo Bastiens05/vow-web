@@ -66,7 +66,7 @@ export function AuthFlow({
 
   const title =
     mode === "login"
-      ? "Connexion"
+      ? "Bon retour"
       : step === "choose"
         ? "Bienvenue"
         : step === "vendor"
