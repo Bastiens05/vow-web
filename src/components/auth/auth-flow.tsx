@@ -59,7 +59,6 @@ export function AuthFlow({
   const [partnerTwo, setPartnerTwo] = useState("");
   const [partnerTwoLast, setPartnerTwoLast] = useState("");
   const [weddingDate, setWeddingDate] = useState("");
-  const [testerCode, setTesterCode] = useState("");
   const [weddingsPerYear, setWeddingsPerYear] = useState<WeddingVolume | "">("");
   const [password, setPassword] = useState("");
   const [shown, setShown] = useState(false);
@@ -176,8 +175,6 @@ export function AuthFlow({
               <FieldLike label="Téléphone" name="phone" value={phone} onChange={setPhone} autoComplete="tel" optional />
               <FieldLike label="Instagram" name="instagram" value={instagram} onChange={setInstagram} autoComplete="off" optional />
               <FieldLike label="Site web" name="website" value={website} onChange={setWebsite} autoComplete="url" optional />
-              <p className="text-xs text-muted">Facultatif. Un code reçu applique la formule offerte.</p>
-              <FieldLike label="Code d'invitation" name="tester_code" value={testerCode} onChange={setTesterCode} autoComplete="off" optional />
               <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />

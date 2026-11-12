@@ -17,7 +17,6 @@ export type SignupIntent = {
   partnerTwo: string;
   partnerTwoLast: string;
   weddingDate: string;
-  testerCode: string;
   plan: VendorPlan | null;
 };
 
@@ -47,7 +46,6 @@ export function readSignupIntent(form: FormData, role: "vendor" | "couple" | nul
     partnerTwo: text(form, "partner_two", 80),
     partnerTwoLast: text(form, "partner_two_last", 80),
     weddingDate: text(form, "wedding_date", 10),
-    testerCode: text(form, "tester_code", 64),
     plan: planFrom(text(form, "plan", 20)),
   };
 }
@@ -93,7 +91,6 @@ export function intentMetadata(intent: SignupIntent): Record<string, string> {
     data.city = intent.city;
     if (!data.full_name) data.full_name = coupleProfileName(intent);
   }
-  if (intent.testerCode) data.tester_code = intent.testerCode;
   if (intent.plan) data.plan = intent.plan;
   return data;
 }
@@ -115,7 +112,6 @@ export function intentFromMetadata(metadata: Record<string, unknown> | null | un
     "partner_two",
     "partner_two_last",
     "wedding_date",
-    "tester_code",
     "plan",
   ]) {
     const value = source[key];

@@ -6,11 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 
 export function AlertDock({
   initialToast = null,
+  initialToastHref = null,
   initialUnread = 0,
   inApp = true,
   calm = false,
 }: {
   initialToast?: string | null;
+  initialToastHref?: string | null;
   initialUnread?: number;
   inApp?: boolean;
   calm?: boolean;
@@ -19,6 +21,7 @@ export function AlertDock({
   const [userId, setUserId] = useState<string | null>(initialToast ? "known" : null);
   const [unread, setUnread] = useState(initialUnread);
   const [toast, setToast] = useState<string | null>(inApp ? initialToast : null);
+  const [toastHref, setToastHref] = useState<string | null>(inApp ? initialToastHref : null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -33,14 +36,21 @@ export function AlertDock({
       if (session.session?.access_token) {
         await supabase.realtime.setAuth(session.session.access_token);
       }
-      const [{ data: notes }, { data: offers }] = await Promise.all([
+      const [{ data: notes }, { data: offers }, { data: signups }] = await Promise.all([
         supabase
           .from("wedding_notifications")
           .select("id, body, created_at, author_id")
           .order("created_at", { ascending: false })
           .limit(30),
         supabase.from("grant_notices").select("id, body, seen_at, activated_at").is("activated_at", null),
+        supabase.from("admin_notices").select("id, body, href").order("created_at", { ascending: false }).limit(10),
       ]);
+      const signupIds = (signups ?? []).map((notice) => notice.id);
+      const { data: seenSignups } = signupIds.length
+        ? await supabase.from("admin_notice_reads").select("notice_id").in("notice_id", signupIds)
+        : { data: [] };
+      const seenSignupIds = new Set((seenSignups ?? []).map((row) => row.notice_id));
+      const freshSignups = (signups ?? []).filter((notice) => !seenSignupIds.has(notice.id));
       const others = (notes ?? []).filter((note) => note.author_id !== currentUserId);
       const ids = others.map((note) => note.id);
       const { data: reads } = ids.length
@@ -50,11 +60,13 @@ export function AlertDock({
       const fresh = others.filter((note) => !seen.has(note.id));
       const pendingOffers = (offers ?? []).filter((offer) => !offer.seen_at);
       if (!active) return;
-      setUnread(fresh.length + pendingOffers.length);
-      const latest = pendingOffers[0] ?? fresh[0];
+      setUnread(fresh.length + pendingOffers.length + freshSignups.length);
+      const latestSignup = freshSignups[0];
+      const latest = latestSignup ?? pendingOffers[0] ?? fresh[0];
       if (inApp && showToast && latest && sessionStorage.getItem("vow-toast") !== latest.id) {
         sessionStorage.setItem("vow-toast", latest.id);
         setToast(latest.body);
+        setToastHref(latestSignup ? latestSignup.href : null);
         window.setTimeout(() => setToast(null), 8000);
       }
     }
@@ -80,6 +92,18 @@ export function AlertDock({
             const row = payload.new as { body?: string; author_id?: string };
             if (!inApp || !row.body || row.author_id === me.current) return;
             setToast(row.body);
+            setUnread((count) => count + 1);
+            window.setTimeout(() => setToast(null), 8000);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "admin_notices" },
+          (payload) => {
+            const row = payload.new as { body?: string; href?: string };
+            if (!inApp || !row.body) return;
+            setToast(row.body);
+            setToastHref(row.href || "/admin");
             setUnread((count) => count + 1);
             window.setTimeout(() => setToast(null), 8000);
           },
@@ -148,12 +172,22 @@ export function AlertDock({
         ) : null}
       </Link>
       {toast ? (
-        <div
-          role="status"
-          className="fixed inset-x-4 bottom-24 z-50 rounded-2xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
-        >
-          {toast}
-        </div>
+        toastHref ? (
+          <Link
+            href={toastHref}
+            role="status"
+            className="fixed inset-x-4 bottom-24 z-50 rounded-2xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
+          >
+            {toast}
+          </Link>
+        ) : (
+          <div
+            role="status"
+            className="fixed inset-x-4 bottom-24 z-50 rounded-2xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
+          >
+            {toast}
+          </div>
+        )
       ) : null}
     </>
   );

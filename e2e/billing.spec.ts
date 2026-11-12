@@ -1,4 +1,3 @@
-import { createHash, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
@@ -6,10 +5,9 @@ import { passVendorWelcome, revealPasswordSignup } from "./password-auth";
 
 const password = "VowTest2026!";
 
-test("l'essai expiré ferme le prestataire, jamais les mariés, et un code rouvre l'accès", async ({ page, browser }) => {
+test("l'essai expiré ferme le prestataire, jamais les mariés", async ({ page, browser }) => {
   const stamp = Date.now().toString(36);
   const vendorEmail = `essai.${stamp}@vow.test`;
-  const otherEmail = `autre.essai.${stamp}@vow.test`;
   const coupleEmail = `maries.${stamp}@vow.test`;
   const business = `Studio ${stamp}`;
 
@@ -33,11 +31,6 @@ test("l'essai expiré ferme le prestataire, jamais les mariés, et un code rouvr
   await expect(couple).not.toHaveURL(/abonnement/);
   await couple.close();
 
-  const asVendor = await userClient(vendorEmail);
-  const hidden = await asVendor.from("tester_codes").select("id, label, code_hash");
-  expect(hidden.error).toBeNull();
-  expect(hidden.data ?? []).toEqual([]);
-
   await admin.from("admins").insert({ user_id: userId });
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Prestataires" })).toBeVisible();
@@ -48,40 +41,6 @@ test("l'essai expiré ferme le prestataire, jamais les mariés, et un code rouvr
 
   await page.goto("/espace");
   await expect(page).toHaveURL(/\/abonnement$/);
-
-  const code = randomBytes(18).toString("hex");
-  const codeHash = createHash("sha256").update(code).digest("hex");
-  const inserted = await admin.from("tester_codes").insert({
-    label: `Série ${stamp}`,
-    code_hash: codeHash,
-    max_uses: 1,
-  });
-  expect(inserted.error).toBeNull();
-
-  await page.getByLabel("Code").fill(code);
-  await page.getByRole("button", { name: "Activer" }).click();
-  await expect(page.getByText("Code accepté. L'accès est ouvert.")).toBeVisible();
-  await page.goto("/espace");
-  await expect(page).not.toHaveURL(/abonnement/);
-
-  const other = await freshPage(browser);
-  await signUpVendor(other, otherEmail);
-  await passVendorWelcome(other, `Maison ${stamp}`);
-  const otherId = await vendorProfileId(admin, otherEmail);
-  await admin
-    .from("vendor_billing")
-    .update({ status: "trialing", trial_ends_at: "2020-01-01T00:00:00.000Z" })
-    .eq("vendor_id", otherId);
-  await other.goto("/abonnement");
-  await other.getByLabel("Code").fill(code);
-  await other.getByRole("button", { name: "Activer" }).click();
-  await expect(other.getByText("Ce code n'est pas valable.")).toBeVisible();
-  await other.goto("/espace");
-  await expect(other).toHaveURL(/\/abonnement$/);
-  const stillHidden = await userClient(otherEmail);
-  const codes = await stillHidden.from("tester_codes").select("code_hash");
-  expect(codes.data ?? []).toEqual([]);
-  await other.close();
 });
 
 async function signUpVendor(page: Page, email: string) {
@@ -111,14 +70,6 @@ async function freshPage(browser: Browser) {
 function service() {
   const env = readEnv();
   return createClient(env.url, env.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-}
-
-async function userClient(email: string) {
-  const env = readEnv();
-  const client = createClient(env.url, env.key, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return client;
 }
 
 async function profileId(admin: ReturnType<typeof service>, email: string) {

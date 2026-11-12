@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activateGrant, billingAtSignup, billingFromShareCode, grantOfferBody, receiveGrant, suggestShareCode, UNGIFTED_BILLING } from "./grants";
+import { activateGrant, billingAtSignup, grantOfferBody, receiveGrant, UNGIFTED_BILLING } from "./grants";
 
 const now = new Date("2026-11-12T22:00:00.000Z");
 const current = { ...UNGIFTED_BILLING, plan: "essentiel" as const };
@@ -64,23 +64,6 @@ describe("grant delivery", () => {
   it("does not gift a signup without an invitation or a listed email", () => {
     expect(billingAtSignup({ grant: null, compPlan: null, now })).toEqual(UNGIFTED_BILLING);
     expect(billingAtSignup({ grant: null, compPlan: null, now }).comped).toBe(false);
-  });
-
-  it("applies a share code with the same offer as an invitation", () => {
-    const tester = billingFromShareCode({ grantType: "tester", plan: "pro", discountPercent: 40, now });
-    expect(tester).toEqual(activateGrant({ grant: { grantType: "tester", plan: "pro", discountPercent: 40 }, now }).billing);
-    const lifetime = billingFromShareCode({ grantType: "lifetime", plan: "essentiel", discountPercent: null, now });
-    expect(lifetime).toEqual({ plan: "essentiel", comped: true, testerUntil: null, discountPercent: null });
-  });
-
-  it("does not turn an old code without a type into a gifted plan", () => {
-    expect(billingFromShareCode({ grantType: null, plan: null, discountPercent: null, now })).toBeNull();
-  });
-
-  it("builds a share code when the admin leaves the field empty", () => {
-    const code = suggestShareCode(() => 0);
-    expect(code).toBe("VOW-AAAAAAAA");
-    expect(code.length).toBeGreaterThanOrEqual(8);
   });
 
   it("keeps a listed email gifted when there is no invitation", () => {

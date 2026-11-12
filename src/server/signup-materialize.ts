@@ -38,7 +38,4 @@ export async function materializeSignup(supabase: Client, userId: string, intent
     });
   }
 
-  if (intent.testerCode) {
-    await supabase.rpc("redeem_tester_code", { p_code: intent.testerCode });
-  }
 }

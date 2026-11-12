@@ -141,6 +141,7 @@ export async function markAlertsRead() {
   const supabase = await createClient();
   const { data: notes } = await supabase.from("wedding_notifications").select("id, author_id").limit(80);
   await supabase.rpc("mark_grant_notices_seen");
+  await supabase.rpc("mark_admin_notices_seen");
   const unread = (notes ?? []).filter((note) => note.author_id !== session.userId);
   if (unread.length === 0) return;
   await supabase.from("notification_reads").upsert(

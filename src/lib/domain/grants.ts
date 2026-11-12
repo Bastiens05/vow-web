@@ -67,34 +67,6 @@ export function activateGrant(input: { grant: GrantOffer; now: Date }): { status
   return { status: "accepted", billing: appliedGrantBilling(input.grant, input.now) };
 }
 
-const SHARE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-/** A readable code. Empty admin input uses this. */
-export function suggestShareCode(random: () => number = Math.random): string {
-  let body = "";
-  for (let index = 0; index < 8; index += 1) {
-    body += SHARE_ALPHABET[Math.floor(random() * SHARE_ALPHABET.length)] ?? "A";
-  }
-  return `VOW-${body}`;
-}
-
-/**
- * A share code with a type applies the same offer as an e-mail invitation.
- * A code from before this choice (no type) stays on the old access path.
- */
-export function billingFromShareCode(input: {
-  grantType: GrantType | null;
-  plan: VendorPlan | null;
-  discountPercent: number | null;
-  now: Date;
-}): BillingState | null {
-  if (!input.grantType || !input.plan) return null;
-  return appliedGrantBilling(
-    { grantType: input.grantType, plan: input.plan, discountPercent: input.discountPercent },
-    input.now,
-  );
-}
-
 /** New vendor row. No invitation and no listed email stays on the unpaid default. */
 export function billingAtSignup(input: { grant: GrantOffer | null; compPlan: VendorPlan | null; now: Date }): BillingState {
   if (input.grant) return appliedGrantBilling(input.grant, input.now);

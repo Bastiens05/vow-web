@@ -1099,48 +1099,21 @@ export type Database = {
           body?: string;
         }
       >;
-      tester_codes: Table<
+      admin_notices: Table<
         {
           id: string;
-          label: string;
-          code_hash: string;
-          max_uses: number;
-          use_count: number;
-          expires_at: string | null;
-          access_until: string | null;
-          grant_type: "tester" | "lifetime" | null;
-          plan: "essentiel" | "pro" | "studio" | null;
-          discount_percent: number | null;
-          code_text: string | null;
-          revoked_at: string | null;
+          profile_id: string;
+          body: string;
+          href: string;
           created_at: string;
         },
-        {
-          id?: string;
-          label: string;
-          code_hash: string;
-          max_uses: number;
-          use_count?: number;
-          expires_at?: string | null;
-          access_until?: string | null;
-          grant_type?: "tester" | "lifetime" | null;
-          plan?: "essentiel" | "pro" | "studio" | null;
-          discount_percent?: number | null;
-          code_text?: string | null;
-          revoked_at?: string | null;
-        },
-        {
-          label?: string;
-          max_uses?: number;
-          use_count?: number;
-          expires_at?: string | null;
-          access_until?: string | null;
-          grant_type?: "tester" | "lifetime" | null;
-          plan?: "essentiel" | "pro" | "studio" | null;
-          discount_percent?: number | null;
-          code_text?: string | null;
-          revoked_at?: string | null;
-        }
+        { profile_id: string; body: string; href?: string },
+        { body?: string }
+      >;
+      admin_notice_reads: Table<
+        { notice_id: string; user_id: string; read_at: string },
+        { notice_id: string; user_id: string; read_at?: string },
+        { read_at?: string }
       >;
       recommendation_events: Table<
         { id: string; recommendation_id: string; kind: string; created_at: string },
@@ -1390,24 +1363,8 @@ export type Database = {
         };
         Returns: string;
       };
-      create_tester_code: {
-        Args: { p_label: string; p_code: string; p_max_uses: number; p_expires: string | null; p_access_until: string | null };
-        Returns: string;
-      };
-      create_share_code: {
-        Args: {
-          p_grant_type: string;
-          p_plan: string;
-          p_discount: number | null;
-          p_max_uses: number;
-          p_expires: string | null;
-          p_code: string;
-        };
-        Returns: string;
-      };
-      revoke_share_code: { Args: { p_id: string }; Returns: undefined };
-      redeem_tester_code: { Args: { p_code: string }; Returns: string };
       choose_vendor_plan: { Args: { p_plan: string }; Returns: string };
+      mark_admin_notices_seen: { Args: Record<string, never>; Returns: undefined };
       lookup_tester_invite: {
         Args: { p_token: string };
         Returns: { email: string; first_name: string; last_name: string; trade: string; plan: string }[];

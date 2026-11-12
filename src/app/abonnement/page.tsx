@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { PlanPicker, RedeemForm, SubscribeButton } from "@/app/abonnement/offer";
+import { PlanPicker, SubscribeButton } from "@/app/abonnement/offer";
 import { vendorAccess } from "@/lib/domain/billing";
 import { effectiveVendorPlan, planLabel, testerOfferLabel } from "@/lib/domain/plans";
 import { categoryLabel } from "@/lib/domain/categories";
@@ -68,18 +68,6 @@ export default async function SubscriptionPage() {
           <SubscribeButton enabled={stripeEnabled()} />
         </div>
       </section>
-      {!comped ? (
-        <section className="mt-4 rounded-3xl border border-line bg-paper p-6">
-          <h2 className="text-lg font-semibold tracking-tight">Code d&apos;invitation</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Le même code qu&apos;à l&apos;inscription. Il applique la formule offerte : un an puis la remise, ou une
-            formule à vie.
-          </p>
-          <div className="mt-4">
-            <RedeemForm />
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

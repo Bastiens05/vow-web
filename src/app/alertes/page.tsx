@@ -18,17 +18,19 @@ export default async function AlertsPage() {
   const session = await requireSession();
   const couple = session.profile.role === "couple";
   const supabase = await createClient();
-  const [{ data }, { data: offers }] = await Promise.all([
+  const [{ data }, { data: offers }, { data: signups }] = await Promise.all([
     supabase
       .from("wedding_notifications")
       .select("id, body, created_at, wedding_id, author_id, kind")
       .order("created_at", { ascending: false })
       .limit(40),
     supabase.from("grant_notices").select("id, grant_id, body, created_at, activated_at").order("created_at", { ascending: false }).limit(20),
+    supabase.from("admin_notices").select("id, body, href, created_at").order("created_at", { ascending: false }).limit(20),
   ]);
   await markAlertsRead();
   const notes = data ?? [];
   const notices = offers ?? [];
+  const signupNotes = signups ?? [];
   return (
     <div className="mx-auto w-full max-w-lg px-5 py-8">
       <RealtimeRefresh
@@ -36,6 +38,7 @@ export default async function AlertsPage() {
         subscriptions={[
           { table: "wedding_notifications", event: "INSERT" },
           { table: "grant_notices", event: "*" },
+          { table: "admin_notices", event: "*" },
         ]}
       />
       <h1 className="text-4xl font-semibold tracking-tight">Nouveautés</h1>
@@ -43,10 +46,18 @@ export default async function AlertsPage() {
         {couple ? "Les dernières nouvelles de votre mariage." : "Vos offres à activer, et ce qui a bougé sur vos mariages."}
       </p>
       <ul className="mt-6 space-y-3">
+        {signupNotes.map((notice) => (
+          <li key={notice.id} className="rounded-2xl border border-line bg-paper px-4 py-4">
+            <p className="text-sm leading-6">{notice.body}</p>
+            <Link href={notice.href} className="mt-2 inline-flex min-h-11 items-center text-sm underline">
+              Ouvrir l&apos;administration
+            </Link>
+          </li>
+        ))}
         {notices.map((notice) => (
           <GrantOfferCard key={notice.id} grantId={notice.grant_id} body={notice.body} activated={Boolean(notice.activated_at)} />
         ))}
-        {notes.length === 0 && notices.length === 0 ? (
+        {notes.length === 0 && notices.length === 0 && signupNotes.length === 0 ? (
           <li>
             <EmptyState title="Tout est à jour">
               {couple ? null : <ButtonLink href="/espace">Retour à l&apos;accueil</ButtonLink>}

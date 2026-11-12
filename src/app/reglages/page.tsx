@@ -9,7 +9,6 @@ import {
   NotificationForm,
   PasswordForm,
 } from "@/components/account/settings-forms";
-import { RedeemForm } from "@/app/abonnement/offer";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -65,20 +64,6 @@ export default async function SettingsPage() {
               </ButtonLink>
             ) : null}
           </div>
-        </Card>
-      ) : null}
-      {vendor ? (
-        <Card className="space-y-4">
-          <h2 className="text-lg font-semibold tracking-tight">Abonnement</h2>
-          <p className="text-sm leading-6 text-muted">
-            {session.billing?.comped
-              ? "Votre formule est déjà offerte."
-              : "Un code d'invitation applique la même offre qu'à l'inscription : un an puis la remise, ou une formule à vie."}
-          </p>
-          {session.billing?.comped ? null : <RedeemForm />}
-          <ButtonLink href="/abonnement" variant="secondary">
-            Voir la formule
-          </ButtonLink>
         </Card>
       ) : null}
       <Card className="space-y-4">

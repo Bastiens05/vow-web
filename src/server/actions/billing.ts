@@ -9,21 +9,6 @@ import type { ActionState } from "@/server/actions/auth";
 import { requireSession } from "@/server/session";
 import { createSubscriptionCheckout, stripeEnabled } from "@/server/stripe";
 
-export async function redeemTesterCode(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const session = await requireSession();
-  if (session.profile.role !== "vendor" || !session.vendor) return { error: "Réservé aux prestataires." };
-  const code = String(formData.get("tester_code") ?? "").trim();
-  if (code.length < 8) return { error: "Indiquez le code." };
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("redeem_tester_code", { p_code: code });
-  if (error) return { error: "Ce code n'est pas valable." };
-  revalidatePath("/abonnement");
-  revalidatePath("/reglages");
-  revalidatePath("/espace");
-  return { success: "Code accepté. L'accès est ouvert." };
-}
-
-
 export async function chooseVendorPlan(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireSession();
   if (session.profile.role !== "vendor" || !session.vendor) return { error: "Réservé aux prestataires." };

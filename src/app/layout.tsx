@@ -84,6 +84,7 @@ async function AlertSlot() {
           calm
           inApp={session.profile.notify_in_app}
           initialToast={session.profile.notify_in_app ? (latest?.body ?? null) : null}
+          initialToastHref={session.profile.notify_in_app ? (latest?.href ?? null) : null}
           initialUnread={latest ? 1 : 0}
         />
       </div>

@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { isVendorCategory } from "@/lib/domain/categories";
-import { suggestShareCode } from "@/lib/domain/grants";
 import { isVendorPlan, planLabel, testerInviteHref } from "@/lib/domain/plans";
 import { normalizeEmail } from "@/lib/domain/validation";
 import { siteUrl } from "@/lib/env";
@@ -21,7 +20,6 @@ async function requireAdmin() {
 export async function createInvite(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireAdmin();
   if (!session) return { error: "Réservé aux administrateurs." };
-  const delivery = formData.get("delivery") === "code" ? "code" : "email";
   const plan = String(formData.get("plan") ?? "studio");
   const grantType = formData.get("grant_type") === "lifetime" ? "lifetime" : "tester";
   const discount = Number(formData.get("discount_percent") ?? 40);
@@ -29,41 +27,7 @@ export async function createInvite(_prev: ActionState, formData: FormData): Prom
   if (grantType === "tester" && (!Number.isInteger(discount) || discount < 0 || discount > 100)) {
     return { error: "Indiquez une remise entre 0 et 100 %." };
   }
-  if (delivery === "code") return createShareInvite(formData, plan, grantType, discount);
   return createEmailInvite(formData, plan, grantType, discount);
-}
-
-async function createShareInvite(
-  formData: FormData,
-  plan: string,
-  grantType: "tester" | "lifetime",
-  discount: number,
-): Promise<ActionState> {
-  const maxUses = Number(formData.get("max_uses") ?? 1);
-  const expires = String(formData.get("expires_at") ?? "").trim();
-  const supplied = String(formData.get("code") ?? "").trim();
-  if (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 10000) {
-    return { error: "Indiquez un nombre d'utilisations entre 1 et 10 000." };
-  }
-  if (supplied && (supplied.length < 8 || supplied.length > 64)) {
-    return { error: "Le code doit faire entre 8 et 64 caractères, ou rester vide." };
-  }
-  const code = supplied || suggestShareCode();
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_share_code", {
-    p_grant_type: grantType,
-    p_plan: plan,
-    p_discount: grantType === "tester" ? discount : null,
-    p_max_uses: maxUses,
-    p_expires: expires ? new Date(expires).toISOString() : null,
-    p_code: code,
-  });
-  if (error || !data) {
-    if (error?.message?.includes("existe déjà")) return { error: "Ce code existe déjà." };
-    return { error: "Le code n'a pas pu être créé." };
-  }
-  revalidatePath("/admin");
-  return { success: `Code ${data} créé. Copiez-le dans la liste pour le partager.` };
 }
 
 async function createEmailInvite(
@@ -155,18 +119,6 @@ export async function activateTesterGrant(_prev: ActionState, formData: FormData
   revalidatePath("/espace");
   revalidatePath("/admin");
   return { success: "Offre activée." };
-}
-
-export async function revokeShareCode(formData: FormData): Promise<void> {
-  const session = await requireAdmin();
-  if (!session) return;
-  const id = String(formData.get("code_id") ?? "");
-  if (!id) return;
-  const supabase = await createClient();
-  await supabase.rpc("revoke_share_code", { p_id: id });
-  revalidatePath("/admin");
-  revalidatePath("/abonnement");
-  revalidatePath("/reglages");
 }
 
 export async function revokeTesterGrant(formData: FormData): Promise<void> {

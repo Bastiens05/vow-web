@@ -3,7 +3,6 @@
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Field, TextInput } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
 import {
   PLAN_OFFERS,
@@ -15,7 +14,7 @@ import {
   type VendorPlan,
 } from "@/lib/domain/plans";
 import type { ActionState } from "@/server/actions/auth";
-import { chooseVendorPlan, redeemTesterCode, startSubscription } from "@/server/actions/billing";
+import { chooseVendorPlan, startSubscription } from "@/server/actions/billing";
 
 const initial: ActionState = {};
 
@@ -101,18 +100,3 @@ export function SubscribeButton({ enabled }: { enabled: boolean }) {
   );
 }
 
-export function RedeemForm() {
-  const [state, action, pending] = useActionState(redeemTesterCode, initial);
-  return (
-    <form action={action} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-      <Field label="Code">
-        <TextInput name="tester_code" autoComplete="off" minLength={8} />
-      </Field>
-      <Button type="submit" variant="secondary" disabled={pending}>
-        {pending ? "Vérification…" : "Activer"}
-      </Button>
-      {state.error ? <Alert>{state.error}</Alert> : null}
-      {state.success ? <Alert tone="success">{state.success}</Alert> : null}
-    </form>
-  );
-}

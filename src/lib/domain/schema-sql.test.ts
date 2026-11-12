@@ -101,6 +101,8 @@ describe("migration", () => {
       "comp_plan_emails",
       "tester_grants",
       "grant_notices",
+      "admin_notices",
+      "admin_notice_reads",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

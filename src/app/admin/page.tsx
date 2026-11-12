@@ -1,30 +1,37 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { TesterOfferBoard, type ShareCodeRow, type TesterGrantRow } from "@/components/admin/tester-offer-board";
+import { TesterOfferBoard, type TesterGrantRow } from "@/components/admin/tester-offer-board";
+import { ButtonLink } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/domain/categories";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { vendorAccess } from "@/lib/domain/billing";
-import { isVendorPlan } from "@/lib/domain/plans";
+import { effectiveVendorPlan, isVendorPlan, planLabel } from "@/lib/domain/plans";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 
 export const metadata: Metadata = { title: "Administration" };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string; trade?: string; plan?: string }>;
+}) {
+  const query = await searchParams;
   const session = await requireSession();
   if (!session.isAdmin) redirect("/espace");
   const supabase = await createClient();
-  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }, { data: grants }, { data: notices }] = await Promise.all([
+  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: grants }, { data: notices }] = await Promise.all([
     supabase.from("vendor_profiles").select("id, business_name, category, city, user_id, weddings_per_year").order("business_name"),
-    supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
-    supabase.from("profiles").select("id, email, full_name"),
-    supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, grant_type, plan, discount_percent, code_text, revoked_at, created_at").order("created_at", { ascending: false }),
+    supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until, plan, comped"),
+    supabase.from("profiles").select("id, email, full_name, role, created_at").order("created_at", { ascending: false }),
     supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, grant_type, status, token, created_at").order("created_at", { ascending: false }),
     supabase.from("grant_notices").select("grant_id, activated_at"),
   ]);
   const pendingGrants = new Set((notices ?? []).filter((notice) => !notice.activated_at).map((notice) => notice.grant_id));
   const billByVendor = new Map((bills ?? []).map((bill) => [bill.vendor_id, bill]));
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  const vendorByUser = new Map((vendors ?? []).map((vendor) => [vendor.user_id, vendor]));
+  const recent = (profiles ?? []).slice(0, 12);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
@@ -69,23 +76,61 @@ export default async function AdminPage() {
           </tbody>
         </table>
       </div>
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold tracking-tight">Inscriptions récentes</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Chaque nouveau compte apparaît ici et dans la cloche. Inviter ouvre le formulaire avec l&apos;e-mail déjà rempli.
+        </p>
+        <div className="mt-4 overflow-x-auto rounded-3xl border border-line bg-paper">
+          <table className="w-full min-w-[40rem] text-left text-sm">
+            <thead className="text-muted">
+              <tr>
+                <th className="px-4 py-3 font-medium">E-mail</th>
+                <th className="px-4 py-3 font-medium">Rôle</th>
+                <th className="px-4 py-3 font-medium">Métier</th>
+                <th className="px-4 py-3 font-medium">Date</th>
+                <th className="px-4 py-3 font-medium">Formule</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {recent.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-3 text-muted" colSpan={6}>
+                    Aucune inscription.
+                  </td>
+                </tr>
+              ) : null}
+              {recent.map((person) => {
+                const vendor = vendorByUser.get(person.id);
+                const bill = vendor ? billByVendor.get(vendor.id) : null;
+                const plan = bill?.plan && isVendorPlan(bill.plan) ? effectiveVendorPlan(bill.plan) : null;
+                const trade = vendor?.category ?? "";
+                const href = `/admin?email=${encodeURIComponent(person.email)}${trade ? `&trade=${encodeURIComponent(trade)}` : ""}${plan ? `&plan=${plan}` : ""}#inviter`;
+                return (
+                  <tr key={person.id} className="border-t border-line">
+                    <td className="px-4 py-3">{person.email}</td>
+                    <td className="px-4 py-3">{person.role === "vendor" ? "Prestataire" : "Mariés"}</td>
+                    <td className="px-4 py-3">{vendor ? categoryLabel(vendor.category as VendorCategory) : "—"}</td>
+                    <td className="px-4 py-3">{new Date(person.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-4 py-3">{plan ? planLabel(plan, Boolean(bill?.comped)) : "—"}</td>
+                    <td className="px-4 py-3 text-right">
+                      <ButtonLink href={href} variant="secondary">
+                        Inviter
+                      </ButtonLink>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <TesterOfferBoard
+        prefill={{ email: query.email, trade: query.trade, plan: query.plan }}
         grants={(grants ?? []).flatMap((grant): TesterGrantRow[] =>
           isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan, pending: pendingGrants.has(grant.id) }] : [],
         )}
-        codes={(codes ?? []).map((code): ShareCodeRow => ({
-          id: code.id,
-          label: code.label,
-          codeText: code.code_text,
-          maxUses: code.max_uses,
-          useCount: code.use_count,
-          expiresAt: code.expires_at,
-          grantType: code.grant_type === "tester" || code.grant_type === "lifetime" ? code.grant_type : null,
-          plan: code.plan && isVendorPlan(code.plan) ? code.plan : null,
-          discountPercent: code.discount_percent,
-          revoked: Boolean(code.revoked_at),
-          createdAt: code.created_at,
-        }))}
       />
     </div>
   );
