@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Wordmark } from "@/components/brand/wordmark";
 import { headers } from "next/headers";
 import { BackControl } from "@/components/layout/back-control";
 import { CoupleSidebar } from "@/components/layout/couple-sidebar";
@@ -45,8 +46,8 @@ export async function DesktopNav() {
   }
   return (
     <aside className="sticky top-0 hidden h-dvh w-[232px] flex-col border-r border-line bg-ivory px-3 py-6 md:flex">
-      <Link href={session ? "/espace" : "/"} className="px-3 text-lg font-semibold tracking-[0.22em]">
-        VOW
+      <Link href={session ? "/espace" : "/"} className="px-3" aria-label="VOW">
+        <Wordmark />
       </Link>
       <SpaceSwitcher vendorHref={context.vendorHref} coupleHref={context.coupleHref} />
       {context.back ? (
@@ -74,12 +75,12 @@ export async function MobileChrome() {
   const name = session?.vendor?.business_name || session?.profile.full_name || "";
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-paper/80 px-4 pr-36 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-[var(--vow-glass)] px-4 pr-36 backdrop-blur-2xl md:hidden">
         {context.back ? (
           <BackControl fallback={context.back.href} label={context.back.label} />
         ) : (
-          <Link href={session ? "/espace" : "/"} className="shrink-0 text-base font-semibold tracking-[0.22em]">
-            VOW
+          <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
+            <Wordmark />
           </Link>
         )}
         <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
@@ -101,9 +102,9 @@ export async function MobileChrome() {
 
 export function PublicHeader() {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-paper/80 px-4 backdrop-blur">
-      <Link href="/" className="text-base font-semibold tracking-[0.22em]">
-        VOW
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-[var(--vow-glass)] px-4 backdrop-blur-2xl">
+      <Link href="/" aria-label="VOW">
+        <Wordmark />
       </Link>
       <Link href="/connexion" className="inline-flex min-h-11 items-center text-sm font-medium">
         Connexion

@@ -1,37 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --vow-bg: #ffffff;
-  --vow-paper: #ffffff;
-  --vow-ink: #0a0a0a;
-  --vow-muted: #6e6e73;
-  --vow-line: #e6e6ea;
-  --vow-accent: #0a0a0a;
+  --vow-bg: #f6f2ec;
+  --vow-paper: #fbf8f4;
+  --vow-ink: #1c1915;
+  --vow-muted: #6f675c;
+  --vow-line: #e6dfd4;
+  --vow-accent: #8d6b34;
+  --vow-accent-soft: #f3e6cf;
   --vow-ok: #1f7a4d;
-  --vow-danger: #b42318;
-  --vow-danger-bg: #fdecec;
-  --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
-  --vow-mist: #f5f5f7;
+  --vow-danger: #9f3a32;
+  --vow-danger-bg: #f8ebe6;
+  --vow-shadow: 0 16px 40px rgba(70, 48, 20, 0.07);
+  --vow-mist: #ebe4d8;
+  --vow-glass: color-mix(in srgb, var(--vow-paper) 74%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --vow-bg: #000000;
-    --vow-paper: #0c0c0e;
-    --vow-ink: #f5f5f7;
-    --vow-muted: #a1a1a6;
-    --vow-line: #2c2c2e;
-    --vow-accent: #f5f5f7;
+    --vow-bg: #141210;
+    --vow-paper: #1c1916;
+    --vow-ink: #f4efe8;
+    --vow-muted: #b3a89a;
+    --vow-line: #3a342c;
+    --vow-accent: #e4c48a;
+    --vow-accent-soft: #3a3124;
     --vow-ok: #3dd68c;
-    --vow-danger: #ff6b6b;
-    --vow-danger-bg: #2a1212;
-    --vow-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-    --vow-mist: #141416;
+    --vow-danger: #e7a197;
+    --vow-danger-bg: #2c1c18;
+    --vow-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+    --vow-mist: #2a261f;
+    --vow-glass: color-mix(in srgb, var(--vow-paper) 78%, transparent);
   }
 }
 
 @theme inline {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-inter), "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-outfit), -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-cormorant), "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --color-ivory: var(--vow-bg);
   --color-paper: var(--vow-paper);
   --color-ink: var(--vow-ink);
@@ -39,6 +44,8 @@
   --color-line: var(--vow-line);
   --color-gold: var(--vow-accent);
   --color-gold-deep: var(--vow-muted);
+  --color-accent: var(--vow-accent);
+  --color-accent-soft: var(--vow-accent-soft);
   --color-ok: var(--vow-ok);
   --color-danger: var(--vow-danger);
   --color-danger-bg: var(--vow-danger-bg);
@@ -71,6 +78,11 @@ h4 {
   font-weight: 600;
 }
 
+h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
 @keyframes vow-now {
   0%,
   100% {
@@ -86,7 +98,8 @@ h4 {
 }
 
 ::selection {
-  background: #d6d6dc;
+  background: var(--vow-accent-soft);
+  color: var(--vow-ink);
 }
 
 input,
@@ -212,21 +225,21 @@ a {
 
 @media (prefers-color-scheme: dark) and (max-width: 1023px) {
   .auth-screen {
-    background: #000;
-    color: #f5f5f7;
+    background: var(--vow-bg);
+    color: var(--vow-ink);
   }
 
   .auth-field,
   .auth-chip {
-    background: #1c1c1e;
-    color: #f5f5f7;
-    border-color: rgba(255, 255, 255, 0.12);
+    background: var(--vow-paper);
+    color: var(--vow-ink);
+    border-color: var(--vow-line);
   }
 
   .auth-choice,
   .auth-primary,
   .auth-chip-on {
-    background: #f5f5f7;
-    color: #1d1d1f;
+    background: var(--vow-ink);
+    color: var(--vow-bg);
   }
 }
