@@ -12,6 +12,7 @@ import { coupleHeroTitle, todayIso } from "@/lib/domain/format";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
 import { getSession, type SessionProfile } from "@/server/session";
+import { publicObjectUrl } from "@/lib/storage";
 
 export async function DesktopNav() {
   const session = await getSession();
@@ -20,22 +21,48 @@ export async function DesktopNav() {
   if (session && (couple || session.profile.role === "vendor")) {
     const countdown = context.weddingDate ? heroCountdown(daysUntil(context.weddingDate, todayIso())) : null;
     const figure = countdown && countdown.figure !== "—" ? countdown.figure : null;
+    const inWedding = context.vendorInWedding && !couple;
+    const studio = session.vendor?.business_name?.trim() || "";
+    const logo = session.vendor?.logo_path ? publicObjectUrl("vendor-media", session.vendor.logo_path) : null;
     return (
       <CoupleSidebar
         items={couple ? context.coupleItems : context.sideItems}
-        weddingName={couple ? context.weddingName : "Votre espace"}
+        weddingName={couple ? context.weddingName : studio || "Votre espace"}
         countdown={couple ? figure : null}
-        userName={session.vendor?.business_name || session.profile.full_name || "Vous"}
+        userName={studio || session.profile.full_name || "Vous"}
         navLabel={couple ? "Espace mariés" : "Espace prestataire"}
+        identityHref={couple ? undefined : "/espace"}
+        identityLogo={couple ? null : logo}
+        live={
+          !couple && session.profile.role === "vendor"
+            ? {
+                role: "vendor",
+                category: session.vendor?.category ?? null,
+                primaryWeddingId: null,
+                actingAsCouple: context.actingAsCouple,
+                isAdmin: Boolean(session.isAdmin),
+                weddingNames: context.weddingNames,
+              }
+            : null
+        }
+        section={
+          inWedding
+            ? {
+                title: context.openedWeddingName || "Ce mariage",
+                backHref: "/mariages",
+                backLabel: "Retour à tous les mariages",
+              }
+            : null
+        }
         groups={
           couple
             ? undefined
             : [
                 {
-                  caption: "Espace",
+                  caption: inWedding ? "" : "Espace",
                   labels: context.sideItems
                     .map((item) => item.label)
-                    .filter((label) => !["Réglages", "Admin", "Abonnement", "Demandes"].includes(label)),
+                    .filter((label) => !["Réglages", "Admin", "Abonnement", "Demandes", "Aperçu"].includes(label)),
                 },
               ]
         }
@@ -135,7 +162,10 @@ async function navContext(session: SessionProfile | null) {
       back: null,
       coupleItems: [],
       sideItems: [],
+      vendorInWedding: false,
       weddingName: "Votre mariage",
+      openedWeddingName: null as string | null,
+      weddingNames: {} as Record<string, string>,
       weddingDate: null as string | null,
     };
   }
@@ -155,8 +185,10 @@ async function navContext(session: SessionProfile | null) {
     actingAsCouple = space.actingAsCouple;
   }
   const coupleId = session.profile.role === "couple" ? (coupleWedding?.id ?? null) : actingAsCouple && match ? match[1] : null;
-  const named = coupleWedding ?? (match ? weddings.find((wedding) => wedding.id === match[1]) : null);
-  const focus = session.profile.role === "vendor" ? (primary ?? named) : named;
+  const opened = match ? weddings.find((wedding) => wedding.id === match[1]) : null;
+  const inWedding = Boolean(match) && session.profile.role === "vendor" && !actingAsCouple;
+  const named = coupleWedding ?? opened;
+    const focus = session.profile.role === "vendor" ? (primary ?? named) : named;
   const primaryWeddingId = session.profile.role === "couple" ? (coupleWedding?.id ?? null) : (primary?.id ?? null);
   return {
     primaryWeddingId,
@@ -183,7 +215,10 @@ async function navContext(session: SessionProfile | null) {
       actingAsCouple,
       Boolean(session.isAdmin),
     ),
+    vendorInWedding: inWedding,
     weddingName: focus ? coupleHeroTitle(focus.partner_one_name, focus.partner_two_name) : "Votre espace",
+    openedWeddingName: opened ? coupleHeroTitle(opened.partner_one_name, opened.partner_two_name) : null,
+    weddingNames: Object.fromEntries(weddings.map((wedding) => [wedding.id, coupleHeroTitle(wedding.partner_one_name, wedding.partner_two_name)])),
     weddingDate: focus?.wedding_date ?? null,
   };
 }

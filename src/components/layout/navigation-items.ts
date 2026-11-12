@@ -40,7 +40,6 @@ export function navigationItems(
     const base = `/mariage/${currentWedding}`;
     const sheet = pratiqueLabel(view, actingAsCouple ? null : category);
     const items: NavItem[] = [
-      { href: base, label: "Aperçu", icon: "home" },
       { href: `${base}/messages`, label: "Messages", icon: "message" },
       { href: `${base}/jour`, label: "Jour J", icon: "clock" },
       { href: `${base}/brief`, label: "Brief", icon: "file" },

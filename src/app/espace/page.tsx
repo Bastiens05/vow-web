@@ -208,7 +208,15 @@ export default async function DashboardPage() {
           </EmptyState>
         </div>
       ) : null}
-      {isVendor ? <WeddingDirectory weddings={weddings} /> : null}
+      {isVendor ? (
+        <Link href="/nouveautes" className="mb-8 block">
+          <Card className="transition active:scale-[0.99]">
+            <p className="text-sm font-medium">Nouveautés</p>
+            <p className="mt-1 text-sm text-muted">Ce qui a bougé sur vos mariages.</p>
+          </Card>
+        </Link>
+      ) : null}
+      {isVendor ? <WeddingDirectory weddings={weddings} upcomingTitle="Prochains mariages" /> : null}
     </div>
   );
 }

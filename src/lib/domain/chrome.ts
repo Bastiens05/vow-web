@@ -42,9 +42,7 @@ export function backTarget(
       if (!section) return { label: "Accueil", href: "/espace" };
       return { label: "Mariage", href: `/mariage/${id}` };
     }
-    if (["messages", "jour", "documents", "pratique", "inviter"].includes(section)) return null;
-    if (!section) return { label: "Mariages", href: "/mariages" };
-    return { label: "Aperçu", href: `/mariage/${id}` };
+    return { label: "Mariages", href: "/mariages" };
   }
   if (pathname.startsWith("/espace/mariages")) return { label: "Mariages", href: "/mariages" };
   if (pathname.startsWith("/espace/")) return { label: "Accueil", href: "/espace" };

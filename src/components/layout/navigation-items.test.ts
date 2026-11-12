@@ -28,5 +28,7 @@ describe("navigation prestataire", () => {
     );
     expect(wedding.at(-1)).toEqual({ href: "/admin", label: "Admin", icon: "gear" });
     expect(wedding.map((item) => item.label)).not.toContain("Nouveautés");
+    expect(wedding.map((item) => item.label)).not.toContain("Aperçu");
+    expect(wedding[0]?.label).toBe("Messages");
   });
 });

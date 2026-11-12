@@ -34,7 +34,7 @@ export function NavMenu({
   const mobileVendor = role === "vendor" && !actingAsCouple && variant === "tab";
   const tabOrder = mobileVendor
     ? inWedding
-      ? ["Aperçu", "Jour J", "Messages", "Documents"]
+      ? ["Messages", "Jour J", "Documents"]
       : ["Accueil", "Mariages", "Messages"]
     : ["Accueil", "Jour J", "Messages", "Documents"];
   const usePlus = mobileCouple || mobileVendor;

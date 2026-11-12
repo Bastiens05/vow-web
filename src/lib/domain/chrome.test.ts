@@ -24,7 +24,7 @@ describe("backTarget", () => {
   it("sends a wedding back to the list, and a sheet back to the wedding", () => {
     expect(backTarget("/mariage/abc", "vendor", false)).toEqual({ label: "Mariages", href: "/mariages" });
     expect(backTarget("/mariage/abc", "couple", true)).toEqual({ label: "Accueil", href: "/espace" });
-    expect(backTarget("/mariage/abc/devis", "vendor", false)).toEqual({ label: "Aperçu", href: "/mariage/abc" });
+    expect(backTarget("/mariage/abc/devis", "vendor", false)).toEqual({ label: "Mariages", href: "/mariages" });
     expect(backTarget("/mariage/abc/devis", "vendor", false)?.href).not.toBe("/mariage/abc/devis");
   });
 });

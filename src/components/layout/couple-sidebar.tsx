@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { signOut } from "@/server/actions/auth";
 import { LineIcon } from "@/components/ui/line-icon";
 import type { IconName } from "@/components/ui/nav-link";
+import { navigationItems } from "@/components/layout/navigation-items";
+import type { VendorCategory } from "@/lib/domain/categories";
 
 type Item = { href: string; label: string; icon: IconName };
 
@@ -24,7 +26,7 @@ const GROUPS: { caption: string; labels: string[] }[] = [
 ];
 
 export function CoupleSidebar({
-  items,
+  items: itemsProp,
   weddingName,
   countdown,
   userName,
@@ -32,6 +34,10 @@ export function CoupleSidebar({
   navLabel = "Espace mariés",
   extra = null,
   account,
+  identityHref,
+  identityLogo = null,
+  section = null,
+  live = null,
 }: {
   items: Item[];
   weddingName: string;
@@ -41,9 +47,35 @@ export function CoupleSidebar({
   navLabel?: string;
   extra?: ReactNode;
   account?: Item[];
+  identityHref?: string;
+  identityLogo?: string | null;
+  section?: { title: string; backHref: string; backLabel: string } | null;
+  live?: {
+    role: "vendor" | "couple" | null;
+    category: VendorCategory | null;
+    primaryWeddingId: string | null;
+    actingAsCouple: boolean;
+    isAdmin: boolean;
+    weddingNames: Record<string, string>;
+  } | null;
 }) {
   const path = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
+  const items = live
+    ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
+    : itemsProp;
+  const openedId = /^\/mariage\/([^/]+)/.exec(path)?.[1] ?? null;
+  const vendorInside = Boolean(live && live.role === "vendor" && !live.actingAsCouple && openedId);
+  const activeSection = vendorInside
+    ? {
+        title: live?.weddingNames[openedId ?? ""] || section?.title || "Ce mariage",
+        backHref: "/mariages",
+        backLabel: "Retour à tous les mariages",
+      }
+    : section;
+  const activeGroups = vendorInside
+    ? [{ caption: "", labels: items.map((item) => item.label).filter((label) => !["Réglages", "Admin"].includes(label)) }]
+    : groups;
   function toggle() {
     window.localStorage.setItem("vow-sidebar", collapsed ? "full" : "icons");
     window.dispatchEvent(new Event("vow-sidebar"));
@@ -66,13 +98,21 @@ export function CoupleSidebar({
         </button>
       </div>
       <Link
-        href={items.find((item) => item.label === "Accueil")?.href ?? "/espace"}
+        href={identityHref ?? items.find((item) => item.label === "Accueil")?.href ?? "/espace"}
         title={weddingName}
         className={`mx-3 mt-3 flex items-center gap-3 rounded-2xl border border-line bg-ivory/70 px-3 py-3 transition hover:bg-ink/[0.04] ${collapsed ? "justify-center px-0" : ""}`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
-          {monogram(weddingName)}
-        </span>
+        {identityLogo ? (
+          <span
+            aria-hidden
+            className="h-9 w-9 shrink-0 rounded-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${identityLogo})` }}
+          />
+        ) : (
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
+            {monogram(weddingName)}
+          </span>
+        )}
         {collapsed ? null : (
           <span className="min-w-0">
             <span className="block truncate text-sm font-medium">{weddingName}</span>
@@ -81,13 +121,26 @@ export function CoupleSidebar({
         )}
       </Link>
       {extra}
+      {activeSection ? (
+        <div className={`mx-3 mt-4 ${collapsed ? "px-0" : ""}`}>
+          {collapsed ? null : <p className="truncate px-1 text-sm font-medium">{activeSection.title}</p>}
+          <Link
+            href={activeSection.backHref}
+            title={activeSection.backLabel}
+            className={`mt-2 flex min-h-10 items-center gap-2 rounded-full px-3 text-sm text-muted transition hover:bg-ink/[0.04] hover:text-ink ${collapsed ? "justify-center px-0" : ""}`}
+          >
+            <span aria-hidden>‹</span>
+            {collapsed ? <span className="sr-only">{activeSection.backLabel}</span> : <span className="truncate">{activeSection.backLabel}</span>}
+          </Link>
+        </div>
+      ) : null}
       <nav aria-label={navLabel} className="mt-4 flex-1 space-y-4 overflow-y-auto px-2">
-        {groups.map((group) => {
+        {activeGroups.map((group) => {
           const rows = group.labels.flatMap((label) => items.filter((item) => item.label === label));
           if (rows.length === 0) return null;
           return (
             <div key={group.caption}>
-              {collapsed ? null : (
+              {collapsed || !group.caption ? null : (
                 <p className="px-3 pb-1 text-[10px] font-medium uppercase tracking-[0.16em] text-muted">{group.caption}</p>
               )}
               <ul className="grid gap-0.5">
