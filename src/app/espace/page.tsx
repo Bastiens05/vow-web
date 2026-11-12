@@ -109,8 +109,9 @@ export default async function DashboardPage() {
       {isVendor && (newLeads ?? 0) > 0 ? (
         <Link href="/demandes" className="mb-8 block">
           <Card className="transition active:scale-[0.99]">
-            <p className="text-xs text-muted">Nouvelles demandes de contact</p>
+            <p className="text-sm font-medium">Nouvelles demandes de contact</p>
             <p className="mt-1 text-2xl font-semibold">{newLeads}</p>
+            <p className="mt-1 text-xs text-muted">{newLeads === 1 ? "1 demande à lire" : `${newLeads} demandes à lire`}</p>
           </Card>
         </Link>
       ) : null}
@@ -207,14 +208,6 @@ export default async function DashboardPage() {
             <ButtonLink href="/espace/profil">Compléter le profil</ButtonLink>
           </EmptyState>
         </div>
-      ) : null}
-      {isVendor ? (
-        <Link href="/nouveautes" className="mb-8 block">
-          <Card className="transition active:scale-[0.99]">
-            <p className="text-sm font-medium">Nouveautés</p>
-            <p className="mt-1 text-sm text-muted">Ce qui a bougé sur vos mariages.</p>
-          </Card>
-        </Link>
       ) : null}
       {isVendor ? <WeddingDirectory weddings={weddings} upcomingTitle="Prochains mariages" /> : null}
     </div>

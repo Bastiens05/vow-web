@@ -65,10 +65,7 @@ export function navigationItems(
       ? [
           { href: "/espace", label: "Accueil", icon: "home" },
           { href: "/mariages", label: "Mariages", icon: "list" },
-          { href: "/demandes", label: "Demandes", icon: "mail" },
           { href: "/messages", label: "Messages", icon: "message" },
-          { href: "/nouveautes", label: "Nouveautés", icon: "bell" },
-          { href: "/abonnement", label: "Abonnement", icon: "spark" },
           { href: "/reglages", label: "Réglages", icon: "gear" },
         ]
       : [

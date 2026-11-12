@@ -78,7 +78,7 @@ export function CoupleSidebar({
   const activeGroups = vendorInside
     ? [{ caption: "", labels: items.map((item) => item.label).filter((label) => !["Réglages", "Admin"].includes(label)) }]
     : live?.role === "vendor" && !live.actingAsCouple
-      ? [{ caption: "Espace", labels: ["Accueil", "Mariages", "Demandes", "Messages", "Nouveautés", "Abonnement"] }]
+      ? [{ caption: "Espace", labels: ["Accueil", "Mariages", "Messages"] }]
       : groups;
   function toggle() {
     window.localStorage.setItem("vow-sidebar", collapsed ? "full" : "icons");

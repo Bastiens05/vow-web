@@ -5,7 +5,7 @@ const weddingId = "ac7f5c8d-4d7a-42ff-ae97-66f51f135cba";
 
 describe("navigation prestataire", () => {
   it("garde la navigation globale sur l'accueil et la liste des mariages", () => {
-    const expected = ["Accueil", "Mariages", "Demandes", "Messages", "Nouveautés", "Abonnement", "Réglages"];
+    const expected = ["Accueil", "Mariages", "Messages", "Réglages"];
     expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
     expect(navigationItems("/mariages", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
   });
@@ -15,6 +15,9 @@ describe("navigation prestataire", () => {
     expect(labels).not.toContain("Aperçu");
     expect(labels).not.toContain("Jour J");
     expect(labels).not.toContain("Invitations");
+    expect(labels).not.toContain("Demandes");
+    expect(labels).not.toContain("Nouveautés");
+    expect(labels).not.toContain("Abonnement");
   });
 
   it("réserve le menu du mariage aux routes /mariage/<id>", () => {

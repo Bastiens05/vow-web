@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { LineIcon } from "@/components/ui/line-icon";
 import { NavLink } from "@/components/ui/nav-link";
 import { navigationItems, type NavItem } from "@/components/layout/navigation-items";
+import { signOut } from "@/server/actions/auth";
 
 type Item = NavItem;
 
@@ -39,7 +41,17 @@ export function NavMenu({
     : ["Accueil", "Jour J", "Messages", "Documents"];
   const usePlus = mobileCouple || mobileVendor;
   const primaryTabs = usePlus ? tabOrder.flatMap((label) => items.filter((item) => item.label === label)) : [];
-  const moreTabs = usePlus ? items.filter((item) => !tabOrder.includes(item.label)) : [];
+  const admin = items.find((item) => item.label === "Admin");
+  const weddingExtras = items.filter((item) => !tabOrder.includes(item.label) && item.label !== "Réglages" && item.label !== "Admin");
+  const moreTabs = usePlus
+    ? mobileVendor
+      ? [
+          ...weddingExtras,
+          { href: "/reglages", label: "Réglages", icon: "gear" as const },
+          ...(admin ? [admin] : []),
+        ]
+      : items.filter((item) => !tabOrder.includes(item.label))
+    : [];
   const shown = usePlus
     ? primaryTabs
     : variant !== "tab"
@@ -68,12 +80,12 @@ export function NavMenu({
       {shown.map((item) => (
         <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
       ))}
-      {usePlus ? <MoreTab items={moreTabs} path={path} /> : null}
+      {usePlus ? <MoreTab items={moreTabs} path={path} showSignOut={mobileVendor} /> : null}
     </nav>
   );
 }
 
-function MoreTab({ items, path }: { items: Item[]; path: string }) {
+function MoreTab({ items, path, showSignOut = false }: { items: Item[]; path: string; showSignOut?: boolean }) {
   const [open, setOpen] = useState(false);
   const active = items.some((item) => isActive(path, item.href));
   return (
@@ -88,19 +100,30 @@ function MoreTab({ items, path }: { items: Item[]; path: string }) {
         <LineIcon name="more" />
         <span className="text-xs leading-none">Plus</span>
       </button>
-      {open ? (
-        <div className="fixed inset-0 z-50">
-          <button type="button" className="absolute inset-0 bg-black/40" aria-label="Fermer" onClick={() => setOpen(false)} />
-          <div role="dialog" aria-label="Plus" className="absolute inset-x-0 bottom-0 rounded-t-3xl border border-line bg-paper p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
-            <div onClick={() => setOpen(false)} className="grid gap-1">
-              {items.map((item) => (
-                <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant="side" />
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <div className="fixed inset-0 z-[70] md:hidden">
+              <button type="button" className="absolute inset-0 bg-black/40" aria-label="Fermer" onClick={() => setOpen(false)} />
+              <div role="dialog" aria-label="Plus" className="absolute inset-x-0 bottom-0 max-h-[80dvh] overflow-y-auto rounded-t-3xl border border-line bg-paper p-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
+                <div onClick={() => setOpen(false)} className="grid gap-1">
+                  {items.map((item) => (
+                    <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant="side" />
+                  ))}
+                  {showSignOut ? (
+                    <form action={signOut}>
+                      <button type="submit" className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-muted">
+                        <LineIcon name="logout" />
+                        Déconnexion
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
