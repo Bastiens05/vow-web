@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CodeForm } from "@/app/admin/code-form";
+import { TesterOfferBoard, type TesterGrantRow } from "@/components/admin/tester-offer-board";
 import { categoryLabel } from "@/lib/domain/categories";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { vendorAccess } from "@/lib/domain/billing";
+import { isVendorPlan } from "@/lib/domain/plans";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 
@@ -13,11 +15,12 @@ export default async function AdminPage() {
   const session = await requireSession();
   if (!session.isAdmin) redirect("/espace");
   const supabase = await createClient();
-  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }] = await Promise.all([
+  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }, { data: grants }] = await Promise.all([
     supabase.from("vendor_profiles").select("id, business_name, category, city, user_id, weddings_per_year").order("business_name"),
     supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
     supabase.from("profiles").select("id, email, full_name"),
     supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, access_until").order("created_at", { ascending: false }),
+    supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, status, token, created_at").order("created_at", { ascending: false }),
   ]);
   const billByVendor = new Map((bills ?? []).map((bill) => [bill.vendor_id, bill]));
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
@@ -65,6 +68,11 @@ export default async function AdminPage() {
           </tbody>
         </table>
       </div>
+      <TesterOfferBoard
+        grants={(grants ?? []).flatMap((grant): TesterGrantRow[] =>
+          isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan }] : [],
+        )}
+      />
       <section className="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-3xl border border-line bg-paper p-5">
           <h2 className="text-lg font-semibold tracking-tight">Nouveau code</h2>

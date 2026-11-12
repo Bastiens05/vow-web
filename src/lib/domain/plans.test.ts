@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLAN_OFFERS, coupleIsFree, featurePlanLabel, featuresIncludedIn, featuresIntroducedIn, hasFeature, planIncludes, planLabel } from "./plans";
+import { PLAN_OFFERS, coupleIsFree, featurePlanLabel, featuresIncludedIn, featuresIntroducedIn, hasFeature, planIncludes, planLabel, testerInviteHref, testerOfferLabel } from "./plans";
 
 describe("plans", () => {
   it("prices Essentiel, Pro and Studio and keeps couples free", () => {
@@ -21,7 +21,6 @@ describe("plans", () => {
     expect(featurePlanLabel("cashflow")).toBe("Pro");
     expect(featurePlanLabel("crew")).toBe("Studio");
   });
-});
 
   it("lists inclusions from the shared source of truth", () => {
     const essentiel = featuresIntroducedIn("essentiel").map((item) => item.key);
@@ -35,3 +34,13 @@ describe("plans", () => {
     expect(planLabel("pro")).toBe("Pro");
   });
 
+  it("formats the tester offer and invite link", () => {
+    expect(testerOfferLabel("2027-11-12T11:00:00.000Z", 30)).toBe(
+      "Offre testeur : gratuit jusqu'au 12/11/2027, puis -30 %",
+    );
+    expect(testerInviteHref("alex@example.com", "tok-1")).toBe(
+      "/inscription?role=vendor&email=alex%40example.com&invite=tok-1",
+    );
+  });
+
+});

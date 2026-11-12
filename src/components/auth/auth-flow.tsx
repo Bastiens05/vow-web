@@ -18,12 +18,18 @@ export function AuthFlow({
   nextPath,
   initialEmail = "",
   lockedRole,
+  inviteToken,
+  initialCategory,
+  initialFullName,
   notice,
 }: {
   mode: "login" | "signup";
   nextPath: string;
   initialEmail?: string;
   lockedRole?: "vendor" | "couple";
+  inviteToken?: string;
+  initialCategory?: VendorCategory;
+  initialFullName?: string;
   notice?: ReactNode;
 }) {
   const invite = nextPath.startsWith("/invitation/") || nextPath.startsWith("/equipe/");
@@ -39,7 +45,7 @@ export function AuthFlow({
             : "choose",
   );
   const [email, setEmail] = useState(initialEmail);
-  const [category, setCategory] = useState<VendorCategory | null>(null);
+  const [category, setCategory] = useState<VendorCategory | null>(initialCategory ?? null);
   const [businessName, setBusinessName] = useState("");
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
@@ -119,6 +125,7 @@ export function AuthFlow({
           {mode === "signup" && step === "vendor" ? (
             <form action={action} className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
+              {inviteToken ? <input type="hidden" name="invite" value={inviteToken} /> : null}
               <input type="hidden" name="category" value={category ?? ""} />
               <div className="flex flex-wrap gap-2">
                 {VENDOR_CATEGORIES.map((value) => (
@@ -165,7 +172,7 @@ export function AuthFlow({
               <FieldLike label="Instagram" name="instagram" value={instagram} onChange={setInstagram} autoComplete="off" optional />
               <FieldLike label="Site web" name="website" value={website} onChange={setWebsite} autoComplete="url" optional />
               <FieldLike label="Code test" name="tester_code" value={testerCode} onChange={setTesterCode} autoComplete="off" optional />
-              <NameField />
+              <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               <RoleChoice selected="vendor" />
@@ -205,7 +212,7 @@ export function AuthFlow({
                 <span className="sr-only">facultatif</span>
                 <AddressInput name="city" mode="city" value={city} onValueChange={setCity} className="auth-field min-h-14 rounded-2xl px-4 text-lg" />
               </label>
-              <NameField />
+              <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               <RoleChoice selected="couple" />
@@ -233,7 +240,7 @@ export function AuthFlow({
           {mode === "signup" && step === "invite" ? (
             <form action={action} className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
-              <NameField />
+              <NameField defaultValue={initialFullName ?? ""} />
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               <RoleChoice selected={lockedRole ?? "couple"} locked={Boolean(lockedRole)} />
@@ -263,8 +270,8 @@ export function AuthFlow({
   }
 }
 
-function NameField() {
-  return <FieldLike label="Nom complet" name="full_name" value="" onChange={() => undefined} autoComplete="name" uncontrolled />;
+function NameField({ defaultValue = "" }: { defaultValue?: string }) {
+  return <FieldLike label="Nom complet" name="full_name" value={defaultValue} defaultValue={defaultValue} onChange={() => undefined} autoComplete="name" uncontrolled />;
 }
 
 function SecretField({
@@ -343,6 +350,7 @@ function FieldLike({
   optional = false,
   readOnly = false,
   uncontrolled = false,
+  defaultValue,
 }: {
   label: string;
   name: string;
@@ -353,6 +361,7 @@ function FieldLike({
   optional?: boolean;
   readOnly?: boolean;
   uncontrolled?: boolean;
+  defaultValue?: string;
 }) {
   return (
     <label className="grid gap-2 text-sm">
@@ -364,7 +373,7 @@ function FieldLike({
         autoComplete={autoComplete}
         required={!optional}
         readOnly={readOnly}
-        {...(uncontrolled ? {} : { value, onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value) })}
+        {...(uncontrolled ? { defaultValue: defaultValue ?? value } : { value, onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value) })}
         className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink read-only:text-muted"
       />
     </label>

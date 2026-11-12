@@ -979,6 +979,8 @@ export type Database = {
           stripe_subscription_id: string | null;
           plan: "essentiel" | "pro" | "studio";
           comped: boolean;
+          free_until: string | null;
+          discount_percent: number | null;
           updated_at: string;
         },
         {
@@ -988,6 +990,8 @@ export type Database = {
           tester_until?: string | null;
           plan?: "essentiel" | "pro" | "studio";
           comped?: boolean;
+          free_until?: string | null;
+          discount_percent?: number | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
         },
@@ -997,8 +1001,57 @@ export type Database = {
           tester_until?: string | null;
           plan?: "essentiel" | "pro" | "studio";
           comped?: boolean;
+          free_until?: string | null;
+          discount_percent?: number | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+        }
+      >;
+      tester_grants: Table<
+        {
+          id: string;
+          email: string;
+          first_name: string;
+          last_name: string;
+          trade: string;
+          plan: "essentiel" | "pro" | "studio";
+          free_until: string;
+          discount_percent: number;
+          status: "invited" | "accepted" | "revoked";
+          invited_by: string | null;
+          token: string;
+          vendor_id: string | null;
+          created_at: string;
+          accepted_at: string | null;
+          revoked_at: string | null;
+        },
+        {
+          email: string;
+          first_name?: string;
+          last_name?: string;
+          trade?: string;
+          plan?: "essentiel" | "pro" | "studio";
+          free_until: string;
+          discount_percent?: number;
+          status?: "invited" | "accepted" | "revoked";
+          invited_by?: string | null;
+          token: string;
+          vendor_id?: string | null;
+        },
+        {
+          email?: string;
+          first_name?: string;
+          last_name?: string;
+          trade?: string;
+          plan?: "essentiel" | "pro" | "studio";
+          free_until?: string;
+          discount_percent?: number;
+          status?: "invited" | "accepted" | "revoked";
+          invited_by?: string | null;
+          token?: string;
+          vendor_id?: string | null;
+          accepted_at?: string | null;
+          revoked_at?: string | null;
         }
       >;
       tester_codes: Table<
@@ -1283,6 +1336,22 @@ export type Database = {
       };
       redeem_tester_code: { Args: { p_code: string }; Returns: string };
       choose_vendor_plan: { Args: { p_plan: string }; Returns: string };
+      lookup_tester_invite: {
+        Args: { p_token: string };
+        Returns: { email: string; first_name: string; last_name: string; trade: string; plan: string }[];
+      };
+      revoke_tester_grant: { Args: { p_id: string }; Returns: undefined };
+      create_tester_grant: {
+        Args: {
+          p_email: string;
+          p_first_name: string;
+          p_last_name: string;
+          p_trade: string;
+          p_plan: string;
+          p_discount: number;
+        };
+        Returns: string;
+      };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       undo_timeline_shift: {
         Args: {

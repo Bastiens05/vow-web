@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PlanPicker, RedeemForm, SubscribeButton } from "@/app/abonnement/offer";
 import { vendorAccess } from "@/lib/domain/billing";
-import { effectiveVendorPlan, planLabel } from "@/lib/domain/plans";
+import { effectiveVendorPlan, planLabel, testerOfferLabel } from "@/lib/domain/plans";
 import { categoryLabel } from "@/lib/domain/categories";
 import { requireSession } from "@/server/session";
 import { stripeEnabled } from "@/server/stripe";
@@ -40,6 +40,9 @@ export default async function SubscriptionPage() {
           {trade ? ` · ${trade}` : ""}
         </p>
         <p className="mt-3 text-lg font-semibold">Votre formule : {planLabel(plan, comped)}</p>
+        {session.billing?.free_until && session.billing.discount_percent != null && !comped ? (
+          <p className="mt-3 text-sm leading-6">{testerOfferLabel(session.billing.free_until, session.billing.discount_percent)}</p>
+        ) : null}
         <p className="mt-3 text-sm leading-6">
           {comped
             ? "Cette formule vous est offerte, sans paiement ni date de fin."

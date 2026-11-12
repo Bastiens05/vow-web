@@ -160,3 +160,13 @@ export function effectiveVendorPlan(plan: string | null | undefined): VendorPlan
   return plan && isVendorPlan(plan) ? plan : "essentiel";
 }
 
+export function testerOfferLabel(freeUntil: string, discountPercent: number): string {
+  const date = new Date(freeUntil).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
+  return `Offre testeur : gratuit jusqu'au ${date}, puis -${discountPercent} %`;
+}
+
+export function testerInviteHref(email: string, token: string): string {
+  const params = new URLSearchParams({ role: "vendor", email, invite: token });
+  return `/inscription?${params.toString()}`;
+}
+
