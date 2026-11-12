@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { DocumentManager } from "@/components/wedding/document-manager";
+import { VaultPicker } from "@/components/wedding/vault-picker";
+import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
 import { AddVendorInvite } from "@/components/wedding/invite-block";
 import { PracticalBoard } from "@/components/wedding/practical-board";
 import { VendorDossier } from "@/components/wedding/vendor-dossier";
@@ -69,6 +71,19 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   }
   const documents = await listDocuments(id);
   const { data: requests } = await supabase.from("signature_requests").select("*").eq("wedding_id", id);
+  const { data: vaultFiles } = space.session.vendor
+    ? await supabase
+        .from("vendor_vault_files")
+        .select("id, title, category, expires_on, alert_days")
+        .eq("vendor_id", space.session.vendor.id)
+        .order("title")
+    : { data: [] };
+  const fileIds = (vaultFiles ?? []).map((file) => file.id);
+  const { data: vaultShares } = fileIds.length
+    ? await supabase.from("vendor_vault_shares").select("file_id").eq("wedding_id", id).in("file_id", fileIds)
+    : { data: [] };
+  const sharedIds = new Set((vaultShares ?? []).map((row) => row.file_id));
+  const today = new Date().toISOString().slice(0, 10);
   const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
   return (
     <Card>
@@ -77,6 +92,29 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
       <p className="mt-1 mb-5 text-sm leading-6 text-muted">
         Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
       </p>
+      {space.session.vendor && space.session.vendor.user_id === space.session.userId ? (
+        <VaultPicker
+          weddingId={id}
+          today={today}
+          files={(vaultFiles ?? []).flatMap((file) =>
+            isVendorVaultCategory(file.category)
+              ? [
+                  {
+                    id: file.id,
+                    title: file.title,
+                    category: file.category,
+                    expiresOn: file.expires_on,
+                    alertDays: file.alert_days,
+                    shared: sharedIds.has(file.id),
+                  },
+                ]
+              : [],
+          )}
+          vendors={space.members
+            .filter((member) => member.role === "vendor" && member.userId !== space.session.userId)
+            .map((member) => ({ userId: member.userId, label: member.fullName }))}
+        />
+      ) : null}
       <DocumentManager
         weddingId={id}
         userId={space.session.userId}

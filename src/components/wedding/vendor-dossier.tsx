@@ -6,6 +6,7 @@ import { categoryLabel, isVendorCategory, type VendorCategory } from "@/lib/doma
 import { canSeeSheet } from "@/lib/domain/trades";
 import { stripeEnabled } from "@/server/stripe";
 import { DocumentRequests } from "@/components/wedding/document-requests-panel";
+import { SharedVault } from "@/components/wedding/shared-vault";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet } from "@/server/data";
 
@@ -53,6 +54,7 @@ export async function VendorDossier({
       </header>
       <Card>
         <DocumentRequests weddingId={weddingId} vendorUserId={vendorId} vendorName={name} couple={couple} />
+        <SharedVault weddingId={weddingId} vendorUserId={vendorId} today={new Date().toISOString().slice(0, 10)} />
       </Card>
       <Card>
         <h3 className="text-lg font-semibold tracking-tight">Contrats</h3>

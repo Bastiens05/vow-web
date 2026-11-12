@@ -102,6 +102,9 @@ describe("migration", () => {
       "tester_grants",
       "vendor_document_templates",
       "wedding_document_requests",
+      "vendor_vault_files",
+      "vendor_vault_versions",
+      "vendor_vault_shares",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

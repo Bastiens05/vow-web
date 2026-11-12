@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ClientDocumentSettings } from "@/components/account/client-document-settings";
+import { VendorVaultBoard } from "@/components/account/vendor-vault-board";
 import { DocumentRequestList } from "@/components/wedding/document-requests";
+import { VaultPicker } from "@/components/wedding/vault-picker";
 import { Card } from "@/components/ui/card";
 import { documentSuggestions } from "@/lib/domain/client-documents";
 
@@ -78,6 +80,47 @@ export default function DocumentPreviewPage() {
               correctionNote: "",
             },
           ]}
+        />
+      </Card>
+      </div>
+      <div id="apercu-coffre">
+      <Card>
+        <VendorVaultBoard
+          userId="00000000-0000-0000-0000-000000000003"
+          today="2026-11-12"
+          files={[
+            {
+              id: "rc",
+              title: "Attestation RC Pro",
+              category: "rc_pro",
+              fileName: "rc-pro-2026.pdf",
+              expiresOn: "2026-12-01",
+              alertDays: 30,
+              autoShare: false,
+            },
+            {
+              id: "kbis",
+              title: "Extrait Kbis",
+              category: "kbis",
+              fileName: "kbis.pdf",
+              expiresOn: "2026-10-01",
+              alertDays: 30,
+              autoShare: false,
+            },
+          ]}
+        />
+      </Card>
+      </div>
+      <div id="apercu-piocher">
+      <Card>
+        <VaultPicker
+          weddingId="00000000-0000-0000-0000-000000000001"
+          today="2026-11-12"
+          files={[
+            { id: "rc", title: "Attestation RC Pro", category: "rc_pro", expiresOn: "2026-12-01", alertDays: 30, shared: true },
+            { id: "kbis", title: "Extrait Kbis", category: "kbis", expiresOn: "2026-10-01", alertDays: 30, shared: true },
+          ]}
+          vendors={[{ userId: "00000000-0000-0000-0000-000000000004", label: "Domaine des Pins · Lieu" }]}
         />
       </Card>
       </div>
