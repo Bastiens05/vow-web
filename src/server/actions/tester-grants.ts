@@ -26,10 +26,11 @@ export async function createTesterGrant(_prev: ActionState, formData: FormData):
   const trade = String(formData.get("trade") ?? "photographer");
   const plan = String(formData.get("plan") ?? "studio");
   const discount = Number(formData.get("discount_percent") ?? 40);
+  const grantType = formData.get("grant_type") === "lifetime" ? "lifetime" : "tester";
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: "Indiquez un e-mail valide." };
   if (!isVendorPlan(plan)) return { error: "Formule inconnue." };
   if (!isVendorCategory(trade)) return { error: "Choisissez un métier." };
-  if (!Number.isInteger(discount) || discount < 0 || discount > 100) {
+  if (grantType === "tester" && (!Number.isInteger(discount) || discount < 0 || discount > 100)) {
     return { error: "Indiquez une remise entre 0 et 100 %." };
   }
   const supabase = await createClient();
@@ -39,20 +40,22 @@ export async function createTesterGrant(_prev: ActionState, formData: FormData):
     p_last_name: lastName,
     p_trade: trade,
     p_plan: plan,
-    p_discount: discount,
+    p_discount: grantType === "tester" ? discount : 0,
+    p_grant_type: grantType,
   });
   if (error || !id) {
     if (error?.message?.includes("existe déjà")) return { error: "Une offre existe déjà pour cette adresse." };
     return { error: "L'offre n'a pas pu être enregistrée." };
   }
-  const { data: grant } = await supabase.from("tester_grants").select("token, first_name, plan, discount_percent, email").eq("id", id).maybeSingle();
+  const { data: grant } = await supabase.from("tester_grants").select("token, first_name, plan, discount_percent, email, grant_type").eq("id", id).maybeSingle();
   const sent = grant
     ? await sendTesterGrantEmail({
         to: grant.email,
         firstName: grant.first_name,
         planLabel: planLabel(grant.plan),
-        discountPercent: grant.discount_percent,
+        discountPercent: grant.discount_percent ?? 0,
         url: `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
+        grantType: grant.grant_type === "lifetime" ? "lifetime" : "tester",
       })
     : false;
   revalidatePath("/admin");
@@ -75,8 +78,9 @@ export async function resendTesterGrant(formData: FormData): Promise<void> {
     to: grant.email,
     firstName: grant.first_name,
     planLabel: planLabel(grant.plan),
-    discountPercent: grant.discount_percent,
+    discountPercent: grant.discount_percent ?? 0,
     url: `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
+    grantType: grant.grant_type === "lifetime" ? "lifetime" : "tester",
   });
   revalidatePath("/admin");
 }

@@ -1035,8 +1035,9 @@ export type Database = {
           last_name: string;
           trade: string;
           plan: "essentiel" | "pro" | "studio";
-          free_until: string;
-          discount_percent: number;
+          free_until: string | null;
+          discount_percent: number | null;
+          grant_type: "tester" | "lifetime";
           status: "invited" | "accepted" | "revoked";
           invited_by: string | null;
           token: string;
@@ -1369,6 +1370,7 @@ export type Database = {
           p_trade: string;
           p_plan: string;
           p_discount: number;
+          p_grant_type?: string;
         };
         Returns: string;
       };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
@@ -13,8 +13,15 @@ const initial: ActionState = {};
 
 export function TesterOfferForm() {
   const [state, action, pending] = useActionState(createTesterGrant, initial);
+  const [kind, setKind] = useState("tester");
   return (
     <form action={action} className="grid gap-3">
+      <Field label="Type d'invitation">
+        <SelectInput name="grant_type" value={kind} onChange={(event) => setKind(event.target.value)}>
+          <option value="tester">Testeur</option>
+          <option value="lifetime">Offert à vie</option>
+        </SelectInput>
+      </Field>
       <Field label="E-mail">
         <TextInput name="email" type="email" required autoComplete="off" />
       </Field>
@@ -35,7 +42,7 @@ export function TesterOfferForm() {
           ))}
         </SelectInput>
       </Field>
-      <Field label="Formule offerte un an">
+      <Field label={kind === "lifetime" ? "Formule offerte" : "Formule offerte un an"}>
         <SelectInput name="plan" defaultValue="studio">
           {PLAN_OFFERS.map((plan) => (
             <option key={plan.id} value={plan.id}>
@@ -44,9 +51,13 @@ export function TesterOfferForm() {
           ))}
         </SelectInput>
       </Field>
-      <Field label="Remise ensuite (%)" hint="Appliquée à vie après l'année offerte. Enregistrée pour plus tard : le paiement reste fermé.">
-        <TextInput name="discount_percent" type="number" min={0} max={100} defaultValue={40} required />
-      </Field>
+      {kind === "tester" ? (
+        <Field label="Remise ensuite (%)" hint="Appliquée à vie après l'année offerte. Enregistrée pour plus tard : le paiement reste fermé.">
+          <TextInput name="discount_percent" type="number" min={0} max={100} defaultValue={40} required />
+        </Field>
+      ) : (
+        <p className="text-sm text-muted">Gratuit pour toujours, sur la formule choisie. Le paiement reste fermé.</p>
+      )}
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
       <Button type="submit" disabled={pending}>

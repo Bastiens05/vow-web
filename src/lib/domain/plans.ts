@@ -160,9 +160,10 @@ export function effectiveVendorPlan(plan: string | null | undefined): VendorPlan
   return plan && isVendorPlan(plan) ? plan : "essentiel";
 }
 
-export function testerOfferLabel(freeUntil: string, discountPercent: number): string {
-  const date = new Date(freeUntil).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
-  return `Offre testeur : gratuit jusqu'au ${date}, puis -${discountPercent} % à vie`;
+export function testerOfferLabel(freeUntil: string | null, discountPercent: number | null, grantType: "tester" | "lifetime" = "tester"): string {
+  if (grantType === "lifetime") return "Offert à vie";
+  const date = new Date(freeUntil ?? "").toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
+  return `Offre testeur : gratuit jusqu'au ${date}, puis -${discountPercent ?? 0} % à vie`;
 }
 
 /** Monthly price after a percent off, rounded down to the cent. */

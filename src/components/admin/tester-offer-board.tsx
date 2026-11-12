@@ -14,8 +14,9 @@ export type TesterGrantRow = {
   last_name: string;
   trade: string;
   plan: VendorPlan;
-  free_until: string;
-  discount_percent: number;
+  free_until: string | null;
+  discount_percent: number | null;
+  grant_type: "tester" | "lifetime";
   status: "invited" | "accepted" | "revoked";
   token: string;
   created_at: string;
@@ -44,8 +45,8 @@ export function TesterOfferBoard({
           <div id="offre-testeur-form" className="rounded-3xl border border-line bg-paper p-5">
             <h2 className="text-lg font-semibold tracking-tight">Offre testeur</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Un an d&apos;accès offert, puis une remise enregistrée pour plus tard. L&apos;invitation ouvre
-              l&apos;inscription prestataire. Le paiement reste fermé.
+              Testeur : un an offert, puis une remise. Offert à vie : la formule choisie, sans date de fin.
+              L&apos;invitation ouvre l&apos;inscription prestataire. Le paiement reste fermé.
             </p>
             <div className="mt-4">
               <TesterOfferForm />
@@ -62,8 +63,8 @@ export function TesterOfferBoard({
                   <div>
                     <p className="font-medium">{grant.email}</p>
                     <p className="text-muted">
-                      {planLabel(grant.plan)} · {STATUS[grant.status]} ·{" "}
-                      {testerOfferLabel(grant.free_until, grant.discount_percent)}
+                      {planLabel(grant.plan)} · {grant.grant_type === "lifetime" ? "Offert à vie" : "Testeur"} · {STATUS[grant.status]} ·{" "}
+                      {testerOfferLabel(grant.free_until, grant.discount_percent, grant.grant_type)}
                       {grant.first_name || grant.last_name ? ` · ${[grant.first_name, grant.last_name].join(" ").trim()}` : ""}
                       {isVendorCategory(grant.trade) ? ` · ${categoryLabel(grant.trade)}` : ""}
                     </p>
@@ -106,8 +107,9 @@ export function TesterEmailPreview({ grant }: { grant: TesterGrantRow }) {
   const content = testerGrantEmailContent({
     firstName: grant.first_name,
     planLabel: planLabel(grant.plan),
-    discountPercent: grant.discount_percent,
+    discountPercent: grant.discount_percent ?? 0,
     url,
+    grantType: grant.grant_type,
   });
   const rendered = renderEmail(content);
   return (

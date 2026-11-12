@@ -20,7 +20,7 @@ export default async function AdminPage() {
     supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
     supabase.from("profiles").select("id, email, full_name"),
     supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, access_until").order("created_at", { ascending: false }),
-    supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, status, token, created_at").order("created_at", { ascending: false }),
+    supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, grant_type, status, token, created_at").order("created_at", { ascending: false }),
   ]);
   const billByVendor = new Map((bills ?? []).map((bill) => [bill.vendor_id, bill]));
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
