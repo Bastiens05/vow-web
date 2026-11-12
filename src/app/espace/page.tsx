@@ -4,7 +4,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
 import { WeddingDirectory } from "@/components/wedding/wedding-directory";
-import { openCoupleDemo } from "@/server/actions/account";
+import { CoupleCreateForm } from "@/components/account/couple-create-form";
 import { coupleNextActions, daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { categoryLabel } from "@/lib/domain/categories";
 import { InviteVendor } from "@/components/wedding/invite-vendor";
@@ -94,9 +94,9 @@ export default async function DashboardPage() {
           venue={[primary.venue_name, primary.venue_city].filter(Boolean).join(" · ")}
         />
       ) : (
-        <header className="mb-10">
+        <header className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Votre mariage</h1>
-          <p className="mt-3 max-w-xl text-base text-muted">L&apos;espace est vide. Une invitation vous y fait entrer.</p>
+          <p className="mt-3 max-w-xl text-base text-muted">Créez votre espace, puis invitez vos prestataires.</p>
         </header>
       )}
       {ledger ? (
@@ -138,13 +138,7 @@ export default async function DashboardPage() {
           ))}
         </section>
       ) : null}
-      {isVendor ? (
-        <form action={openCoupleDemo} className="mb-8">
-          <Button type="submit" variant="secondary">
-            Tester l&apos;espace mariés
-          </Button>
-        </form>
-      ) : null}
+      {!isVendor && !primary ? <CoupleCreateForm /> : null}
       {!isVendor && primary ? (
         <CoupleHome
           weddingId={primary.id}

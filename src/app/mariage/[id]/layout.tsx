@@ -1,10 +1,7 @@
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/domain/categories";
 import { formatLongDate, weddingTitle } from "@/lib/domain/format";
 import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
-import { deleteCoupleDemo, leaveCouplePreview } from "@/server/actions/account";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
 import { requireSession } from "@/server/session";
@@ -49,34 +46,6 @@ export default async function WeddingLayout({
         <p className="min-w-0 flex-1 truncate text-sm text-muted">{space.title}</p>
       </div>
       )}
-      {space.wedding.is_demo ? (
-        <div className="mb-6 rounded-2xl border border-line bg-paper px-4 py-4">
-          <div className="mb-2">
-            <Badge>Démo</Badge>
-          </div>
-          <p className="text-sm font-medium">
-            {space.actingAsCouple ? "Vous testez l'espace mariés." : "Mariage d'essai, isolé de vos clients."}
-          </p>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            Rien ici n&apos;est un vrai mariage. Le jour J d&apos;un client reste réservé au couple.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {space.actingAsCouple ? (
-              <form action={leaveCouplePreview}>
-                <input type="hidden" name="wedding_id" value={id} />
-                <Button type="submit" variant="secondary">
-                  Revenir en prestataire
-                </Button>
-              </form>
-            ) : null}
-            <form action={deleteCoupleDemo}>
-              <Button type="submit" variant="danger">
-                Supprimer la démo
-              </Button>
-            </form>
-          </div>
-        </div>
-      ) : null}
       <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">
         {formatLongDate(space.wedding.wedding_date)}
       </p>

@@ -73,10 +73,11 @@ test("changer de mariage, se déconnecter, et garder le jour J réel au couple",
   });
   expect(denied.error?.message ?? "").toMatch(/couple/i);
 
-  await page.getByRole("button", { name: "Tester l'espace mariés" }).click();
-  await expect(page.getByText("Vous testez l'espace mariés.")).toBeVisible();
-  await expect(page.getByText("Démo").first()).toBeVisible();
-  const demoPath = new URL(page.url()).pathname.replace(/\/$/, "");
+  const opened = await vendor.rpc("open_couple_demo");
+  expect(opened.error).toBeNull();
+  expect(opened.data).toBeTruthy();
+  const demoPath = `/mariage/${opened.data}`;
+  await page.goto(demoPath);
   await page.goto(`${demoPath}/jour`);
   await page.getByRole("button", { name: "Décaler", exact: true }).first().click();
   await expect(page.getByRole("button", { name: "+30 min" })).toBeVisible();
