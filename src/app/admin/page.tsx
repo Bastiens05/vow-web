@@ -15,13 +15,15 @@ export default async function AdminPage() {
   const session = await requireSession();
   if (!session.isAdmin) redirect("/espace");
   const supabase = await createClient();
-  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }, { data: grants }] = await Promise.all([
+  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }, { data: grants }, { data: notices }] = await Promise.all([
     supabase.from("vendor_profiles").select("id, business_name, category, city, user_id, weddings_per_year").order("business_name"),
     supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
     supabase.from("profiles").select("id, email, full_name"),
     supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, access_until").order("created_at", { ascending: false }),
     supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, grant_type, status, token, created_at").order("created_at", { ascending: false }),
+    supabase.from("grant_notices").select("grant_id, activated_at"),
   ]);
+  const pendingGrants = new Set((notices ?? []).filter((notice) => !notice.activated_at).map((notice) => notice.grant_id));
   const billByVendor = new Map((bills ?? []).map((bill) => [bill.vendor_id, bill]));
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
 
@@ -70,7 +72,7 @@ export default async function AdminPage() {
       </div>
       <TesterOfferBoard
         grants={(grants ?? []).flatMap((grant): TesterGrantRow[] =>
-          isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan }] : [],
+          isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan, pending: pendingGrants.has(grant.id) }] : [],
         )}
       />
       <section className="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">

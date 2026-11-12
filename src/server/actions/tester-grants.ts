@@ -48,17 +48,26 @@ export async function createTesterGrant(_prev: ActionState, formData: FormData):
     return { error: "L'offre n'a pas pu être enregistrée." };
   }
   const { data: grant } = await supabase.from("tester_grants").select("token, first_name, plan, discount_percent, email, grant_type").eq("id", id).maybeSingle();
+  const { data: notice } = await supabase.from("grant_notices").select("id").eq("grant_id", id).maybeSingle();
   const sent = grant
     ? await sendTesterGrantEmail({
         to: grant.email,
         firstName: grant.first_name,
         planLabel: planLabel(grant.plan),
         discountPercent: grant.discount_percent ?? 0,
-        url: `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
+        url: notice ? `${siteUrl()}/alertes` : `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
         grantType: grant.grant_type === "lifetime" ? "lifetime" : "tester",
+        existingAccount: Boolean(notice),
       })
     : false;
   revalidatePath("/admin");
+  revalidatePath("/alertes");
+  if (notice) {
+    if (!emailChannelEnabled() || !sent) {
+      return { success: "Le prestataire a déjà un compte. L'offre est dans sa cloche. L'e-mail n'a pas été envoyé." };
+    }
+    return { success: "Le prestataire a déjà un compte. L'offre est dans sa cloche, à activer." };
+  }
   if (!emailChannelEnabled() || !sent) {
     return { success: "Offre enregistrée. L'e-mail n'a pas été envoyé : le canal est fermé." };
   }
@@ -74,15 +83,33 @@ export async function resendTesterGrant(formData: FormData): Promise<void> {
   const { data: grant } = await supabase.from("tester_grants").select("*").eq("id", id).maybeSingle();
   if (!grant || grant.status === "revoked") return;
   if (!emailChannelEnabled()) return;
+  const { data: notice } = await supabase.from("grant_notices").select("id, activated_at").eq("grant_id", id).maybeSingle();
+  const waiting = Boolean(notice && !notice.activated_at);
   await sendTesterGrantEmail({
     to: grant.email,
     firstName: grant.first_name,
     planLabel: planLabel(grant.plan),
     discountPercent: grant.discount_percent ?? 0,
-    url: `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
+    url: waiting ? `${siteUrl()}/alertes` : `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
     grantType: grant.grant_type === "lifetime" ? "lifetime" : "tester",
+    existingAccount: waiting,
   });
   revalidatePath("/admin");
+}
+
+export async function activateTesterGrant(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const session = await requireSession();
+  if (session.profile.role !== "vendor") return { error: "Réservé aux prestataires." };
+  const id = String(formData.get("grant_id") ?? "");
+  if (!id) return { error: "Invitation introuvable." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("activate_tester_grant", { p_id: id });
+  if (error) return { error: "L'offre n'a pas pu être activée." };
+  revalidatePath("/alertes");
+  revalidatePath("/abonnement");
+  revalidatePath("/espace");
+  revalidatePath("/admin");
+  return { success: "Offre activée." };
 }
 
 export async function revokeTesterGrant(formData: FormData): Promise<void> {

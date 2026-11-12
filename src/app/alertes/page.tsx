@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GrantOfferCard } from "@/components/alerts/grant-offer-card";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/page-header";
 import { RealtimeRefresh } from "@/components/live/realtime-refresh";
@@ -17,22 +18,35 @@ export default async function AlertsPage() {
   const session = await requireSession();
   const couple = session.profile.role === "couple";
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("wedding_notifications")
-    .select("id, body, created_at, wedding_id, author_id, kind")
-    .order("created_at", { ascending: false })
-    .limit(40);
+  const [{ data }, { data: offers }] = await Promise.all([
+    supabase
+      .from("wedding_notifications")
+      .select("id, body, created_at, wedding_id, author_id, kind")
+      .order("created_at", { ascending: false })
+      .limit(40),
+    supabase.from("grant_notices").select("id, grant_id, body, created_at, activated_at").order("created_at", { ascending: false }).limit(20),
+  ]);
   await markAlertsRead();
   const notes = data ?? [];
+  const notices = offers ?? [];
   return (
     <div className="mx-auto w-full max-w-lg px-5 py-8">
-      <RealtimeRefresh channel="alertes-live" subscriptions={[{ table: "wedding_notifications", event: "INSERT" }]} />
+      <RealtimeRefresh
+        channel="alertes-live"
+        subscriptions={[
+          { table: "wedding_notifications", event: "INSERT" },
+          { table: "grant_notices", event: "*" },
+        ]}
+      />
       <h1 className="text-4xl font-semibold tracking-tight">Nouveautés</h1>
       <p className="mt-2 text-sm text-muted">
-        {couple ? "Les dernières nouvelles de votre mariage." : "Ce qui a bougé sur vos mariages."}
+        {couple ? "Les dernières nouvelles de votre mariage." : "Vos offres à activer, et ce qui a bougé sur vos mariages."}
       </p>
       <ul className="mt-6 space-y-3">
-        {notes.length === 0 ? (
+        {notices.map((notice) => (
+          <GrantOfferCard key={notice.id} grantId={notice.grant_id} body={notice.body} activated={Boolean(notice.activated_at)} />
+        ))}
+        {notes.length === 0 && notices.length === 0 ? (
           <li>
             <EmptyState title="Tout est à jour">
               {couple ? null : <ButtonLink href="/espace">Retour à l&apos;accueil</ButtonLink>}

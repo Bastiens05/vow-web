@@ -43,25 +43,27 @@ export default async function SubscriptionPage() {
           {session.vendor?.business_name ?? "Votre activité"}
           {trade ? ` · ${trade}` : ""}
         </p>
-        <p className="mt-3 text-lg font-semibold">Votre formule : {planLabel(plan, comped)}</p>
-        {session.billing?.free_until && session.billing.discount_percent != null && !comped ? (
+        <p className="mt-3 text-lg font-semibold">Votre formule : {planLabel(plan, comped && !session.billing?.tester_until)}</p>
+        {session.billing?.tester_until && session.billing.discount_percent != null ? (
+          <p className="mt-3 text-sm leading-6">{testerOfferLabel(session.billing.tester_until, session.billing.discount_percent)}</p>
+        ) : session.billing?.free_until && session.billing.discount_percent != null && !comped ? (
           <p className="mt-3 text-sm leading-6">{testerOfferLabel(session.billing.free_until, session.billing.discount_percent)}</p>
         ) : null}
-        <p className="mt-3 text-sm leading-6">
-          {comped
-            ? "Cette formule vous est offerte, sans paiement ni date de fin."
-            : access.reason === "trial" && access.daysLeft !== null
-              ? `Il vous reste ${access.daysLeft} jour${access.daysLeft > 1 ? "s" : ""} d'essai.`
-              : access.reason === "tester"
-                ? session.billing?.tester_until
-                  ? `Accès test jusqu'au ${new Date(session.billing.tester_until).toLocaleDateString("fr-FR")}.`
-                  : "Accès test, sans date de fin."
-                : access.reason === "active"
-                  ? "Abonnement en cours."
-                  : access.reason === "admin"
-                    ? "Compte administrateur : l'accès n'est pas limité."
-                    : "L'essai est terminé. Vos mariages restent enregistrés."}
-        </p>
+        {session.billing?.tester_until ? null : (
+          <p className="mt-3 text-sm leading-6">
+            {comped
+              ? "Cette formule vous est offerte, sans paiement ni date de fin."
+              : access.reason === "trial" && access.daysLeft !== null
+                ? `Il vous reste ${access.daysLeft} jour${access.daysLeft > 1 ? "s" : ""} d'essai.`
+                : access.reason === "tester"
+                  ? "Accès test, sans date de fin."
+                  : access.reason === "active"
+                    ? "Abonnement en cours."
+                    : access.reason === "admin"
+                      ? "Compte administrateur : l'accès n'est pas limité."
+                      : "L'essai est terminé. Vos mariages restent enregistrés."}
+          </p>
+        )}
         <div className="mt-6">
           <SubscribeButton enabled={stripeEnabled()} />
         </div>

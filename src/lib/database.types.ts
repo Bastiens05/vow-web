@@ -1073,6 +1073,30 @@ export type Database = {
           vendor_id?: string | null;
           accepted_at?: string | null;
           revoked_at?: string | null;
+          grant_type?: "tester" | "lifetime";
+        }
+      >;
+      grant_notices: Table<
+        {
+          id: string;
+          user_id: string;
+          grant_id: string;
+          body: string;
+          created_at: string;
+          seen_at: string | null;
+          activated_at: string | null;
+        },
+        {
+          user_id: string;
+          grant_id: string;
+          body: string;
+          seen_at?: string | null;
+          activated_at?: string | null;
+        },
+        {
+          seen_at?: string | null;
+          activated_at?: string | null;
+          body?: string;
         }
       >;
       tester_codes: Table<
@@ -1362,6 +1386,8 @@ export type Database = {
         Returns: { email: string; first_name: string; last_name: string; trade: string; plan: string }[];
       };
       revoke_tester_grant: { Args: { p_id: string }; Returns: undefined };
+      activate_tester_grant: { Args: { p_id: string }; Returns: undefined };
+      mark_grant_notices_seen: { Args: Record<string, never>; Returns: undefined };
       create_tester_grant: {
         Args: {
           p_email: string;

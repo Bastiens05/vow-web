@@ -363,6 +363,15 @@ export async function getDashboardSignals(weddingIds: string[]) {
 
 export const latestUnreadAlert = cache(async (userId: string) => {
   const supabase = await createClient();
+  const { data: offers } = await supabase
+    .from("grant_notices")
+    .select("id, body")
+    .is("activated_at", null)
+    .is("seen_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const offer = offers?.[0];
+  if (offer) return { id: offer.id, body: offer.body, author_id: "" };
   const { data: notes } = await supabase
     .from("wedding_notifications")
     .select("id, body, author_id")

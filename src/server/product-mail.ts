@@ -146,17 +146,23 @@ export function testerGrantEmailContent(input: {
   discountPercent: number;
   url: string;
   grantType?: "tester" | "lifetime";
+  existingAccount?: boolean;
 }) {
   const who = input.firstName?.trim() ? `${input.firstName.trim()}, ` : "";
-  const body =
+  const offer =
     input.grantType === "lifetime"
+      ? `VOW vous offre ${input.planLabel} pour toujours.`
+      : `VOW vous offre ${input.planLabel} pendant un an, puis -${input.discountPercent} % à vie.`;
+  const body = input.existingAccount
+    ? `${who}${offer} Ouvrez VOW et touchez Activer.`
+    : input.grantType === "lifetime"
       ? `${who}un accès prestataire vous est offert pour toujours, avec la formule ${input.planLabel}.`
       : `${who}un accès prestataire vous est ouvert : un an avec la formule ${input.planLabel}, puis une remise de ${input.discountPercent} % sur les formules.`;
   return {
     subject: "Invitation à rejoindre VOW",
     heading: "Vous êtes invité sur VOW",
     body,
-    buttonLabel: "Rejoindre en tant que prestataire",
+    buttonLabel: input.existingAccount ? "Activer l'offre" : "Rejoindre en tant que prestataire",
     buttonUrl: input.url,
   };
 }
@@ -168,6 +174,7 @@ export async function sendTesterGrantEmail(input: {
   discountPercent: number;
   url: string;
   grantType?: "tester" | "lifetime";
+  existingAccount?: boolean;
 }): Promise<boolean> {
   const content = testerGrantEmailContent(input);
   return sendEmail({ to: input.to, ...content });

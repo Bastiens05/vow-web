@@ -20,13 +20,19 @@ export type TesterGrantRow = {
   status: "invited" | "accepted" | "revoked";
   token: string;
   created_at: string;
+  pending?: boolean;
 };
 
 const STATUS: Record<TesterGrantRow["status"], string> = {
   invited: "Invité",
-  accepted: "Inscrit",
+  accepted: "Activée",
   revoked: "Révoquée",
 };
+
+function grantStatusLabel(grant: TesterGrantRow) {
+  if (grant.status === "invited" && grant.pending) return "À activer";
+  return STATUS[grant.status];
+}
 
 export function TesterOfferBoard({
   grants,
@@ -46,7 +52,8 @@ export function TesterOfferBoard({
             <h2 className="text-lg font-semibold tracking-tight">Offre testeur</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               Testeur : un an offert, puis une remise. Offert à vie : la formule choisie, sans date de fin.
-              L&apos;invitation ouvre l&apos;inscription prestataire. Le paiement reste fermé.
+              Si le prestataire a déjà un compte, l&apos;offre apparaît dans sa cloche et il l&apos;active.
+              Sinon, elle s&apos;applique à l&apos;inscription. Le paiement reste fermé.
             </p>
             <div className="mt-4">
               <TesterOfferForm />
@@ -63,7 +70,7 @@ export function TesterOfferBoard({
                   <div>
                     <p className="font-medium">{grant.email}</p>
                     <p className="text-muted">
-                      {planLabel(grant.plan)} · {grant.grant_type === "lifetime" ? "Offert à vie" : "Testeur"} · {STATUS[grant.status]} ·{" "}
+                      {planLabel(grant.plan)} · {grant.grant_type === "lifetime" ? "Offert à vie" : "Testeur"} · {grantStatusLabel(grant)} ·{" "}
                       {testerOfferLabel(grant.free_until, grant.discount_percent, grant.grant_type)}
                       {grant.first_name || grant.last_name ? ` · ${[grant.first_name, grant.last_name].join(" ").trim()}` : ""}
                       {isVendorCategory(grant.trade) ? ` · ${categoryLabel(grant.trade)}` : ""}

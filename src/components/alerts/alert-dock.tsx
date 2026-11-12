@@ -33,11 +33,14 @@ export function AlertDock({
       if (session.session?.access_token) {
         await supabase.realtime.setAuth(session.session.access_token);
       }
-      const { data: notes } = await supabase
-        .from("wedding_notifications")
-        .select("id, body, created_at, author_id")
-        .order("created_at", { ascending: false })
-        .limit(30);
+      const [{ data: notes }, { data: offers }] = await Promise.all([
+        supabase
+          .from("wedding_notifications")
+          .select("id, body, created_at, author_id")
+          .order("created_at", { ascending: false })
+          .limit(30),
+        supabase.from("grant_notices").select("id, body, seen_at, activated_at").is("activated_at", null),
+      ]);
       const others = (notes ?? []).filter((note) => note.author_id !== currentUserId);
       const ids = others.map((note) => note.id);
       const { data: reads } = ids.length
@@ -45,9 +48,10 @@ export function AlertDock({
         : { data: [] };
       const seen = new Set((reads ?? []).map((row) => row.notification_id));
       const fresh = others.filter((note) => !seen.has(note.id));
+      const pendingOffers = (offers ?? []).filter((offer) => !offer.seen_at);
       if (!active) return;
-      setUnread(fresh.length);
-      const latest = fresh[0];
+      setUnread(fresh.length + pendingOffers.length);
+      const latest = pendingOffers[0] ?? fresh[0];
       if (inApp && showToast && latest && sessionStorage.getItem("vow-toast") !== latest.id) {
         sessionStorage.setItem("vow-toast", latest.id);
         setToast(latest.body);
@@ -78,6 +82,25 @@ export function AlertDock({
             setToast(row.body);
             setUnread((count) => count + 1);
             window.setTimeout(() => setToast(null), 8000);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "grant_notices" },
+          (payload) => {
+            const row = payload.new as { body?: string; user_id?: string };
+            if (row.user_id && row.user_id !== me.current) return;
+            if (!inApp || !row.body) return;
+            setToast(row.body);
+            setUnread((count) => count + 1);
+            window.setTimeout(() => setToast(null), 8000);
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "grant_notices" },
+          () => {
+            void load(false);
           },
         )
         .on(
