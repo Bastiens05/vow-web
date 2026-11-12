@@ -1076,6 +1076,120 @@ export type Database = {
           grant_type?: "tester" | "lifetime";
         }
       >;
+      vendor_document_templates: Table<
+        {
+          id: string;
+          vendor_id: string;
+          title: string;
+          note: string;
+          required: boolean;
+          offset_days: number | null;
+          position: number;
+          created_at: string;
+        },
+        {
+          vendor_id: string;
+          title: string;
+          note?: string;
+          required?: boolean;
+          offset_days?: number | null;
+          position?: number;
+        },
+        {
+          title?: string;
+          note?: string;
+          required?: boolean;
+          offset_days?: number | null;
+          position?: number;
+        }
+      >;
+      wedding_document_requests: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          template_id: string | null;
+          title: string;
+          note: string;
+          required: boolean;
+          due_on: string | null;
+          position: number;
+          status: "needed" | "sent" | "validated" | "correction";
+          file_path: string | null;
+          file_name: string | null;
+          correction_note: string;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        },
+        {
+          wedding_id: string;
+          vendor_id: string;
+          template_id?: string | null;
+          title: string;
+          note?: string;
+          required?: boolean;
+          due_on?: string | null;
+          position?: number;
+          status?: "needed" | "sent" | "validated" | "correction";
+        },
+        {
+          status?: "needed" | "sent" | "validated" | "correction";
+          file_path?: string | null;
+          file_name?: string | null;
+          correction_note?: string;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+        }
+      >;
+      vendor_vault_files: Table<
+        {
+          id: string;
+          vendor_id: string;
+          title: string;
+          category: "rc_pro" | "kbis" | "tech" | "cgv" | "other";
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          expires_on: string | null;
+          alert_days: number;
+          auto_share: boolean;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          vendor_id: string;
+          title: string;
+          category?: "rc_pro" | "kbis" | "tech" | "cgv" | "other";
+          storage_path: string;
+          file_name: string;
+          mime_type?: string;
+          expires_on?: string | null;
+          alert_days?: number;
+          auto_share?: boolean;
+        },
+        {
+          title?: string;
+          category?: "rc_pro" | "kbis" | "tech" | "cgv" | "other";
+          storage_path?: string;
+          file_name?: string;
+          mime_type?: string;
+          expires_on?: string | null;
+          alert_days?: number;
+          auto_share?: boolean;
+          updated_at?: string;
+        }
+      >;
+      vendor_vault_versions: Table<
+        { id: string; file_id: string; storage_path: string; file_name: string; created_at: string },
+        { file_id: string; storage_path: string; file_name: string },
+        Record<string, never>
+      >;
+      vendor_vault_shares: Table<
+        { id: string; file_id: string; wedding_id: string; recipient_user_id: string | null; created_at: string },
+        { file_id: string; wedding_id: string; recipient_user_id?: string | null },
+        Record<string, never>
+      >;
       grant_notices: Table<
         {
           id: string;
@@ -1384,6 +1498,14 @@ export type Database = {
         };
         Returns: string;
       };
+      add_wedding_document_request: {
+        Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };
+        Returns: string;
+      };
+      submit_document_request: { Args: { p_id: string; p_path: string; p_name: string }; Returns: undefined };
+      review_document_request: { Args: { p_id: string; p_status: string; p_note: string }; Returns: undefined };
+      replace_vendor_vault_file: { Args: { p_id: string; p_path: string; p_name: string; p_mime: string }; Returns: undefined };
+      share_vendor_vault: { Args: { p_file: string; p_wedding: string; p_couple: boolean; p_users: string[] }; Returns: undefined };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       undo_timeline_shift: {
         Args: {
