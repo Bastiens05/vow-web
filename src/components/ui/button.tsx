@@ -13,7 +13,7 @@ const variants: Record<ButtonVariant, string> = {
 
 export function buttonClass(variant: ButtonVariant = "primary", className?: string) {
   return cn(
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-medium transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
     variants[variant],
     className,
   );

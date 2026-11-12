@@ -67,7 +67,7 @@ export function MessageThread({
         {shown.length === 0 ? <p className="text-sm text-muted">Écrivez le premier message.</p> : null}
         {shown.map((message) => (
           <article key={message.id} className={message.mine ? "ml-auto max-w-[80%]" : "mr-auto max-w-[80%]"}>
-            <div className={message.mine ? "rounded-[18px] bg-[#3a3a3c] px-4 py-2.5 text-white" : "rounded-[18px] border border-line bg-paper px-4 py-2.5"}>
+            <div className={message.mine ? "rounded-[22px] bg-ink px-4 py-2.5 text-ivory" : "rounded-[22px] border border-line bg-paper px-4 py-2.5 shadow-[var(--vow-shadow)]"}>
               {message.mine ? null : <p className="mb-1 text-[11px] text-muted">{message.authorName}</p>}
               <p className="whitespace-pre-wrap text-sm leading-6">{message.body}</p>
             </div>

@@ -62,8 +62,25 @@ export default async function WeddingOverviewPage({
     : { data: [] as { id: string }[] };
   const galleryCount = files.data?.length ?? 0;
   const fiche = space.actingAsCouple ? "Infos pratiques" : "Ma fiche";
+  const vendorCount = space.members.filter((member) => member.role === "vendor").length;
+  const documentCount = documents.data?.length ?? 0;
+  const budgetText =
+    space.role === "couple" || space.actingAsCouple
+      ? "Privé"
+      : moneyStatus((invoices.data ?? []).map((row) => row.status), quotes.data?.length ?? 0);
+  const nextStep = countdownLabel(daysUntil(space.wedding.wedding_date, todayIso()));
   return (
     <div className="grid gap-6">
+      <div className="relative z-10 -mt-16 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard href={`/mariage/${id}/equipe`} title="Prestataires" value={String(vendorCount)} />
+        <SummaryCard href={`/mariage/${id}/documents`} title="Documents" value={String(documentCount)} />
+        <SummaryCard
+          href={space.role === "couple" || space.actingAsCouple ? `/mariage/${id}/budget` : `/mariage/${id}/devis`}
+          title="Budget"
+          value={budgetText}
+        />
+        <SummaryCard href={`/mariage/${id}/jour`} title="Prochaine étape" value={nextStep} />
+      </div>
       <Card>
         <h2 className="text-lg font-semibold tracking-tight">{space.role === "couple" || space.actingAsCouple ? "Prestataires" : "Membres"}</h2>
         <ul className="mt-4 space-y-2">
@@ -265,6 +282,18 @@ function FileIcon() {
       <path d="M7 3h7l5 5v13H7V3Z" />
       <path d="M14 3v5h5" />
     </LineIcon>
+  );
+}
+
+function SummaryCard({ href, title, value }: { href: string; title: string; value: string }) {
+  return (
+    <Link href={href} className="rounded-3xl border border-line bg-paper p-5 shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-accent">
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+      </span>
+      <p className="mt-4 font-serif text-2xl leading-none text-ink">{value}</p>
+      <p className="mt-2 text-sm text-muted">{title}</p>
+    </Link>
   );
 }
 

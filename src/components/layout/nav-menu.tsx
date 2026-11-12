@@ -61,7 +61,7 @@ export function NavMenu({
       aria-label={label}
       className={
         variant === "tab"
-          ? "fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-paper/80 px-1 pt-1 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] backdrop-blur pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
+          ? "fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t border-line bg-[var(--vow-glass)] px-1 pt-1 shadow-[var(--vow-shadow)] backdrop-blur-md pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
           : "mt-8 flex flex-1 flex-col gap-1"
       }
     >
