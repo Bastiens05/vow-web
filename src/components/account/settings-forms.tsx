@@ -77,6 +77,7 @@ export function LogoField({ userId, logoPath }: { userId: string; logoPath: stri
   const [success, setSuccess] = useState<string | null>(null);
   const [phase, setPhase] = useState<"idle" | "prepare" | "upload" | "save">("idle");
   const [savedPath, setSavedPath] = useState(logoPath);
+  const [replacing, setReplacing] = useState(false);
   const src = savedPath ? publicObjectUrl("vendor-media", savedPath) : null;
   const pending = phase !== "idle";
   const progress = phase === "prepare" ? 30 : phase === "upload" ? 70 : phase === "save" ? 90 : null;
@@ -132,30 +133,47 @@ export function LogoField({ userId, logoPath }: { userId: string; logoPath: stri
       await supabase.storage.from("vendor-media").remove([profile.logo_path]);
     }
     setSavedPath(path);
+    setReplacing(false);
     setPhase("idle");
     setSuccess("Logo enregistré.");
     const url = publicObjectUrl("vendor-media", path);
     if (url) window.dispatchEvent(new CustomEvent("vow-logo", { detail: url }));
   }
 
+  const showDrop = !src || replacing;
+
   return (
     <div className="space-y-3" aria-busy={pending}>
       {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="Logo" className="h-16 w-16 rounded-2xl object-cover" />
+        <div className="flex flex-col items-start gap-4 rounded-3xl border border-line bg-ivory/70 p-4 sm:flex-row sm:items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="Logo" className="h-[120px] w-[120px] rounded-2xl bg-paper object-contain" />
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="secondary" className="min-h-10 px-4 text-sm" disabled={pending} onClick={() => setReplacing(true)}>
+              Modifier le logo
+            </Button>
+            {replacing ? (
+              <Button type="button" variant="ghost" className="min-h-10 px-4 text-sm" disabled={pending} onClick={() => setReplacing(false)}>
+                Annuler
+              </Button>
+            ) : null}
+          </div>
+        </div>
       ) : (
         <p className="text-sm text-muted">Pas encore de logo.</p>
       )}
-      <FileDrop
-        accept="image/jpeg,image/png,image/webp"
-        disabled={pending}
-        hint="JPG, PNG ou WebP · le logo de votre activité. Une grande photo est réduite avant l'envoi."
-        progress={progress}
-        onFiles={(files) => {
-          const file = files[0];
-          if (file) void onFile(file);
-        }}
-      />
+      {showDrop ? (
+        <FileDrop
+          accept="image/jpeg,image/png,image/webp"
+          disabled={pending}
+          hint="JPG, PNG ou WebP · le logo de votre activité. Une grande photo est réduite avant l'envoi."
+          progress={progress}
+          onFiles={(files) => {
+            const file = files[0];
+            if (file) void onFile(file);
+          }}
+        />
+      ) : null}
       {pending ? <p className="text-sm text-muted">{phase === "prepare" ? "Préparation du logo…" : phase === "upload" ? "Envoi…" : "Enregistrement…"}</p> : null}
       {error ? <Alert>{error}</Alert> : null}
       {success ? <Alert tone="success">{success}</Alert> : null}
