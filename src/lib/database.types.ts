@@ -1504,6 +1504,7 @@ export type Database = {
         };
         Returns: string;
       };
+      wedding_vendor_id: { Args: { p_wedding: string; p_user: string }; Returns: string };
       add_wedding_document_request: {
         Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };
         Returns: string;

@@ -77,7 +77,7 @@ export default async function WeddingLayout({
       </div>
       )}
       {overview ? (
-        <section className="relative -mx-4 mb-2 flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#121110] px-6 py-20 text-center text-[#f7f3ec] sm:-mx-6">
+        <section className="relative -mx-4 mb-2 flex min-h-[62vh] items-center justify-center overflow-hidden bg-[#121110] px-6 py-10 text-center text-[#f7f3ec] sm:-mx-6 sm:min-h-[78vh] sm:py-20">
           <HeroPhoto src="/hero/venue.jpg" position="center 76%" priority sizes="(min-width: 768px) 80vw, 100vw" zoom />
           <div className="relative z-10">
             <h1 className="font-serif text-6xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{space.title}</h1>

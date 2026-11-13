@@ -122,6 +122,12 @@ describe("migration", () => {
     expect(sql).toContain("is_wedding_member");
   });
 
+  it("lets a couple resolve a vendor on their own wedding", () => {
+    expect(sql).toContain("function public.wedding_vendor_id(p_wedding uuid, p_user uuid)");
+    expect(sql).toContain("public.is_wedding_couple(p_wedding)");
+    expect(sql).toContain("security definer");
+  });
+
   it("does not embed a shared access code", () => {
     expect(sql.toLowerCase()).not.toContain("access_code");
     expect(sql).not.toMatch(/password\s+text/i);
