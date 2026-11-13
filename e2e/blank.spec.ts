@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { revealPasswordSignup } from "./password-auth";
+import { revealPasswordSignup, finishVendorWelcome } from "./password-auth";
 
 const password = "VowTest2026!";
 
@@ -58,13 +58,7 @@ async function signUp(page: Page, email: string) {
 }
 
 async function finishOnboarding(page: Page, business: string) {
-  await page.getByRole("button", { name: "Photographe" }).click();
-  await page.getByLabel("Nom de l'activité").fill(business);
-  await page.getByLabel("Ville").fill("Bordeaux");
-  await page.getByRole("button", { name: "Continuer" }).click();
-  await page.getByRole("heading", { name: "Votre logo" }).waitFor();
-  await page.getByRole("link", { name: "Continuer" }).click();
-  await page.waitForURL("**/espace**");
+  await finishVendorWelcome(page, business);
 }
 
 async function freshPage(browser: Browser) {

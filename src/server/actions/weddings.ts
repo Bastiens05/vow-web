@@ -106,9 +106,10 @@ export async function createInvitation(_prev: ActionState, formData: FormData): 
   revalidatePath("/espace");
   revalidatePath(`/mariage/${weddingId}/inviter`);
   return {
-    success: url === fallback
-      ? "Invitation créée. Copiez le lien ci-dessous. L'e-mail part si l'envoi est configuré."
-      : "Invitation envoyée. Le lien magique ouvre le mariage. Il reste aussi affiché ci-dessous.",
+    success:
+      url === fallback
+        ? `Invitation créée. Copiez le lien ci-dessous. L'e-mail part si l'envoi est configuré. ${url}`
+        : `Invitation envoyée. Le lien magique ouvre le mariage. Il reste aussi affiché ci-dessous. ${url}`,
   };
 }
 
@@ -141,5 +142,16 @@ export async function acceptInvitation(formData: FormData) {
   if (error || !data) {
     redirect(`/invitation/${token}?error=${encodeURIComponent(messageFromError(error))}`);
   }
+  revalidatePath("/nouveautes");
   redirect(`/mariage/${data}`);
+}
+
+export async function declineInvitation(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireSession();
+  const token = String(formData.get("token") ?? "");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("decline_invitation", { p_token: token });
+  if (error) return { error: "Le refus n'a pas abouti." };
+  revalidatePath("/nouveautes");
+  return { success: "Invitation refusée." };
 }

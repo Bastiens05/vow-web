@@ -32,11 +32,12 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const path = (await headers()).get("x-vow-path") ?? "";
   return (
     <html lang="fr" className={`${inter.variable} ${instrument.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
         <ChromeFrame
-          publicHeader={<PublicHeader />}
+          publicHeader={<PublicHeader accounts={!path.startsWith("/invitation/")} />}
           mobile={
             <Suspense fallback={<MobileBarFallback />}>
               <MobileChrome />

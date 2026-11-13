@@ -30,12 +30,12 @@ describe("tester grant mail", () => {
     const content = testerGrantEmailContent({
       planLabel: "Pro",
       discountPercent: 40,
-      url: "https://vow-web.vercel.app/alertes",
+      url: "https://vow-web.vercel.app/nouveautes",
       grantType: "tester",
       existingAccount: true,
     });
     expect(content.body).toContain("VOW vous offre Pro");
     expect(content.buttonLabel).toBe("Activer l'offre");
-    expect(content.buttonUrl).toContain("/alertes");
+    expect(content.buttonUrl).toContain("/nouveautes");
   });
 });

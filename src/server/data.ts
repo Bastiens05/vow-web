@@ -388,7 +388,7 @@ export const latestUnreadAlert = cache(async (userId: string) => {
     .order("created_at", { ascending: false })
     .limit(1);
   const offer = offers?.[0];
-  if (offer) return { id: offer.id, body: offer.body, author_id: "", href: "/alertes" };
+  if (offer) return { id: offer.id, body: offer.body, author_id: "", href: "/nouveautes" };
   const { data: notes } = await supabase
     .from("wedding_notifications")
     .select("id, body, author_id")

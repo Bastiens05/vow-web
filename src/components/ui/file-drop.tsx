@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type DragEvent } from "react";
+import { useRef, useState } from "react";
 
 export function FileDrop({
   accept,
@@ -19,7 +19,6 @@ export function FileDrop({
   names?: string[];
   onFiles: (files: File[]) => void;
 }) {
-  const inputId = useId();
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
 
@@ -29,16 +28,8 @@ export function FileDrop({
     onFiles(multiple ? files : files.slice(0, 1));
   }
 
-  function onDrop(event: DragEvent<HTMLLabelElement>) {
-    event.preventDefault();
-    setOver(false);
-    if (disabled) return;
-    take(event.dataTransfer.files);
-  }
-
   return (
-    <label
-      htmlFor={inputId}
+    <div
       onDragEnter={(event) => {
         event.preventDefault();
         if (!disabled) setOver(true);
@@ -48,10 +39,15 @@ export function FileDrop({
         if (!disabled) setOver(true);
       }}
       onDragLeave={() => setOver(false)}
-      onDrop={onDrop}
-      className={`block cursor-pointer rounded-2xl border border-dashed px-4 py-5 text-center transition ${
+      onDrop={(event) => {
+        event.preventDefault();
+        setOver(false);
+        if (disabled) return;
+        take(event.dataTransfer.files);
+      }}
+      className={`rounded-2xl border border-dashed px-4 py-5 text-center transition ${
         over ? "border-ink bg-ink/[0.04]" : "border-line bg-ivory/40"
-      } ${disabled ? "cursor-not-allowed opacity-60" : "hover:border-ink/40"}`}
+      } ${disabled ? "opacity-60" : ""}`}
     >
       <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-line bg-paper text-ink" aria-hidden>
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -61,31 +57,34 @@ export function FileDrop({
         </svg>
       </span>
       <span className="mt-3 block text-sm font-medium">Déposez vos fichiers ici</span>
-      <span className="mt-3 inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-medium text-ivory">
+      <button
+        type="button"
+        disabled={disabled}
+        className="mt-3 inline-flex min-h-11 items-center rounded-full bg-ink px-4 text-sm font-medium text-ivory disabled:opacity-60"
+        onClick={() => input.current?.click()}
+      >
         Choisir des fichiers
-      </span>
+      </button>
       <span className="mt-3 block text-xs leading-5 text-muted">{hint}</span>
-      {names.length > 0 ? (
-        <span className="mt-3 block text-sm">{names.join(", ")}</span>
-      ) : null}
+      {names.length > 0 ? <span className="mt-3 block text-sm">{names.join(", ")}</span> : null}
       {progress !== null ? (
         <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-line">
           <span className="block h-full rounded-full bg-ink transition-[width]" style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
         </span>
       ) : null}
       <input
-        id={inputId}
         ref={input}
         type="file"
         accept={accept}
         multiple={multiple}
         disabled={disabled}
+        aria-label="Choisir des fichiers"
         className="sr-only"
         onChange={(event) => {
           take(event.target.files);
           event.target.value = "";
         }}
       />
-    </label>
+    </div>
   );
 }

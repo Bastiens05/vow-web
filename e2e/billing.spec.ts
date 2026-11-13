@@ -34,7 +34,7 @@ test("l'essai expiré ferme le prestataire, jamais les mariés", async ({ page, 
   await admin.from("admins").insert({ user_id: userId });
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Prestataires" })).toBeVisible();
-  await expect(page.getByText(business).first()).toBeVisible();
+  await expect(page.locator("main").getByText(business).first()).toBeVisible();
   await page.goto("/espace");
   await expect(page).not.toHaveURL(/abonnement/);
   await admin.from("admins").delete().eq("user_id", userId);

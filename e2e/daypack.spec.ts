@@ -20,7 +20,7 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await page.getByLabel("Nom commercial").fill(`Studio ${stamp}`);
   await page.getByLabel("Ville").fill("Bordeaux");
   await page.getByLabel("Présentation").fill("Reportage de mariage en lumière naturelle, du matin jusqu'au bout de la nuit.");
-  await page.getByLabel("Téléphone").fill(phone);
+  await page.getByRole("textbox", { name: "Téléphone" }).fill(phone);
   await page.getByRole("button", { name: "Enregistrer la vitrine" }).click();
   await expect(page.getByText("Vitrine enregistrée.")).toBeVisible();
 

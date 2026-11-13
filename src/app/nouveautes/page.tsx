@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GrantOfferCard } from "@/components/alerts/grant-offer-card";
+import { InviteDecisionCard } from "@/components/alerts/invite-decision-card";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/page-header";
@@ -19,7 +20,7 @@ export default async function AlertsPage() {
   const session = await requireSession();
   const couple = session.profile.role === "couple";
   const supabase = await createClient();
-  const [{ data }, { data: offers }, { data: signups }, leads] = await Promise.all([
+  const [{ data }, { data: offers }, { data: signups }, { data: invites }, leads] = await Promise.all([
     supabase
       .from("wedding_notifications")
       .select("id, body, created_at, wedding_id, author_id, kind")
@@ -27,6 +28,7 @@ export default async function AlertsPage() {
       .limit(40),
     supabase.from("grant_notices").select("id, grant_id, body, created_at, activated_at").order("created_at", { ascending: false }).limit(20),
     supabase.from("admin_notices").select("id, body, href, created_at").order("created_at", { ascending: false }).limit(20),
+    supabase.rpc("my_pending_invitations"),
     session.profile.role === "vendor" && session.vendor
       ? supabase.from("leads").select("id", { count: "exact", head: true }).eq("vendor_id", session.vendor.id).eq("status", "nouvelle")
       : Promise.resolve({ count: 0 }),
@@ -36,15 +38,17 @@ export default async function AlertsPage() {
   const notices = offers ?? [];
   const signupNotes = signups ?? [];
   const newLeads = leads.count ?? 0;
-  const empty = notes.length === 0 && notices.length === 0 && signupNotes.length === 0 && newLeads === 0;
+  const pending = invites ?? [];
+  const empty = notes.length === 0 && notices.length === 0 && signupNotes.length === 0 && newLeads === 0 && pending.length === 0;
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-8">
+    <div className="mx-auto w-full max-w-4xl px-5 py-8">
       <RealtimeRefresh
         channel="alertes-live"
         subscriptions={[
           { table: "wedding_notifications", event: "INSERT" },
           { table: "grant_notices", event: "*" },
           { table: "admin_notices", event: "*" },
+          { table: "invitations", event: "*" },
         ]}
       />
       <h1 className="text-4xl font-semibold tracking-tight">Nouveautés</h1>
@@ -60,6 +64,11 @@ export default async function AlertsPage() {
         </Link>
       ) : null}
       <ul className="mt-6 space-y-3">
+        {pending.map((invite) => (
+          <li key={invite.token}>
+            <InviteDecisionCard token={invite.token} title={invite.title} role={invite.invited_role} />
+          </li>
+        ))}
         {signupNotes.map((notice) => (
           <li key={notice.id} className="rounded-3xl border border-line bg-paper px-4 py-4">
             <p className="text-sm leading-6">{notice.body}</p>

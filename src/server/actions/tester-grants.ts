@@ -64,13 +64,13 @@ async function createEmailInvite(
         firstName: grant.first_name,
         planLabel: planLabel(grant.plan),
         discountPercent: grant.discount_percent ?? 0,
-        url: notice ? `${siteUrl()}/alertes` : `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
+        url: notice ? `${siteUrl()}/nouveautes` : `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
         grantType: grant.grant_type === "lifetime" ? "lifetime" : "tester",
         existingAccount: Boolean(notice),
       })
     : false;
   revalidatePath("/admin");
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
   if (notice) {
     if (!emailChannelEnabled() || !sent) {
       return { success: "Le prestataire a déjà un compte. L'offre est dans sa cloche. L'e-mail n'a pas été envoyé." };
@@ -99,7 +99,7 @@ export async function resendTesterGrant(formData: FormData): Promise<void> {
     firstName: grant.first_name,
     planLabel: planLabel(grant.plan),
     discountPercent: grant.discount_percent ?? 0,
-    url: waiting ? `${siteUrl()}/alertes` : `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
+    url: waiting ? `${siteUrl()}/nouveautes` : `${siteUrl()}${testerInviteHref(grant.email, grant.token)}`,
     grantType: grant.grant_type === "lifetime" ? "lifetime" : "tester",
     existingAccount: waiting,
   });
@@ -114,7 +114,7 @@ export async function activateTesterGrant(_prev: ActionState, formData: FormData
   const supabase = await createClient();
   const { error } = await supabase.rpc("activate_tester_grant", { p_id: id });
   if (error) return { error: "L'offre n'a pas pu être activée." };
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
   revalidatePath("/abonnement");
   revalidatePath("/espace");
   revalidatePath("/admin");

@@ -138,7 +138,7 @@ export async function MobileChrome() {
   );
 }
 
-export function PublicHeader() {
+export function PublicHeader({ accounts = true }: { accounts?: boolean }) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-[var(--vow-glass)] px-4 backdrop-blur-md">
       <Link href="/" aria-label="VOW">
@@ -151,12 +151,16 @@ export function PublicHeader() {
         <Link href="/#tarifs" className="hidden min-h-11 items-center px-2 sm:inline-flex">
           Tarifs
         </Link>
-        <Link href="/connexion" className="inline-flex min-h-11 items-center px-2 font-medium">
-          Connexion
-        </Link>
-        <Link href="/inscription" className="inline-flex min-h-11 items-center rounded-2xl bg-ink px-3 text-ivory">
-          Créer un compte
-        </Link>
+        {accounts ? (
+          <>
+            <Link href="/connexion" className="inline-flex min-h-11 items-center px-2 font-medium">
+              Connexion
+            </Link>
+            <Link href="/inscription" className="inline-flex min-h-11 items-center rounded-2xl bg-ink px-3 text-ivory">
+              Créer un compte
+            </Link>
+          </>
+        ) : null}
       </nav>
     </header>
   );
