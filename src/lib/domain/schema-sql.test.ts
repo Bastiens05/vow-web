@@ -109,6 +109,9 @@ describe("migration", () => {
       "vendor_vault_versions",
       "vendor_vault_shares",
       "message_reads",
+      "vendor_billing_identity",
+      "vendor_invoice_counters",
+      "invoice_payments",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);
@@ -137,6 +140,24 @@ describe("migration", () => {
     expect(sql).toContain("user_id = auth.uid()");
     expect(sql).toContain("function public.unread_message_count()");
     expect(sql).toContain("security invoker");
+  });
+
+  it("locks invoice numbers and lets a couple read invoices addressed to them", () => {
+    expect(sql).toContain("function public.assign_invoice_number()");
+    expect(sql).toContain("last_number = public.vendor_invoice_counters.last_number + 1");
+    expect(sql).toContain("function public.lock_issued_invoice()");
+    expect(sql).toContain("raise exception 'Facture déjà émise'");
+    expect(sql).toContain("function public.issue_invoice_from_quote(p_quote uuid)");
+    expect(sql).toContain("policy invoice_payments_select");
+    expect(sql).toContain("public.owns_vendor(vendor_id) or public.is_wedding_couple(wedding_id)");
+    expect(sql).toContain("policy invoice_payments_insert");
+    expect(sql).not.toContain("policy invoice_payments_update");
+    expect(sql).not.toContain("policy invoice_payments_delete");
+    expect(sql).toContain("policy vendor_billing_identity_all");
+    expect(sql).toContain("policy vendor_invoice_counters_select");
+    expect(sql).toContain("policy invoices_insert");
+    expect(sql).toContain("policy invoices_update");
+    expect(sql).not.toContain("policy invoices_delete");
   });
 
   it("lets a couple resolve a vendor on their own wedding", () => {

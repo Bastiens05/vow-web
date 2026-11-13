@@ -12,6 +12,43 @@ import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
 import { publicObjectUrl } from "@/lib/storage";
 import { changePassword, saveAccountName, saveBusinessBasics, saveNotificationPrefs } from "@/server/actions/account";
+import { saveBillingIdentity } from "@/server/actions/ledger";
+
+export function BillingIdentityForm({
+  siret,
+  address,
+  vatExempt,
+  paymentTerms,
+}: {
+  siret: string;
+  address: string;
+  vatExempt: boolean;
+  paymentTerms: string;
+}) {
+  const [state, action, pending] = useActionState(saveBillingIdentity, {});
+  return (
+    <form action={action} className="space-y-3">
+      <Field label="SIRET" hint="14 chiffres, repris sur chaque facture.">
+        <TextInput name="siret" inputMode="numeric" defaultValue={siret} placeholder="12345678901234" />
+      </Field>
+      <Field label="Adresse">
+        <TextInput name="legal_address" defaultValue={address} placeholder="12 rue des Lilas, Lyon" />
+      </Field>
+      <Field label="Conditions de paiement">
+        <TextInput name="payment_terms" required defaultValue={paymentTerms || "Paiement à réception"} />
+      </Field>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="vat_exempt" defaultChecked={vatExempt} className="mt-1" />
+        <span>TVA non applicable, art. 293 B du CGI</span>
+      </label>
+      {state.error ? <Alert>{state.error}</Alert> : null}
+      {state.success ? <Alert tone="success">{state.success}</Alert> : null}
+      <Button type="submit" variant="secondary" disabled={pending}>
+        {pending ? "Enregistrement…" : "Enregistrer les mentions"}
+      </Button>
+    </form>
+  );
+}
 
 export function AccountNameForm({ name }: { name: string }) {
   const [state, action, pending] = useActionState(saveAccountName, {});

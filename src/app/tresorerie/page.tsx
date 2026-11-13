@@ -3,9 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { PlanLock } from "@/components/billing/plan-lock";
 import { bucketInstallments, hourlyRate, thinMonths, travelMinutes } from "@/lib/domain/cashflow";
 import { featureEnabled } from "@/lib/domain/plans";
+import { FINANCE_FIGURES } from "@/lib/domain/finance";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
 import { hasFeature } from "@/server/features";
+import { loadVendorFinance } from "@/server/finance";
 import { requireSession } from "@/server/session";
 
 export const metadata: Metadata = { title: "Trésorerie" };
@@ -39,8 +41,7 @@ export default async function CashPage() {
   });
   const start = new Date().toISOString().slice(0, 7);
   const months = bucketInstallments({ startMonth: start, months: 15, rows, includeUnsigned });
-  const year = String(new Date().getFullYear());
-  const collected = rows.filter((row) => row.collected && row.signed && row.dueOn.startsWith(year)).reduce((sum, row) => sum + row.amountCents, 0);
+  const finance = await loadVendorFinance(session.vendor.id);
   const due = rows.filter((row) => !row.collected && row.signed).reduce((sum, row) => sum + row.amountCents, 0);
   const next3 = months.slice(0, 3).reduce((sum, month) => sum + month.collectedCents + month.scheduledCents, 0);
   const thin = thinMonths(months, settings?.thin_cents ?? 0);
@@ -66,9 +67,17 @@ export default async function CashPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-8">
       <h1 className="text-4xl font-semibold tracking-tight">Trésorerie</h1>
-      <p className="mt-2 text-sm text-muted">Sans banque, sans impôt. Les devis non signés restent dehors, sauf si vous les incluez.</p>
-      <ul className="mt-6 grid gap-3 sm:grid-cols-3">
-        <li className="rounded-3xl border border-line p-4"><p className="text-xs text-muted">Encaissé cette année</p><p className="mt-1 text-2xl font-semibold">{formatEuros(collected)}</p></li>
+      <p className="mt-2 text-sm text-muted">Les quatre montants viennent des devis et des paiements enregistrés, les mêmes que sur l&apos;accueil. L&apos;échéancier dessous reste une prévision.</p>
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+        {FINANCE_FIGURES.map((figure) => (
+          <li key={figure.key} className="rounded-3xl border border-line p-4">
+            <p className="text-xs text-muted">{figure.label}</p>
+            <p className="mt-1 text-2xl font-semibold">{formatEuros(finance[figure.key])}</p>
+            <p className="mt-1 text-xs text-muted">{figure.detail}</p>
+          </li>
+        ))}
+      </ul>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         <li className="rounded-3xl border border-line p-4"><p className="text-xs text-muted">Reste à encaisser</p><p className="mt-1 text-2xl font-semibold">{formatEuros(due)}</p></li>
         <li className="rounded-3xl border border-line p-4"><p className="text-xs text-muted">Trois prochains mois</p><p className="mt-1 text-2xl font-semibold">{formatEuros(next3)}</p></li>
       </ul>
@@ -100,7 +109,7 @@ export default async function CashPage() {
         <ul className="mt-3 grid gap-2 text-sm">
           {[...byWedding.entries()].map(([weddingId, row]) => (
             <li key={weddingId} className="flex justify-between gap-3">
-              <span>{formatEuros(row.price)} · encaissé {formatEuros(row.collected)}</span>
+              <span>{formatEuros(row.price)} · échéancier {formatEuros(row.collected)}</span>
               <span className="text-muted">{row.minutes} min · {hourlyRate(row.collected, row.minutes) ? formatEuros(hourlyRate(row.collected, row.minutes) ?? 0) : "—"} / h</span>
             </li>
           ))}
