@@ -69,8 +69,8 @@ export function Landing() {
   return (
     <div>
       <section className="relative flex min-h-[640px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[700px]">
-        <HeroPhoto src="/hero/venue.jpg" position="center 62%" priority sizes="100vw" />
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-28 pt-24 lg:pb-36 lg:pt-28">
+        <HeroPhoto src="/hero/venue.jpg" position="75% 58%" positionFromMd="center 62%" priority sizes="100vw" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-8 pt-24 md:pb-28 lg:pb-36 lg:pt-28">
           <h1 className="max-w-4xl font-serif text-6xl font-normal leading-[0.95] tracking-tight text-[#f7f3ec] sm:text-7xl lg:text-8xl">
             Le mariage, orchestré.
           </h1>
@@ -83,12 +83,9 @@ export function Landing() {
               Nous nous marions
             </Link>
           </div>
-          <Link href="/connexion" className="mt-6 inline-flex min-h-12 items-center text-base text-[#f7f3ec]">
-            J&apos;ai déjà un compte
-          </Link>
         </div>
       </section>
-      <div className="relative z-10 mx-auto -mt-28 grid max-w-6xl gap-4 px-5 sm:px-6 md:grid-cols-3 lg:-mt-32">
+      <div className="relative z-10 mx-auto mt-6 grid max-w-6xl gap-4 px-5 md:-mt-28 md:grid-cols-3 md:px-6 lg:-mt-32">
         <HeroCard icon={CalendarRange} title="Jour J partagé" text="Le programme, visible par chaque métier." />
         <HeroCard icon={PenLine} title="Documents & signatures" text="Contrats et signatures au même endroit." />
         <HeroCard icon={MessageCircle} title="Messages" text="Un fil entre les mariés et chaque métier." />

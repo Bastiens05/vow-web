@@ -16,13 +16,13 @@ export async function DocumentRequests({
 }) {
   const session = await requireSession();
   const supabase = await createClient();
-  const { data: profile } = await supabase.from("vendor_profiles").select("id").eq("user_id", vendorUserId).maybeSingle();
-  const { data } = profile
+  const { data: vendorProfileId } = await supabase.rpc("wedding_vendor_id", { p_wedding: weddingId, p_user: vendorUserId });
+  const { data } = vendorProfileId
     ? await supabase
         .from("wedding_document_requests")
         .select("id, title, note, required, due_on, status, file_name, correction_note")
         .eq("wedding_id", weddingId)
-        .eq("vendor_id", profile.id)
+        .eq("vendor_id", vendorProfileId)
         .order("position", { ascending: true })
         .order("created_at", { ascending: true })
     : { data: [] };

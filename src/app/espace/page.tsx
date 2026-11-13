@@ -207,9 +207,9 @@ function SignalCard({ icon: Icon, label, value, detail }: { icon: LucideIcon; la
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent text-accent">
         <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
       </span>
-      <p className="mt-4 text-base font-medium text-ink">{label}</p>
+      <p className="mt-4 text-sm font-medium leading-snug text-ink/80">{label}</p>
       <p className="mt-2 font-serif text-4xl font-normal leading-none text-ink">{value}</p>
-      <p className="mt-2 text-sm text-ink">{detail}</p>
+      <p className="mt-2 text-[13px] leading-snug text-ink/75">{detail}</p>
     </Card>
   );
 }

@@ -94,7 +94,7 @@ export function CoupleSidebar({
       className={`sticky top-3 z-20 my-3 ml-3 hidden h-[calc(100dvh-1.5rem)] flex-col rounded-3xl border border-line bg-[var(--vow-glass)] shadow-[var(--vow-shadow)] backdrop-blur-md transition-[width] duration-200 md:flex ${collapsed ? "w-[4.75rem]" : "w-64"}`}
     >
       <div className={`flex items-center gap-2 px-3 pt-4 ${collapsed ? "justify-center" : "justify-between"}`}>
-        {collapsed ? null : <Logo className="h-8 w-auto px-1" />}
+        {collapsed ? null : <Logo className="h-[38px] w-auto px-1" />}
         <button
           type="button"
           onClick={toggle}

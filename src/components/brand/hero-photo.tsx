@@ -9,6 +9,7 @@ const veils = {
 export function HeroPhoto({
   src,
   position = "center 58%",
+  positionFromMd,
   priority = false,
   sizes = "100vw",
   veil = "hero",
@@ -17,6 +18,7 @@ export function HeroPhoto({
 }: {
   src: string;
   position?: string;
+  positionFromMd?: string;
   priority?: boolean;
   sizes?: string;
   veil?: keyof typeof veils | "none";
@@ -32,8 +34,14 @@ export function HeroPhoto({
         priority={priority}
         sizes={sizes}
         quality={60}
-        className={soft ? "scale-105 object-cover blur-[5px]" : zoom ? "scale-[1.18] object-cover" : "object-cover"}
-        style={{ objectPosition: position }}
+        className={
+          soft
+            ? "scale-105 object-cover blur-[5px] [object-position:var(--hero-pos)] md:[object-position:var(--hero-pos-md)]"
+            : zoom
+              ? "scale-[1.18] object-cover [object-position:var(--hero-pos)] md:[object-position:var(--hero-pos-md)]"
+              : "object-cover [object-position:var(--hero-pos)] md:[object-position:var(--hero-pos-md)]"
+        }
+        style={{ ["--hero-pos" as string]: position, ["--hero-pos-md" as string]: positionFromMd ?? position }}
       />
       {veil === "none" ? null : <div className="absolute inset-0" style={{ background: veils[veil] }} />}
     </div>

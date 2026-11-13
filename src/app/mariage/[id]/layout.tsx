@@ -77,21 +77,21 @@ export default async function WeddingLayout({
       </div>
       )}
       {overview ? (
-        <section className="relative -mx-4 mb-2 flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#121110] px-6 py-20 text-center text-[#f7f3ec] sm:-mx-6">
-          <HeroPhoto src="/hero/venue.jpg" position="center 76%" priority sizes="(min-width: 768px) 80vw, 100vw" zoom />
+        <section className="relative -mx-4 mb-2 flex min-h-[62vh] items-center justify-center overflow-hidden bg-[#121110] px-6 py-10 text-center text-[#f7f3ec] sm:-mx-6 sm:min-h-[78vh] sm:py-20">
+          <HeroPhoto src="/hero/venue.jpg" position="center 70%" positionFromMd="center 76%" priority sizes="(min-width: 768px) 80vw, 100vw" zoom />
           <div className="relative z-10">
-            <h1 className="font-serif text-6xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{space.title}</h1>
-            <p className="mt-5 text-lg text-[#f7f3ec]">
+            <h1 className="font-serif text-6xl font-normal leading-none tracking-tight text-[#f7f3ec] max-[430px]:text-5xl sm:text-8xl">{space.title}</h1>
+            <p className="mt-5 text-[18px] font-medium text-white max-[430px]:mt-3" style={{ textShadow: "0 1px 10px rgba(18,17,16,0.55)" }}>
               {formatLongDate(space.wedding.wedding_date)} · {place}
             </p>
-            <p className="mt-8 font-serif text-8xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-9xl">{figure}</p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <Link href={`/mariage/${id}/jour`} className="inline-flex min-h-14 items-center gap-2 rounded-full bg-[#1c1b19] px-7 text-base font-medium text-[#f7f3ec]">
+            <p className="mt-8 font-serif text-8xl font-normal leading-none tracking-tight text-[#f7f3ec] max-[430px]:mt-4 max-[430px]:text-7xl sm:text-9xl">{figure}</p>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 max-[430px]:mt-6 max-[430px]:w-full max-[430px]:flex-nowrap max-[430px]:gap-2">
+              <Link href={`/mariage/${id}/jour`} className="inline-flex min-h-14 items-center gap-2 whitespace-nowrap rounded-full bg-[#1c1b19] px-7 text-base font-medium text-[#f7f3ec] max-[430px]:min-h-11 max-[430px]:gap-1 max-[430px]:px-3 max-[430px]:text-[13px]">
                 Ouvrir le Jour J
-                <ChevronRight className="h-5 w-5" aria-hidden />
+                <ChevronRight className="h-5 w-5 max-[430px]:h-4 max-[430px]:w-4" aria-hidden />
               </Link>
-              <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-14 items-center gap-2 rounded-full bg-[#fbf8f3] px-7 text-base font-medium text-[#1c1b19]">
-                <MessageCircle className="h-5 w-5" aria-hidden />
+              <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-14 items-center gap-2 whitespace-nowrap rounded-full bg-[#fbf8f3] px-7 text-base font-medium text-[#1c1b19] max-[430px]:min-h-11 max-[430px]:gap-1 max-[430px]:px-3 max-[430px]:text-[13px]">
+                <MessageCircle className="h-5 w-5 max-[430px]:h-4 max-[430px]:w-4" aria-hidden />
                 Messages
               </Link>
             </div>
