@@ -120,7 +120,7 @@ export async function MobileChrome() {
           <BackControl fallback={context.back.href} label={context.back.label} />
         ) : (
           <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
-            <Logo />
+            <Logo className="h-[38px] w-auto" />
           </Link>
         )}
         <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
@@ -143,14 +143,14 @@ export async function MobileChrome() {
 export function PublicHeader({ accounts = true, overlay = false }: { accounts?: boolean; overlay?: boolean }) {
   return (
     <header
-      className={`z-30 flex h-16 items-center justify-between gap-3 px-5 ${
+      className={`z-30 flex h-16 items-center justify-between gap-2 px-4 sm:gap-3 sm:px-5 ${
         overlay
           ? "fixed inset-x-0 top-0 border-0 bg-transparent text-[#f7f3ec]"
           : "sticky top-0 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
       }`}
     >
       <Link href="/" aria-label="VOW">
-        <Logo variant={overlay ? "white" : "ink"} className="h-8 w-auto" />
+        <Logo variant={overlay ? "white" : "ink"} className="h-[38px] w-auto" />
       </Link>
       <nav className="flex items-center gap-1 text-base sm:gap-3">
         <Link href="/#ce-qui-compte" className="hidden min-h-12 items-center px-3 sm:inline-flex">
@@ -161,7 +161,7 @@ export function PublicHeader({ accounts = true, overlay = false }: { accounts?: 
         </Link>
         {accounts ? (
           <>
-            <Link href="/connexion" className="inline-flex min-h-12 items-center px-3 font-medium">
+            <Link href="/connexion" className="inline-flex min-h-12 items-center px-2 font-medium sm:px-3">
               Connexion
             </Link>
             <Link

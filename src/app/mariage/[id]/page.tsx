@@ -93,7 +93,7 @@ export default async function WeddingOverviewPage({
   });
   return (
     <div className="grid gap-6">
-      <div className="relative z-10 -mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="relative z-10 -mt-20 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <SummaryCard href={`/mariage/${id}/equipe`} icon={Users} title="Prestataires" {...vendorStat} />
         <SummaryCard href={`/mariage/${id}/documents`} icon={FolderOpen} title="Documents" {...documentStat} />
         <SummaryCard
@@ -324,14 +324,14 @@ function SummaryCard({
   progress: number | null;
 }) {
   return (
-    <Link href={href} className="relative rounded-[28px] border border-line bg-paper p-5 text-center shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
-      <ChevronRight className="absolute right-4 top-4 h-5 w-5 text-ink/50" aria-hidden />
-      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent text-accent">
+    <Link href={href} className="relative min-w-0 rounded-[28px] border border-line bg-paper p-3 text-center shadow-[var(--vow-shadow)] transition active:scale-[0.99] sm:p-5">
+      <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-ink/70 sm:right-4 sm:top-4 sm:h-5 sm:w-5" aria-hidden />
+      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-accent text-accent sm:h-12 sm:w-12">
         <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
       </span>
-      <p className="mt-4 text-base font-medium text-ink">{title}</p>
-      <p className={`mt-2 font-serif font-normal leading-none text-ink ${value.length > 8 ? "text-3xl" : "text-5xl"}`}>{value}</p>
-      <p className="mt-2 text-sm leading-6 text-ink">{detail}</p>
+      <p className="mt-3 text-sm font-medium leading-snug text-ink/80">{title}</p>
+      <p className={`mt-2 break-words font-serif font-normal leading-none text-ink ${value.length > 8 ? "text-2xl sm:text-3xl" : "text-4xl sm:text-5xl"}`}>{value}</p>
+      <p className="mt-2 break-words text-[13px] leading-snug text-ink/75">{detail}</p>
       {progress === null ? null : (
         <span className="mt-4 block h-1.5 overflow-hidden rounded-full bg-accent-soft">
           <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.round(progress * 100)}%` }} />
@@ -388,7 +388,7 @@ function budgetStatCard(
 }
 
 function wholeEuros(cents: number) {
-  return `${Math.round(cents / 100).toLocaleString("fr-FR")} €`;
+  return `${Math.round(cents / 100).toLocaleString("fr-FR")}\u00a0€`;
 }
 
 function nextAppointment(rows: { full_name: string; note: string; starts_at: string; status: string }[]) {

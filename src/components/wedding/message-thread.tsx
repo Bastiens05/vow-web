@@ -67,16 +67,22 @@ export function MessageThread({
     <div className="relative z-10 flex min-h-0 flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-28 md:pb-4">
         {shown.length === 0 ? <p className="text-base text-ink">Écrivez le premier message.</p> : null}
-        {shown.map((message) => {
+        {shown.map((message, index) => {
+          const previous = shown[index - 1];
+          const seriesStart = !previous || previous.authorId !== message.authorId;
           const photo = avatars[message.authorId] ?? null;
           return (
             <article key={message.id} className={`flex max-w-[85%] items-end gap-2 ${message.mine ? "ml-auto" : "mr-auto"}`}>
-              {message.mine ? null : photo ? (
-                <img src={photo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+              {message.mine ? null : seriesStart ? (
+                photo ? (
+                  <img src={photo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-ink">
+                    {initials(message.authorName)}
+                  </span>
+                )
               ) : (
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-ink">
-                  {initials(message.authorName)}
-                </span>
+                <span className="h-10 w-10 shrink-0" aria-hidden />
               )}
               <div>
                 <div
@@ -86,7 +92,7 @@ export function MessageThread({
                       : "rounded-[24px] border border-white/70 bg-white/75 px-4 py-3 text-ink shadow-[var(--vow-shadow)] backdrop-blur-md"
                   }
                 >
-                  {message.mine ? null : <p className="mb-1 text-sm font-medium text-ink">{message.authorName}</p>}
+                  {!message.mine && seriesStart ? <p className="mb-1 text-sm font-medium text-ink">{message.authorName}</p> : null}
                   <p className="whitespace-pre-wrap text-base leading-7">{message.body}</p>
                 </div>
                 <p className={`mt-1 text-xs text-ink ${message.mine ? "text-right" : ""}`}>{formatDateTime(message.createdAt)}</p>

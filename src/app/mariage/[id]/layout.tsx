@@ -81,7 +81,7 @@ export default async function WeddingLayout({
           <HeroPhoto src="/hero/venue.jpg" position="center 76%" priority sizes="(min-width: 768px) 80vw, 100vw" zoom />
           <div className="relative z-10">
             <h1 className="font-serif text-6xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{space.title}</h1>
-            <p className="mt-5 text-lg text-[#f7f3ec]">
+            <p className="mt-5 text-[18px] font-medium text-white" style={{ textShadow: "0 1px 10px rgba(18,17,16,0.55)" }}>
               {formatLongDate(space.wedding.wedding_date)} · {place}
             </p>
             <p className="mt-8 font-serif text-8xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-9xl">{figure}</p>

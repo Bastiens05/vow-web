@@ -47,18 +47,18 @@ function WeddingGroup({
         {items.map((wedding) => (
           <Card key={wedding.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-gold-deep">
+              <p className="text-sm font-medium text-ink/80">
                 {countdownLabel(daysUntil(wedding.wedding_date, today))} · {formatLongDate(wedding.wedding_date)}
               </p>
               <h3 className="mt-1 truncate text-2xl font-semibold tracking-tight">
                 {weddingTitle(wedding.partner_one_name, wedding.partner_two_name)}
               </h3>
               {coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name) ? (
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 text-[13px] leading-snug text-ink/75">
                   {coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name)}
                 </p>
               ) : null}
-              <p className="mt-1 text-sm text-muted">
+              <p className="mt-1 text-[13px] leading-snug text-ink/75">
                 {[wedding.venue_name, wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
               </p>
               <div className="mt-3">

@@ -83,9 +83,6 @@ export function Landing() {
               Nous nous marions
             </Link>
           </div>
-          <Link href="/connexion" className="mt-6 inline-flex min-h-12 items-center text-base text-[#f7f3ec]">
-            J&apos;ai déjà un compte
-          </Link>
         </div>
       </section>
       <div className="relative z-10 mx-auto -mt-28 grid max-w-6xl gap-4 px-5 sm:px-6 md:grid-cols-3 lg:-mt-32">
