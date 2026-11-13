@@ -12,9 +12,9 @@ export function PageHeader({
   return (
     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-2xl">
-        {eyebrow ? <p className="text-xs font-medium text-gold-deep">{eyebrow}</p> : null}
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
-        {description ? <p className="mt-2 text-sm leading-6 text-muted">{description}</p> : null}
+        {eyebrow ? <p className="text-sm font-medium text-accent">{eyebrow}</p> : null}
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{title}</h1>
+        {description ? <p className="mt-3 text-base leading-7 text-ink">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
     </header>

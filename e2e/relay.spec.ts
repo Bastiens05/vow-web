@@ -55,15 +55,11 @@ test("le relais et les besoins restent dans le mariage", async ({ page, browser 
   await expect(couple.getByRole("heading", { name: "Cocktail" })).toBeVisible();
   const ceremony = couple.locator("li").filter({ has: couple.getByRole("heading", { name: "Cérémonie" }) });
   await ceremony.getByRole("button", { name: "Modifier" }).click();
-  await ceremony.getByLabel("Prestataire pour Cérémonie").selectOption({ label: "Camille Photo" });
+  await ceremony.getByLabel("Prestataire pour Cérémonie").selectOption({ label: `Studio ${stamp}` });
   await ceremony.getByRole("button", { name: "Attribuer" }).click();
   const cocktail = couple.locator("li").filter({ has: couple.getByRole("heading", { name: "Cocktail" }) });
   await cocktail.getByRole("button", { name: "Modifier" }).click();
-  const cocktailBox = cocktail.getByRole("combobox");
-  const choices = await cocktailBox.locator("option").allInnerTexts();
-  const nina = choices.find((choice) => choice.includes("Nina"));
-  if (!nina) throw new Error(`options cocktail: ${choices.join(" | ")}`);
-  await cocktailBox.selectOption({ label: nina });
+  await cocktail.getByLabel("Prestataire pour Cocktail").selectOption({ label: `Table ${stamp}` });
   await couple.locator("li").filter({ hasText: "Cocktail" }).getByRole("button", { name: "Attribuer" }).click();
 
   await page.goto(`/mariage/${weddingId}/jour`);

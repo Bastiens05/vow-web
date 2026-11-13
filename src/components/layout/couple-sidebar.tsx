@@ -23,7 +23,7 @@ function subscribeSidebar(onChange: () => void) {
 
 const GROUPS: { caption: string; labels: string[] }[] = [
   { caption: "Mariage", labels: ["Accueil", "Jour J", "Messages", "Documents"] },
-  { caption: "Organisation", labels: ["Fiches", "Prestataires", "Budget"] },
+  { caption: "Organisation", labels: ["Pratique", "Prestataires", "Budget"] },
 ];
 
 export function CoupleSidebar({
@@ -40,6 +40,7 @@ export function CoupleSidebar({
   identityMark,
   section = null,
   live = null,
+  unread = false,
 }: {
   items: Item[];
   weddingName: string;
@@ -53,6 +54,7 @@ export function CoupleSidebar({
   identityLogo?: string | null;
   identityMark?: string;
   section?: { title: string; backHref: string; backLabel: string } | null;
+  unread?: boolean;
   live?: {
     role: "vendor" | "couple" | null;
     category: VendorCategory | null;
@@ -89,10 +91,10 @@ export function CoupleSidebar({
   const admin = items.find((item) => item.label === "Admin");
   return (
     <aside
-      className={`sticky top-3 z-20 my-3 ml-3 hidden h-[calc(100dvh-1.5rem)] flex-col rounded-3xl border border-line bg-[var(--vow-glass)] shadow-[var(--vow-shadow)] backdrop-blur-md transition-[width] duration-200 md:flex ${collapsed ? "w-[4.75rem]" : "w-60"}`}
+      className={`sticky top-3 z-20 my-3 ml-3 hidden h-[calc(100dvh-1.5rem)] flex-col rounded-3xl border border-line bg-[var(--vow-glass)] shadow-[var(--vow-shadow)] backdrop-blur-md transition-[width] duration-200 md:flex ${collapsed ? "w-[4.75rem]" : "w-64"}`}
     >
-      <div className={`flex items-center gap-2 px-3 pt-3 ${collapsed ? "justify-center" : "justify-between"}`}>
-        {collapsed ? null : <Logo className="px-1" />}
+      <div className={`flex items-center gap-2 px-3 pt-4 ${collapsed ? "justify-center" : "justify-between"}`}>
+        {collapsed ? null : <Logo className="h-8 w-auto px-1" />}
         <button
           type="button"
           onClick={toggle}
@@ -151,7 +153,7 @@ export function CoupleSidebar({
               <ul className="grid gap-0.5">
                 {rows.map((item) => (
                   <li key={item.href + item.label}>
-                    <RailLink item={item} active={isActive(path, item.href)} collapsed={collapsed} />
+                    <RailLink item={item} active={isActive(path, item.href)} collapsed={collapsed} unread={unread && item.label === "Messages"} />
                   </li>
                 ))}
               </ul>
@@ -191,19 +193,19 @@ export function CoupleSidebar({
   );
 }
 
-function RailLink({ item, active, collapsed }: { item: Item; active: boolean; collapsed: boolean }) {
+function RailLink({ item, active, collapsed, unread = false }: { item: Item; active: boolean; collapsed: boolean; unread?: boolean }) {
   return (
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
       title={item.label}
-      className={`relative flex min-h-10 items-center gap-3 rounded-full px-3 text-sm transition ${
+      className={`relative flex min-h-12 items-center gap-3 rounded-full px-3 text-base transition ${
         collapsed ? "justify-center px-0" : ""
-      } ${active ? "bg-accent-soft font-medium text-ink" : "text-muted hover:bg-ink/[0.04] hover:text-ink"}`}
+      } ${active ? "bg-accent-soft font-medium text-ink" : "text-ink hover:bg-ink/[0.04]"}`}
     >
-      {active ? <span className="absolute left-1.5 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent" aria-hidden /> : null}
-      <LineIcon name={item.icon} className="h-[1.15rem] w-[1.15rem]" />
+      <LineIcon name={item.icon} className="h-5 w-5" />
       {collapsed ? <span className="sr-only">{item.label}</span> : <span className="truncate">{item.label}</span>}
+      {unread ? <span className="ml-auto h-2.5 w-2.5 rounded-full bg-accent" aria-label="Non lu" /> : null}
     </Link>
   );
 }

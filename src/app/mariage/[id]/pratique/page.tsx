@@ -18,8 +18,8 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
   const viewRole = space.actingAsCouple ? "couple" : space.role;
   const category = space.actingAsCouple ? null : (space.session.vendor?.category ?? null);
   const couple = viewRole === "couple";
-  const showPhotos = !couple && canSeeSheet(viewRole, category, "photos");
-  const showGuests = !couple && canSeeSheet(viewRole, category, "guests");
+  const showPhotos = canSeeSheet(viewRole, category, "photos");
+  const showGuests = canSeeSheet(viewRole, category, "guests");
   const sheet = await getPracticalSheet(id, { photos: showPhotos, guests: showGuests });
   const showMusic = canSeeSheet(viewRole, category, "music");
   const supabase = await createClient();
@@ -61,13 +61,13 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         <PracticalBoard
           weddingId={id}
           practical={sheet.practical}
-          groups={[]}
-          guests={[]}
+          groups={sheet.groups}
+          guests={sheet.guests}
           canEditDetails
-          showPhotos={false}
-          showGuests={false}
-          canEditPhotos={false}
-          canEditGuests={false}
+          showPhotos
+          showGuests
+          canEditPhotos
+          canEditGuests
           showMusic
           musicNotes={music?.notes ?? ""}
           canEditMusic

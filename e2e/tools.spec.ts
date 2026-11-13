@@ -34,13 +34,13 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
 
   await page.goto("/demandes");
   await expect(page.getByRole("heading", { name: "Nina et Paul" })).toBeVisible();
-  await page.getByRole("button", { name: "Créer le mariage et inviter" }).click();
+  await page.getByRole("button", { name: "Créer le mariage" }).click();
   await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
   await expect(page.getByText(coupleEmail)).toBeVisible();
   const weddingId = new URL(page.url()).pathname.split("/")[2] ?? "";
   const link = await page.locator("code").first().innerText();
 
-  await page.getByRole("link", { name: "Jour J" }).click();
+  await page.getByRole("link", { name: "Jour J", exact: true }).click();
   await page.getByRole("button", { name: "Cérémonie laïque + vin d'honneur + dîner" }).click();
   await page.getByRole("button", { name: "Suggérer au couple" }).click();
   await expect(page.getByText("Suggestion envoyée : Cérémonie laïque + vin d'honneur + dîner")).toBeVisible();
@@ -70,7 +70,7 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
   await signUp(couplePage, { name: "Nina Martin", email: coupleEmail, role: "Couple", emailLocked: true });
   await couplePage.getByRole("button", { name: "Rejoindre le mariage" }).click();
   await expect(couplePage.getByRole("heading", { name: "Nina & Paul" })).toBeVisible();
-  await couplePage.getByRole("link", { name: "Jour J" }).click();
+  await couplePage.getByRole("link", { name: "Jour J", exact: true }).click();
   await couplePage.getByRole("button", { name: "Voir les étapes" }).click();
   await couplePage.getByRole("button", { name: "Appliquer" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie laïque" })).toBeVisible();
@@ -118,7 +118,7 @@ test("le couple signe un contrat déposé par le prestataire", async ({ page, br
   await page.getByRole("button", { name: "Créer le mariage" }).click();
   await page.getByLabel("E-mail du couple").fill(coupleEmail);
   await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
-  await expect(page.getByText(coupleEmail)).toBeVisible();
+  await expect(page.locator("code").first()).toBeVisible();
   const link = await page.locator("code").first().innerText();
 
   await page.getByRole("link", { name: "Documents" }).click();

@@ -25,7 +25,7 @@ export function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        variant === "side" && "flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm transition",
+        variant === "side" && "flex min-h-12 items-center gap-3 rounded-full px-3 text-base transition",
         variant === "side" && (active ? "bg-accent-soft font-medium text-ink" : "text-ink hover:bg-ink/[0.04]"),
         variant === "tab" && "flex min-h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-center text-xs font-medium leading-tight",
         variant === "tab" && (active ? "text-accent" : "text-muted"),

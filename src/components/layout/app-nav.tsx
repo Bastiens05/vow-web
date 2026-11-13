@@ -11,13 +11,14 @@ import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { backTarget, isPublicPath } from "@/lib/domain/chrome";
 import { coupleHeroTitle, todayIso } from "@/lib/domain/format";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
-import { getWeddingSpace, listMyWeddings } from "@/server/data";
+import { getWeddingSpace, latestUnreadAlert, listMyWeddings } from "@/server/data";
 import { getSession, type SessionProfile } from "@/server/session";
 import { publicObjectUrl } from "@/lib/storage";
 
 export async function DesktopNav() {
   const session = await getSession();
   const context = await navContext(session);
+  const unread = session ? Boolean(await latestUnreadAlert(session.userId)) : false;
   const couple = session?.profile.role === "couple" || context.actingAsCouple;
   if (session && (couple || session.profile.role === "vendor")) {
     const countdown = context.weddingDate ? heroCountdown(daysUntil(context.weddingDate, todayIso())) : null;
@@ -35,6 +36,7 @@ export async function DesktopNav() {
         identityHref={couple ? undefined : "/espace"}
         identityLogo={couple ? null : logo}
         identityMark={couple ? undefined : studio || "Votre espace"}
+        unread={unread}
         live={
           !couple && session.profile.role === "vendor"
             ? {
@@ -138,26 +140,36 @@ export async function MobileChrome() {
   );
 }
 
-export function PublicHeader({ accounts = true }: { accounts?: boolean }) {
+export function PublicHeader({ accounts = true, overlay = false }: { accounts?: boolean; overlay?: boolean }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-[var(--vow-glass)] px-4 backdrop-blur-md">
+    <header
+      className={`z-30 flex h-16 items-center justify-between gap-3 px-5 ${
+        overlay
+          ? "fixed inset-x-0 top-0 border-0 bg-transparent text-[#f7f3ec]"
+          : "sticky top-0 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
+      }`}
+    >
       <Link href="/" aria-label="VOW">
-        <Logo />
+        <Logo variant={overlay ? "white" : "ink"} className="h-8 w-auto" />
       </Link>
-      <nav className="flex items-center gap-1 text-sm sm:gap-3">
-        <Link href="/#ce-qui-compte" className="hidden min-h-11 items-center px-2 sm:inline-flex">
+      <nav className="flex items-center gap-1 text-base sm:gap-3">
+        <Link href="/#ce-qui-compte" className="hidden min-h-12 items-center px-3 sm:inline-flex">
           Fonctionnalités
         </Link>
-        <Link href="/#tarifs" className="hidden min-h-11 items-center px-2 sm:inline-flex">
+        <Link href="/#tarifs" className="hidden min-h-12 items-center px-3 sm:inline-flex">
           Tarifs
         </Link>
         {accounts ? (
           <>
-            <Link href="/connexion" className="inline-flex min-h-11 items-center px-2 font-medium">
+            <Link href="/connexion" className="inline-flex min-h-12 items-center px-3 font-medium">
               Connexion
             </Link>
-            <Link href="/inscription" className="inline-flex min-h-11 items-center rounded-2xl bg-ink px-3 text-ivory">
-              Créer un compte
+            <Link
+              href="/inscription"
+              className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium sm:min-h-12 sm:px-4 sm:text-base ${overlay ? "bg-[#f7f3ec] text-[#1c1b19]" : "bg-ink text-ivory"}`}
+            >
+              <span className="sm:hidden">Compte</span>
+              <span className="hidden sm:inline">Créer un compte</span>
             </Link>
           </>
         ) : null}

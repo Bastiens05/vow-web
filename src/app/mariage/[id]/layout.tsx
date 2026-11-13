@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChevronRight, MessageCircle } from "lucide-react";
+import { HeroPhoto } from "@/components/brand/hero-photo";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { categoryLabel } from "@/lib/domain/categories";
@@ -42,15 +44,17 @@ export default async function WeddingLayout({
   );
   const path = (await headers()).get("x-vow-path") ?? "";
   const overview = path === `/mariage/${id}`;
+  const threadPage = path.startsWith(`/mariage/${id}/messages`);
   const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser";
+  const place = space.wedding.venue_name.trim() || space.wedding.venue_city.trim() || "Lieu à préciser";
   const roleLine = coupleView
-    ? null
+    ? "Espace mariés"
     : vendor
       ? `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}`
       : "Espace";
   const figure = heroCountdown(daysUntil(space.wedding.wedding_date, todayIso())).figure;
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
+    <div className={`mx-auto w-full max-w-6xl px-4 sm:px-6 ${overview ? "pb-8 pt-0 sm:pb-12" : threadPage ? "py-3 sm:py-4" : "py-8 sm:py-12"}`}>
       <RealtimeRefresh
         channel={`wedding-link-${id}`}
         subscriptions={[
@@ -73,36 +77,30 @@ export default async function WeddingLayout({
       </div>
       )}
       {overview ? (
-        <section
-          className="relative -mx-4 mb-2 flex min-h-[34rem] items-center justify-center overflow-hidden px-6 py-16 text-center text-[#f7f3ec] sm:-mx-6"
-          style={{
-            backgroundImage:
-              "linear-gradient(to top, rgba(18,17,16,0.78), rgba(18,17,16,0.28) 48%, rgba(18,17,16,0.18)), url(/hero/lieu.jpg)",
-            backgroundPosition: "center",
-            backgroundSize: "cover",
-          }}
-        >
-          <div>
-            <h1 className="font-serif text-5xl font-normal tracking-tight text-[#f7f3ec] sm:text-7xl">{space.title}</h1>
-            <p className="mt-4 text-base text-[#f7f3ec]/85">{formatLongDate(space.wedding.wedding_date)}</p>
-            <p className="text-base text-[#f7f3ec]/85">{venue}</p>
-            {fullNames ? <p className="mt-2 text-sm text-[#f7f3ec]/75">{fullNames}</p> : null}
-            <p className="mt-6 font-serif text-7xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{figure}</p>
-            {roleLine ? <p className="mt-4 text-sm text-[#f7f3ec]/75">{roleLine}</p> : null}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href={`/mariage/${id}/jour`} className="inline-flex min-h-12 items-center rounded-2xl bg-[#1c1b19] px-5 text-sm font-medium text-[#f7f3ec]">
+        <section className="relative -mx-4 mb-2 flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#121110] px-6 py-20 text-center text-[#f7f3ec] sm:-mx-6">
+          <HeroPhoto src="/hero/venue.jpg" position="center 76%" priority sizes="(min-width: 768px) 80vw, 100vw" zoom />
+          <div className="relative z-10">
+            <h1 className="font-serif text-6xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{space.title}</h1>
+            <p className="mt-5 text-lg text-[#f7f3ec]">
+              {formatLongDate(space.wedding.wedding_date)} · {place}
+            </p>
+            <p className="mt-8 font-serif text-8xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-9xl">{figure}</p>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <Link href={`/mariage/${id}/jour`} className="inline-flex min-h-14 items-center gap-2 rounded-full bg-[#1c1b19] px-7 text-base font-medium text-[#f7f3ec]">
                 Ouvrir le Jour J
+                <ChevronRight className="h-5 w-5" aria-hidden />
               </Link>
-              <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-12 items-center rounded-2xl bg-[#fbf8f3] px-5 text-sm font-medium text-[#1c1b19]">
+              <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-14 items-center gap-2 rounded-full bg-[#fbf8f3] px-7 text-base font-medium text-[#1c1b19]">
+                <MessageCircle className="h-5 w-5" aria-hidden />
                 Messages
               </Link>
             </div>
           </div>
         </section>
-      ) : (
+      ) : threadPage ? null : (
         <header className="mb-8">
           <p className="text-[11px] uppercase tracking-[0.22em] text-accent">{formatLongDate(space.wedding.wedding_date)}</p>
-          <h1 className="mt-2 text-4xl tracking-tight sm:text-5xl">{space.title}</h1>
+          <h1 className="mt-2 text-5xl tracking-tight text-ink sm:text-6xl">{space.title}</h1>
           {fullNames ? <p className="mt-2 text-sm text-muted">{fullNames}</p> : null}
           <p className="mt-2 text-sm text-muted">{venue}</p>
           {roleLine ? <p className="mt-3 text-sm font-medium">{roleLine}</p> : null}

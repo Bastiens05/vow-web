@@ -37,6 +37,7 @@ export function LinkInvite({
   quiet?: boolean;
 }) {
   const [state, action, pending] = useActionState(createInvitation, {});
+  const [sentEmail, setSentEmail] = useState("");
   const waiting = invitations.filter((invitation) => invitation.accepted_at === null && invitation.invited_role === role);
   const created = state.success?.match(/https?:\/\/\S+/)?.[0] ?? null;
   return (
@@ -50,7 +51,13 @@ export function LinkInvite({
       />
       <h3 className={quiet ? "text-base font-medium" : "text-lg font-semibold tracking-tight"}>{title}</h3>
       <p className="mt-1 text-sm leading-6 text-muted">{intro}</p>
-      <form action={action} className="mt-4 grid gap-3">
+      <form
+        action={async (formData) => {
+          setSentEmail(String(formData.get("email") ?? ""));
+          await action(formData);
+        }}
+        className="mt-4 grid gap-3"
+      >
         <input type="hidden" name="wedding_id" value={weddingId} />
         <input type="hidden" name="role" value={role} />
         <Field label={emailLabel}>
@@ -76,6 +83,7 @@ export function LinkInvite({
         {state.error ? <Alert>{state.error}</Alert> : null}
         {state.success ? <Alert tone="success">{state.success.replace(/https?:\/\/\S+/, "").trim()}</Alert> : null}
         {created ? <code className="block overflow-x-auto rounded-lg bg-ivory px-3 py-2 text-xs">{created}</code> : null}
+        {state.success && sentEmail ? <p className="text-sm text-ink">{sentEmail}</p> : null}
         <Button type="submit" variant={quiet ? "secondary" : "primary"} disabled={pending} className="w-fit">
           {pending ? "Envoi…" : submitLabel}
         </Button>

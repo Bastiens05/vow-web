@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="fr" className={`${inter.variable} ${instrument.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
         <ChromeFrame
-          publicHeader={<PublicHeader accounts={!path.startsWith("/invitation/")} />}
+          publicHeader={<PublicHeader accounts={!path.startsWith("/invitation/")} overlay={path === "/"} />}
           mobile={
             <Suspense fallback={<MobileBarFallback />}>
               <MobileChrome />

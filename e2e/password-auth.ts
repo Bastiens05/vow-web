@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "Couple") {
+export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "Couple", trade = "Photographe") {
   const choice =
     role === "Couple"
       ? page.getByRole("button", { name: "Nous sommes les mariés" })
@@ -9,8 +9,10 @@ export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "C
         : null;
   if (choice && (await choice.isVisible().catch(() => false))) await choice.click();
   if (role === "Prestataire") {
-    const trade = page.getByRole("button", { name: "Photographe" });
-    if (await trade.isVisible().catch(() => false)) await trade.click();
+    const tradeButton = page.getByRole("button", { name: trade, exact: true });
+    if (await tradeButton.isVisible().catch(() => false)) {
+      await tradeButton.click();
+    }
     const business = page.getByLabel("Nom de l'activité");
     if (await business.isVisible().catch(() => false) && (await business.inputValue()) === "") {
       await business.fill("Atelier");

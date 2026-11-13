@@ -94,7 +94,17 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
   await catererPage.goto(new URL(catererLink.trim()).pathname + new URL(catererLink.trim()).search);
   await catererPage.getByRole("link", { name: "Créer un compte" }).click();
   await catererPage.waitForURL("**/inscription**");
-  await signUp(catererPage, { name: "Nina Table", email: catererEmail, role: "Prestataire", emailLocked: true });
+  const inviteUrl = new URL(catererLink.trim()).pathname + new URL(catererLink.trim()).search;
+  await signUp(catererPage, { name: "Nina Table", email: catererEmail, role: "Prestataire", emailLocked: true, trade: "Traiteur" });
+  await catererPage.goto("/bienvenue");
+  await catererPage.getByRole("button", { name: "Traiteur", exact: true }).click();
+  await catererPage.getByLabel("Nom de l'activité").fill(`Table ${stamp}`);
+  await catererPage.getByLabel("Ville").fill("Bordeaux");
+  await catererPage.getByRole("button", { name: "Continuer" }).click();
+  if (await catererPage.getByRole("heading", { name: "Votre logo" }).isVisible().catch(() => false)) {
+    await catererPage.getByRole("link", { name: "Continuer" }).click();
+  }
+  await catererPage.goto(inviteUrl);
   await catererPage.waitForURL("**/invitation/**");
   await catererPage.getByRole("button", { name: "Rejoindre le mariage" }).click();
   await expect(catererPage.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
@@ -130,10 +140,10 @@ test("questions, carte, annuaire, galerie et jour J hors ligne", async ({ page, 
 
 async function signUp(
   page: Page,
-  input: { name: string; email: string; role: "Prestataire" | "Couple"; emailLocked?: boolean },
+  input: { name: string; email: string; role: "Prestataire" | "Couple"; emailLocked?: boolean; trade?: string },
 ) {
   if (!page.url().includes("/inscription")) await page.goto("/inscription");
-  await revealPasswordSignup(page, input.role);
+  await revealPasswordSignup(page, input.role, input.trade);
   await page.getByLabel("Nom complet").fill(input.name);
   if (!input.emailLocked) await page.getByLabel("E-mail").fill(input.email);
   await page.getByLabel(/^Mot de passe/).fill(password);
