@@ -77,9 +77,11 @@ export function CoupleSidebar({
     return () => window.removeEventListener("vow-logo", onLogo);
   }, []);
   const shownLogo = liveLogo ?? identityLogo;
-  useEffect(() => {
+  const [logoSrc, setLogoSrc] = useState(shownLogo);
+  if (logoSrc !== shownLogo) {
+    setLogoSrc(shownLogo);
     setLogoFailed(false);
-  }, [shownLogo]);
+  }
   const items = live
     ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
     : itemsProp;

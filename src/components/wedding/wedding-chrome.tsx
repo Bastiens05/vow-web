@@ -46,7 +46,7 @@ export function WeddingChrome({
         ]}
       />
       {coupleView ? null : (
-        <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-3">
+        <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-3 md:pr-40">
           <WeddingSwitcher currentId={id} weddings={weddings} />
           <p className="min-w-0 flex-1 truncate text-sm text-muted">{title}</p>
         </div>

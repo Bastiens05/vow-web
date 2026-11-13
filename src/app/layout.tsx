@@ -80,8 +80,8 @@ async function AlertSlot() {
   const showCoupleVault = Boolean(vault && (session.profile.role === "couple" || vault.onCouplePage));
   const showVendorVault = session.profile.role === "vendor" && Boolean(session.vendor) && !showCoupleVault;
   return (
-    <div className="pointer-events-none fixed right-0 top-0 z-50">
-      <div className="pointer-events-auto flex h-14 items-center gap-0.5 px-3 md:h-16 md:px-6">
+    <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
+      <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
         {showCoupleVault && vault ? (
           <VaultButton href={`/mariage/${vault.weddingId}/coffre`} missing={vault.missing}>
             <VaultBoard weddingId={vault.weddingId} userId={session.userId} checklist={VAULT_CHECKLIST} stored={vault.stored} />
