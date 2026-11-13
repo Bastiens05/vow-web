@@ -7,7 +7,7 @@ import { ChevronRight, MessageCircle } from "lucide-react";
 import { HeroPhoto } from "@/components/brand/hero-photo";
 import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
-import { weddingHeaderMode } from "@/lib/domain/wedding-header";
+import { weddingHeaderMode, weddingHomeLink } from "@/lib/domain/wedding-header";
 
 export function WeddingChrome({
   id,
@@ -36,6 +36,15 @@ export function WeddingChrome({
 }) {
   const path = usePathname() ?? "";
   const mode = weddingHeaderMode(path, id);
+  const home = weddingHomeLink(path, id);
+  const homeLink = home ? (
+    <Link
+      href={home}
+      className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-sm font-medium transition hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98]"
+    >
+      ‹ Retour au mariage
+    </Link>
+  ) : null;
   return (
     <div className={`mx-auto w-full max-w-6xl px-4 sm:px-6 ${mode === "hero" ? "pb-8 pt-0 sm:pb-12" : mode === "thread" ? "py-3 sm:py-4" : "py-8 sm:py-12"}`}>
       <RealtimeRefresh
@@ -45,8 +54,15 @@ export function WeddingChrome({
           { table: "invitations", event: "*", filter: `wedding_id=eq.${id}` },
         ]}
       />
-      {coupleView ? null : (
-        <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-4 py-3 backdrop-blur md:top-0 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-3 md:pr-40">
+      {coupleView ? (
+        homeLink ? (
+          <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-paper/80 px-2 py-1 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-1">
+            {homeLink}
+          </div>
+        ) : null
+      ) : (
+        <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-2 py-2 backdrop-blur md:top-0 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-1 md:pr-40">
+          {homeLink}
           <WeddingSwitcher currentId={id} weddings={weddings} />
           <p className="min-w-0 flex-1 truncate text-sm text-muted">{title}</p>
         </div>
