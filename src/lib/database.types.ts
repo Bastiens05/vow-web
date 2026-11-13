@@ -1512,6 +1512,8 @@ export type Database = {
         Returns: string;
       };
       wedding_vendor_id: { Args: { p_wedding: string; p_user: string }; Returns: string };
+      can_compose_photo_groups: { Args: { wid: string }; Returns: boolean };
+      mark_photo_group_called: { Args: { p_group: string }; Returns: undefined };
       unread_message_count: { Args: Record<string, never>; Returns: number };
       add_wedding_document_request: {
         Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };

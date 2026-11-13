@@ -1,14 +1,28 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isVendorCategory } from "@/lib/domain/categories";
+import { canComposePhotoGroups } from "@/lib/domain/photo-call";
 import { messageFromError } from "@/lib/errors";
 import { validateGuest, validatePhotoGroup, validatePractical } from "@/lib/domain/sheets";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { getWeddingSpace } from "@/server/data";
 import { requireSession } from "@/server/session";
 
 function path(weddingId: string) {
   return `/mariage/${weddingId}/pratique`;
+}
+
+async function composeGroups(weddingId: string) {
+  const session = await requireSession();
+  const space = await getWeddingSpace(weddingId);
+  const category = session.vendor?.category && isVendorCategory(session.vendor.category) ? session.vendor.category : null;
+  return canComposePhotoGroups({
+    role: space.role === "couple" || space.actingAsCouple ? "couple" : "vendor",
+    category,
+    actingAsCouple: space.actingAsCouple,
+  });
 }
 
 export async function savePractical(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -42,7 +56,7 @@ export async function savePractical(weddingId: string, _prev: ActionState, formD
 }
 
 export async function addPhotoGroup(weddingId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireSession();
+  if (!(await composeGroups(weddingId))) return { error: "Seuls les mariés composent les groupes photo." };
   const parsed = validatePhotoGroup({
     title: String(formData.get("title") ?? ""),
     people: String(formData.get("people") ?? ""),
@@ -67,8 +81,8 @@ export async function addPhotoGroup(weddingId: string, _prev: ActionState, formD
 }
 
 export async function deletePhotoGroup(formData: FormData) {
-  await requireSession();
   const weddingId = String(formData.get("wedding_id") ?? "");
+  if (!(await composeGroups(weddingId))) return;
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
   await supabase.from("photo_groups").delete().eq("id", id).eq("wedding_id", weddingId);

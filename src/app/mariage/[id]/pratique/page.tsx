@@ -79,6 +79,8 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
   const known = fieldsForTrade(trade)
     .map((field) => ({ key: field.key, label: field.label, value: visibleFacts(facts, trade)[field.key] ?? "" }))
     .filter((field) => field.value.length > 0);
+  const composeGroups = trade === "planner";
+  const groupesOnly = showPhotos && !showGuests && !showMusic;
   const board = {
     weddingId: id,
     practical: sheet.practical,
@@ -95,7 +97,9 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         <Card>
           <h2 className="text-lg font-semibold tracking-tight">Groupes photo</h2>
           <p className="mt-1 mb-6 text-sm leading-6 text-muted">
-            Les groupes photo de ce mariage. La liste des invités et les régimes restent chez le couple, le traiteur et le lieu.
+            {composeGroups
+              ? "Les groupes photo de ce mariage. La liste des invités et les régimes restent chez le couple, le traiteur et le lieu."
+              : "L'ordre, le titre, les personnes et la note. Les mariés composent la liste."}
           </p>
           <PracticalBoard
             {...board}
@@ -104,7 +108,7 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
             showPhotos
             showGuests={false}
             showMusic={false}
-            canEditPhotos
+            canEditPhotos={composeGroups}
             canEditGuests={false}
           />
         </Card>
@@ -143,6 +147,7 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
           />
         </Card>
       ) : null}
+      {groupesOnly ? null : (
       <Card>
         <h2 className="text-lg font-semibold tracking-tight">Infos pratiques</h2>
         <p className="mt-1 mb-6 text-sm leading-6 text-muted">Renseignées par le couple. Vous ne voyez que les fiches de votre métier.</p>
@@ -157,6 +162,7 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
           canEditGuests={false}
         />
       </Card>
+      )}
     </div>
   );
 }

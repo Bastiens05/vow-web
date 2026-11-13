@@ -123,6 +123,14 @@ describe("migration", () => {
     expect(sql).toContain("is_wedding_member");
   });
 
+  it("lets only the couple and the planner write photo groups", () => {
+    expect(sql).toContain("function public.can_compose_photo_groups(wid uuid)");
+    expect(sql).toContain("policy photo_groups_insert");
+    expect(sql).toContain("public.can_compose_photo_groups(wedding_id)");
+    expect(sql).toContain("function public.mark_photo_group_called(p_group uuid)");
+    expect(sql).toContain("security definer");
+  });
+
   it("records a message as read for the current user only", () => {
     expect(sql).toContain("create table public.message_reads");
     expect(sql).toContain("policy message_reads_insert");

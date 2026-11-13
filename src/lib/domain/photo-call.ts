@@ -1,3 +1,23 @@
+import type { VendorCategory } from "@/lib/domain/categories";
+
+export function canComposePhotoGroups(input: {
+  role: "vendor" | "couple";
+  category: VendorCategory | null;
+  actingAsCouple?: boolean;
+}): boolean {
+  if (input.role === "couple" || input.actingAsCouple) return true;
+  return input.category === "planner";
+}
+
+export function canCallNextGroup(input: {
+  role: "vendor" | "couple";
+  category: VendorCategory | null;
+  actingAsCouple?: boolean;
+}): boolean {
+  if (input.role === "couple" || input.actingAsCouple) return true;
+  return input.category === "photographer" || input.category === "videographer" || input.category === "planner";
+}
+
 export function smsSendingEnabled(): boolean {
   return process.env.SMS_ENABLED === "true";
 }
