@@ -638,7 +638,7 @@ export type Database = {
           amount_cents: number;
           status?: string;
         },
-        { status?: string }
+        { status?: string; amount_cents?: number }
       >;
       invoices: Table<
         {
@@ -652,6 +652,12 @@ export type Database = {
           status: string;
           due_on: string | null;
           created_at: string;
+          seller_name: string;
+          seller_siret: string;
+          seller_address: string;
+          client_name: string;
+          vat_exempt: boolean;
+          payment_terms: string;
         },
         {
           id?: string;
@@ -663,8 +669,65 @@ export type Database = {
           amount_cents: number;
           status?: string;
           due_on?: string | null;
+          seller_name?: string;
+          seller_siret?: string;
+          seller_address?: string;
+          client_name?: string;
+          vat_exempt?: boolean;
+          payment_terms?: string;
         },
         { status?: string }
+      >;
+      vendor_billing_identity: Table<
+        {
+          vendor_id: string;
+          siret: string;
+          legal_address: string;
+          vat_exempt: boolean;
+          payment_terms: string;
+          updated_at: string;
+        },
+        {
+          vendor_id: string;
+          siret?: string;
+          legal_address?: string;
+          vat_exempt?: boolean;
+          payment_terms?: string;
+        },
+        {
+          siret?: string;
+          legal_address?: string;
+          vat_exempt?: boolean;
+          payment_terms?: string;
+        }
+      >;
+      vendor_invoice_counters: Table<
+        { vendor_id: string; last_number: number },
+        { vendor_id: string; last_number?: number },
+        { last_number?: number }
+      >;
+      invoice_payments: Table<
+        {
+          id: string;
+          invoice_id: string;
+          vendor_id: string;
+          wedding_id: string;
+          kind: string;
+          method: string;
+          amount_cents: number;
+          paid_on: string;
+          created_at: string;
+        },
+        {
+          invoice_id: string;
+          vendor_id: string;
+          wedding_id: string;
+          kind: string;
+          method: string;
+          amount_cents: number;
+          paid_on: string;
+        },
+        Record<string, never>
       >;
       deposits: Table<
         {
@@ -1514,6 +1577,7 @@ export type Database = {
       wedding_vendor_id: { Args: { p_wedding: string; p_user: string }; Returns: string };
       can_compose_photo_groups: { Args: { wid: string }; Returns: boolean };
       mark_photo_group_called: { Args: { p_group: string }; Returns: undefined };
+      issue_invoice_from_quote: { Args: { p_quote: string }; Returns: string };
       unread_message_count: { Args: Record<string, never>; Returns: number };
       add_wedding_document_request: {
         Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };

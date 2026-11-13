@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
@@ -25,7 +26,9 @@ export async function saveVaultFile(_prev: ActionState, formData: FormData): Pro
   const path = String(formData.get("storage_path") ?? "");
   const fileName = String(formData.get("file_name") ?? "").trim();
   const mime = String(formData.get("mime_type") ?? "");
-  const expires = String(formData.get("expires_on") ?? "").trim();
+  const expiresRaw = String(formData.get("expires_on") ?? "").trim();
+  const expires = expiresRaw ? frenchDateToIso(expiresRaw) : "";
+  if (expiresRaw && !expires) return { error: "Indiquez l'expiration au format jj/mm/aaaa." };
   const alertDays = Number(formData.get("alert_days") ?? 30);
   const autoShare = formData.get("auto_share") === "on" || formData.get("auto_share") === "true";
   if (title.length < 1 || title.length > 120) return { error: "Indiquez un intitulé." };
@@ -72,7 +75,9 @@ export async function updateVaultFile(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const category = String(formData.get("category") ?? "other");
-  const expires = String(formData.get("expires_on") ?? "").trim();
+  const expiresRaw = String(formData.get("expires_on") ?? "").trim();
+  const expires = expiresRaw ? frenchDateToIso(expiresRaw) : "";
+  if (expiresRaw && !expires) return;
   const alertDays = Number(formData.get("alert_days") ?? 30);
   const autoShare = formData.get("auto_share") === "on" || formData.get("auto_share") === "true";
   if (!id || title.length < 1 || !isVendorVaultCategory(category)) return;

@@ -1,3 +1,4 @@
+import { frenchDateToIso } from "./french-date";
 import { isVendorCategory, type VendorCategory } from "./categories";
 import { parseEurosToCents } from "./price";
 import { slugify } from "./slug";
@@ -21,7 +22,7 @@ export function validateWedding(
   const partnerTwoLast = input.partnerTwoLast.trim();
   const venueName = input.venueName.trim();
   const venueCity = input.venueCity.trim();
-  const weddingDate = input.weddingDate.trim();
+  const weddingDate = frenchDateToIso(input.weddingDate.trim()) ?? "";
 
   if (partnerOne.length < 2 || partnerTwo.length < 2 || partnerOneLast.length < 2 || partnerTwoLast.length < 2) {
     return { ok: false, error: "Indiquez le prénom et le nom de chaque partenaire." };
@@ -29,8 +30,8 @@ export function validateWedding(
   if ([partnerOne, partnerOneLast, partnerTwo, partnerTwoLast].some((name) => name.length > 80)) {
     return { ok: false, error: "Un nom est trop long." };
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(weddingDate) || Number.isNaN(Date.parse(`${weddingDate}T00:00:00Z`))) {
-    return { ok: false, error: "Indiquez la date du mariage." };
+  if (!weddingDate) {
+    return { ok: false, error: "Indiquez la date du mariage au format jj/mm/aaaa." };
   }
   if (venueName.length > 160 || venueCity.length > 120) {
     return { ok: false, error: "Le lieu est trop long." };

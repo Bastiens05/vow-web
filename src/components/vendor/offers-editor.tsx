@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { formatPriceCents } from "@/lib/domain/price";
 import { promoBadge, type PromoKind } from "@/lib/domain/promo";
 import type { Tables } from "@/lib/database.types";
@@ -151,10 +152,10 @@ function PromoFields({
         <TextInput name="promo_label" defaultValue={label} placeholder="Lancement" />
       </Field>
       <Field label="Début" hint="Facultatif.">
-        <TextInput name="promo_starts_on" type="date" defaultValue={starts} />
+        <FrenchDateInput name="promo_starts_on" defaultValue={starts} />
       </Field>
       <Field label="Fin" hint="Facultatif. La promo s'arrête après cette date.">
-        <TextInput name="promo_ends_on" type="date" defaultValue={ends} />
+        <FrenchDateInput name="promo_ends_on" defaultValue={ends} />
       </Field>
     </div>
   );

@@ -1,4 +1,5 @@
 import { isVendorCategory, type VendorCategory } from "@/lib/domain/categories";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
 import { isWeddingVolume, type WeddingVolume } from "@/lib/domain/volume";
 
@@ -45,7 +46,7 @@ export function readSignupIntent(form: FormData, role: "vendor" | "couple" | nul
     partnerOneLast: text(form, "partner_one_last", 80),
     partnerTwo: text(form, "partner_two", 80),
     partnerTwoLast: text(form, "partner_two_last", 80),
-    weddingDate: text(form, "wedding_date", 10),
+    weddingDate: frenchDateToIso(text(form, "wedding_date", 10)) ?? "",
     plan: planFrom(text(form, "plan", 20)),
   };
 }

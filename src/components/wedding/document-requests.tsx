@@ -4,6 +4,7 @@ import { useActionState, useState, type ChangeEvent } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { requestStatusLabel, type RequestStatus } from "@/lib/domain/client-documents";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
@@ -152,7 +153,7 @@ function OneOffForm({ weddingId }: { weddingId: string }) {
         <TextArea name="note" className="min-h-20" />
       </Field>
       <Field label="Date souhaitée" hint="Facultatif.">
-        <TextInput name="due_on" type="date" />
+        <FrenchDateInput name="due_on" />
       </Field>
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}

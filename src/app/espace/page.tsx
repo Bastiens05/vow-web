@@ -16,10 +16,12 @@ import { compareWeddingTimes, parisClockMinutes, selectLiveStep } from "@/lib/do
 import { coupleHeroTitle, formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { threadHasUnread } from "@/lib/domain/message-reads";
+import { FINANCE_FIGURES } from "@/lib/domain/finance";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
 import { moderateReview } from "@/server/actions/ledger";
 import { getCoupleFocus, getDashboardSignals, listMyWeddings, messageReadIds } from "@/server/data";
+import { loadVendorFinance } from "@/server/finance";
 import { requireSession } from "@/server/session";
 
 export const metadata: Metadata = { title: "Accueil" };
@@ -114,15 +116,28 @@ export default async function DashboardPage() {
         </Link>
       ) : null}
       {ledger ? (
-        <section className="mb-8 grid gap-4 sm:grid-cols-3">
-          <Link href="/tresorerie" className="block rounded-3xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
-            <SignalCard icon={Wallet} label="Encaissé cette année" value={formatEuros(ledger.revenueCents)} detail="Paiements enregistrés" />
-          </Link>
-          <SignalCard icon={CalendarRange} label="Mariages à venir" value={String(upcoming.filter((wedding) => !wedding.isDemo).length || "À ajouter")} detail="Hors mariages de démonstration" />
-          {ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews > 0 ? (
-            <SignalCard icon={Bell} label="À traiter" value={String(ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews)} detail="devis, acomptes, avis" />
-          ) : null}
-        </section>
+        <>
+          <section className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {FINANCE_FIGURES.map((figure) => {
+              const card = (
+                <SignalCard icon={Wallet} label={figure.label} value={formatEuros(ledger.finance[figure.key])} detail={figure.detail} />
+              );
+              return figure.key === "collectedThisYearCents" ? (
+                <Link key={figure.key} href="/tresorerie" className="block rounded-3xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+                  {card}
+                </Link>
+              ) : (
+                <div key={figure.key}>{card}</div>
+              );
+            })}
+          </section>
+          <section className="mb-8 grid gap-4 sm:grid-cols-3">
+            <SignalCard icon={CalendarRange} label="Mariages à venir" value={String(upcoming.filter((wedding) => !wedding.isDemo).length || "À ajouter")} detail="Hors mariages de démonstration" />
+            {ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews > 0 ? (
+              <SignalCard icon={Bell} label="À traiter" value={String(ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews)} detail="devis, acomptes, avis" />
+            ) : null}
+          </section>
+        </>
       ) : null}
       {isVendor && recoIds.length > 0 ? (
         <p className="mb-8 text-sm text-muted">
@@ -358,18 +373,14 @@ async function CoupleHome({
 
 async function vendorLedger(vendorId: string) {
   const supabase = await createClient();
-  const year = new Date().getFullYear();
-  const [invoices, quotes, deposits, reviews] = await Promise.all([
-    supabase.from("invoices").select("amount_cents, status, created_at").eq("vendor_id", vendorId),
+  const [finance, quotes, deposits, reviews] = await Promise.all([
+    loadVendorFinance(vendorId),
     supabase.from("quotes").select("id, status").eq("vendor_id", vendorId).eq("status", "sent"),
     supabase.from("deposits").select("id, status").eq("vendor_id", vendorId).in("status", ["pending", "reminded"]),
     supabase.from("reviews").select("id, rating, body, status").eq("vendor_id", vendorId).eq("status", "pending"),
   ]);
-  const revenueCents = (invoices.data ?? [])
-    .filter((row) => row.status === "paid" && row.created_at.startsWith(String(year)))
-    .reduce((sum, row) => sum + row.amount_cents, 0);
   return {
-    revenueCents,
+    finance,
     openQuotes: (quotes.data ?? []).length,
     pendingDeposits: (deposits.data ?? []).length,
     pendingReviews: (reviews.data ?? []).length,

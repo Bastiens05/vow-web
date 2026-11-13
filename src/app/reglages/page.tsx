@@ -5,6 +5,7 @@ import { ShareForm } from "@/components/account/share-form";
 import { PhoneFactorForm } from "@/components/account/phone-factor";
 import {
   AccountNameForm,
+  BillingIdentityForm,
   BusinessForm,
   LogoField,
   NotificationForm,
@@ -50,6 +51,13 @@ export default async function SettingsPage() {
         .order("position", { ascending: true })
         .order("created_at", { ascending: true })
     : { data: [] };
+  const { data: billingIdentity } = owner && session.vendor
+    ? await supabase
+        .from("vendor_billing_identity")
+        .select("siret, legal_address, vat_exempt, payment_terms")
+        .eq("vendor_id", session.vendor.id)
+        .maybeSingle()
+    : { data: null };
   const { data: feedToken } = await supabase.rpc("ensure_calendar_feed");
   const feed = feedToken ? `${siteUrl()}/api/calendar/${feedToken}` : "";
   const webcal = feed.replace(/^https?:/, "webcal:");
@@ -80,6 +88,18 @@ export default async function SettingsPage() {
           {session.vendor ? <LogoField userId={session.userId} logoPath={session.vendor.logo_path} /> : null}
           {session.vendor ? (
             <ShareForm sharePhone={session.vendor.share_phone} shareEmail={session.vendor.share_email} />
+          ) : null}
+          {owner && session.vendor ? (
+            <div className="space-y-3 border-t border-line pt-4">
+              <h3 className="text-base font-semibold">Factures</h3>
+              <p className="text-sm text-muted">Identité, SIRET et TVA repris sur les factures au moment de leur émission.</p>
+              <BillingIdentityForm
+                siret={billingIdentity?.siret ?? ""}
+                address={billingIdentity?.legal_address ?? ""}
+                vatExempt={billingIdentity?.vat_exempt ?? true}
+                paymentTerms={billingIdentity?.payment_terms ?? "Paiement à réception"}
+              />
+            </div>
           ) : null}
           <div className="flex flex-wrap gap-2">
             <ButtonLink href="/espace/profil" variant="secondary">

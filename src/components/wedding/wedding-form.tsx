@@ -5,6 +5,7 @@ import { PartnerFields } from "@/components/wedding/partner-fields";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { createWedding } from "@/server/actions/weddings";
 
 export function WeddingForm() {
@@ -13,7 +14,7 @@ export function WeddingForm() {
     <form action={action} className="grid gap-4 sm:grid-cols-2">
       <PartnerFields />
       <Field label="Date du mariage">
-        <TextInput name="wedding_date" type="date" required />
+        <FrenchDateInput name="wedding_date" required />
       </Field>
       <Field label="Lieu">
         <TextInput name="venue_name" placeholder="Château de la Louvière" />

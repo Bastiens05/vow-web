@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { splitCoupleNames } from "@/lib/domain/leads";
 import { generateInvitationToken } from "@/lib/domain/token";
 import { normalizeEmail } from "@/lib/domain/validation";
@@ -23,14 +24,15 @@ export async function submitQuote(_prev: ActionState, formData: FormData): Promi
   const names = String(formData.get("full_names") ?? "").trim();
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const phone = String(formData.get("phone") ?? "").trim();
-  const date = String(formData.get("wedding_date") ?? "").trim();
+  const dateRaw = String(formData.get("wedding_date") ?? "").trim();
+  const date = dateRaw ? frenchDateToIso(dateRaw) ?? "" : "";
   const place = String(formData.get("place") ?? "").trim();
   const guestsRaw = String(formData.get("guest_count") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
   const guests = guestsRaw ? Number(guestsRaw) : null;
   if (names.length < 2) return { error: "Indiquez vos noms." };
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: "Indiquez un e-mail valide." };
-  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "La date n'est pas valide." };
+  if (dateRaw && !date) return { error: "Indiquez la date au format jj/mm/aaaa." };
   if (guests !== null && (!Number.isInteger(guests) || guests < 0 || guests > 2000)) {
     return { error: "Le nombre d'invités n'est pas valide." };
   }

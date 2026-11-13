@@ -4,6 +4,7 @@ import { useState, type ChangeEvent } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import {
   VENDOR_VAULT_CATEGORIES,
@@ -110,7 +111,7 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
                     </SelectInput>
                   </Field>
                   <Field label="Expiration" hint="Facultatif.">
-                    <TextInput name="expires_on" type="date" defaultValue={file.expiresOn ?? ""} />
+                    <FrenchDateInput name="expires_on" defaultValue={file.expiresOn ?? ""} />
                   </Field>
                   <Field label="Alerte (jours avant)">
                     <TextInput name="alert_days" type="number" min={1} max={180} defaultValue={file.alertDays} />
@@ -143,7 +144,7 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
           </SelectInput>
         </Field>
         <Field label="Expiration" hint="Facultatif. Une alerte s'affiche avant cette date.">
-          <TextInput name="expires_on" type="date" />
+          <FrenchDateInput name="expires_on" />
         </Field>
         <Field label="Alerte (jours avant)">
           <TextInput name="alert_days" type="number" min={1} max={180} defaultValue={30} />
