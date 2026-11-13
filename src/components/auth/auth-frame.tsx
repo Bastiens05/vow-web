@@ -6,7 +6,15 @@ export function AuthDesktopFrame({ children }: { children: ReactNode }) {
   return (
     <div className="auth-shell">
       <aside className="auth-aside">
-        <HeroPhoto src="/hero/auth.jpg" position="32% 48%" sizes="(min-width: 1024px) 42vw, 100vw" veil="auth" priority />
+        <HeroPhoto
+          src="/hero/venue-golden.jpg"
+          position="center 42%"
+          positionFromLg="80% 40%"
+          sizes="100vw"
+          quality={85}
+          veil="auth"
+          priority
+        />
         <Logo variant="white" className="relative z-10" />
         <div className="relative z-10">
           <p className="max-w-sm font-serif text-4xl font-normal text-[#f7f3ec]">Le mariage, dans un seul espace.</p>

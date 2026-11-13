@@ -206,13 +206,18 @@ a {
     display: grid;
     min-height: 100dvh;
     grid-template-columns: minmax(22rem, 0.9fr) minmax(26rem, 1.1fr);
+    align-items: start;
     background: var(--vow-bg);
   }
 
   .auth-aside {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    align-self: start;
     color: #f7f3ec;
     padding: 3rem;
   }
@@ -220,7 +225,7 @@ a {
   .auth-screen {
     max-width: 32rem;
     margin: 2.5rem;
-    align-self: center;
+    align-self: start;
     justify-self: center;
     border-radius: 28px;
     border: 1px solid var(--vow-line);
