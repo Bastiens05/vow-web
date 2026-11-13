@@ -93,7 +93,7 @@ export default async function WeddingOverviewPage({
   });
   return (
     <div className="grid gap-6">
-      <div className="relative z-10 -mt-20 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="relative z-10 -mt-20 grid grid-cols-2 gap-3 max-[430px]:-mt-6 sm:gap-4 lg:grid-cols-4">
         <SummaryCard href={`/mariage/${id}/equipe`} icon={Users} title="Prestataires" {...vendorStat} />
         <SummaryCard href={`/mariage/${id}/documents`} icon={FolderOpen} title="Documents" {...documentStat} />
         <SummaryCard
