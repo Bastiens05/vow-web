@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { submitQuote } from "@/server/actions/leads";
 
 export function QuoteForm({ slug, recommendation }: { slug: string; recommendation?: string }) {
@@ -31,7 +32,7 @@ export function QuoteForm({ slug, recommendation }: { slug: string; recommendati
         <TextInput name="phone" />
       </Field>
       <Field label="Date du mariage">
-        <TextInput name="wedding_date" type="date" />
+        <FrenchDateInput name="wedding_date" />
       </Field>
       <Field label="Lieu">
         <TextInput name="place" placeholder="Bordeaux" />

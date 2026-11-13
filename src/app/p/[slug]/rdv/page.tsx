@@ -1,3 +1,5 @@
+import { FrenchDateInput } from "@/components/ui/french-date";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { Card } from "@/components/ui/card";
 import { BookForm } from "@/components/booking/book-form";
 import { createClient } from "@/lib/supabase/server";
@@ -12,7 +14,7 @@ export default async function PublicBookingPage({
 }) {
   const { slug } = await params;
   const query = await searchParams;
-  const day = /^\d{4}-\d{2}-\d{2}$/.test(query.jour ?? "") ? query.jour! : new Date().toISOString().slice(0, 10);
+  const day = frenchDateToIso(query.jour ?? "") ?? new Date().toISOString().slice(0, 10);
   const supabase = await createClient();
   const { data: vendor } = await supabase.from("vendor_profiles").select("business_name, published").eq("slug", slug).maybeSingle();
   if (!vendor?.published) notFound();
@@ -25,7 +27,7 @@ export default async function PublicBookingPage({
       <form className="mt-6" method="get">
         <label className="grid gap-2 text-sm">
           Jour
-          <input type="date" name="jour" defaultValue={day} className="min-h-11 rounded-xl border border-line bg-paper px-3 text-ink" />
+          <FrenchDateInput name="jour" defaultValue={day} />
         </label>
         <button className="mt-3 min-h-11 text-sm underline" type="submit">
           Voir les créneaux

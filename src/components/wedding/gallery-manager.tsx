@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileDrop } from "@/components/ui/file-drop";
 import { Field, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
 
@@ -30,7 +32,12 @@ export function GalleryManager({
     const form = event.currentTarget;
     const data = new FormData(form);
     const title = String(data.get("title") ?? "").trim();
-    const expiry = String(data.get("expires_on") ?? "");
+    const expiryRaw = String(data.get("expires_on") ?? "").trim();
+    const expiry = expiryRaw ? frenchDateToIso(expiryRaw) : "";
+    if (expiryRaw && !expiry) {
+      setError("Indiquez l'expiration au format jj/mm/aaaa.");
+      return;
+    }
     if (title.length < 2) {
       setError("Donnez un titre à la livraison.");
       return;
@@ -111,7 +118,7 @@ export function GalleryManager({
           <TextInput name="title" required placeholder="Photos finales" />
         </Field>
         <Field label="Disponible jusqu'au">
-          <TextInput name="expires_on" type="date" />
+          <FrenchDateInput name="expires_on" />
         </Field>
         <FileDrop
           accept="image/jpeg,image/png,image/webp,application/pdf,video/mp4,video/quicktime,video/webm"

@@ -178,11 +178,11 @@ export async function recordPayment(weddingId: string, _prev: ActionState, formD
   const invoiceId = String(formData.get("invoice_id") ?? "");
   const kind = String(formData.get("kind") ?? "");
   const method = String(formData.get("method") ?? "");
-  const paidOn = String(formData.get("paid_on") ?? "");
+  const paidOn = frenchDateToIso(String(formData.get("paid_on") ?? ""));
   const cents = eurosToCents(String(formData.get("amount") ?? ""));
   if (!isPaymentKind(kind) || !isPaymentMethod(method)) return { error: "Choisissez le type et le moyen de paiement." };
   if (cents === null || cents <= 0) return { error: "Indiquez un montant en euros." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidOn)) return { error: "Indiquez la date du paiement." };
+  if (!paidOn) return { error: "Indiquez la date du paiement au format jj/mm/aaaa." };
   const supabase = await createClient();
   const { data: invoice } = await supabase
     .from("invoices")

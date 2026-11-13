@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { parseOffset } from "@/lib/domain/client-documents";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
 import { requireSession } from "@/server/session";
@@ -112,8 +113,10 @@ export async function addWeddingDocumentRequest(_prev: ActionState, formData: Fo
   const title = String(formData.get("title") ?? "").trim();
   const note = String(formData.get("note") ?? "").trim();
   const required = formData.get("required") !== "false";
-  const due = String(formData.get("due_on") ?? "").trim();
+  const dueRaw = String(formData.get("due_on") ?? "").trim();
+  const due = dueRaw ? frenchDateToIso(dueRaw) : "";
   if (!weddingId || title.length < 1) return { error: "Indiquez un intitulé." };
+  if (dueRaw && !due) return { error: "Indiquez la date au format jj/mm/aaaa." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("add_wedding_document_request", {
     p_wedding: weddingId,

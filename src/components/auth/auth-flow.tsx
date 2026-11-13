@@ -203,8 +203,13 @@ export function AuthFlow({
                 Date du mariage
                 <input
                   name="wedding_date"
-                  type="date"
+                  lang="fr"
+                  inputMode="numeric"
+                  placeholder="jj/mm/aaaa"
+                  autoComplete="off"
                   required
+                  pattern="\d{2}/\d{2}/\d{4}"
+                  title="jj/mm/aaaa"
                   value={weddingDate}
                   onChange={(event) => setWeddingDate(event.target.value)}
                   className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"

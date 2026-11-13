@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { Card } from "@/components/ui/card";
 import { BookForm } from "@/components/booking/book-form";
 import { createClient } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ export default async function WeddingBookingPage({
     : { data: [] };
   const published = (vendors ?? []).filter((vendor) => vendor.published);
   const slug = query.slug && published.some((vendor) => vendor.slug === query.slug) ? query.slug : published[0]?.slug;
-  const day = /^\d{4}-\d{2}-\d{2}$/.test(query.jour ?? "") ? query.jour! : space.wedding.wedding_date;
+  const day = frenchDateToIso(query.jour ?? "") ?? space.wedding.wedding_date;
   const { data: slots } = slug ? await supabase.rpc("open_slots", { p_slug: slug, p_day: day }) : { data: [] };
   return (
     <div className="grid gap-4">

@@ -5,7 +5,8 @@ import { PartnerFields } from "@/components/wedding/partner-fields";
 import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Field, TextInput } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { createCoupleWedding } from "@/server/actions/account";
 
 export function CoupleCreateForm() {
@@ -16,7 +17,7 @@ export function CoupleCreateForm() {
       <div className="mt-5 grid gap-4">
         <PartnerFields />
         <Field label="Date du mariage">
-          <TextInput name="wedding_date" type="date" required />
+          <FrenchDateInput name="wedding_date" required />
         </Field>
         <Field label="Ville" hint="Facultatif.">
           <AddressInput name="city" mode="city" placeholder="Bordeaux" />

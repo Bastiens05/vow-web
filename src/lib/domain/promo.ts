@@ -1,3 +1,4 @@
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { formatPriceCents, parseEurosToCents } from "@/lib/domain/price";
 
 export type PromoKind = "percent" | "amount";
@@ -89,10 +90,10 @@ export function parsePromo(input: {
   const kind = input.kind === "amount" ? "amount" : input.kind === "percent" ? "percent" : null;
   if (!kind) return { ok: false, error: "Choisissez un pourcentage ou un montant." };
   const label = input.label.trim().slice(0, 80);
-  const starts = input.starts.trim();
-  const ends = input.ends.trim();
-  if (starts && !/^\d{4}-\d{2}-\d{2}$/.test(starts)) return { ok: false, error: "La date de début n'est pas valide." };
-  if (ends && !/^\d{4}-\d{2}-\d{2}$/.test(ends)) return { ok: false, error: "La date de fin n'est pas valide." };
+  const starts = input.starts.trim() ? frenchDateToIso(input.starts.trim()) ?? "" : "";
+  const ends = input.ends.trim() ? frenchDateToIso(input.ends.trim()) ?? "" : "";
+  if (input.starts.trim() && !starts) return { ok: false, error: "La date de début n'est pas valide. Utilisez jj/mm/aaaa." };
+  if (input.ends.trim() && !ends) return { ok: false, error: "La date de fin n'est pas valide. Utilisez jj/mm/aaaa." };
   if (starts && ends && ends < starts) return { ok: false, error: "La promo se termine avant de commencer." };
   let value: number | null = null;
   if (kind === "percent") {

@@ -5,6 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
+import { FrenchDateInput } from "@/components/ui/french-date";
 import { PAYMENT_KINDS, PAYMENT_METHODS, paymentKindLabel, paymentMethodLabel } from "@/lib/domain/finance";
 import { createDeposit, createQuote, recordPayment, setAgreedPrice } from "@/server/actions/ledger";
 
@@ -42,8 +43,8 @@ export function PaymentForm({ weddingId, invoiceId }: { weddingId: string; invoi
       <Field label="Montant (€)">
         <TextInput name="amount" required inputMode="decimal" placeholder="500" />
       </Field>
-      <Field label="Date">
-        <TextInput name="paid_on" type="date" required />
+      <Field label="Date" hint="jj/mm/aaaa">
+        <FrenchDateInput name="paid_on" required />
       </Field>
       <Field label="Moyen">
         <SelectInput name="method" defaultValue="virement">
@@ -90,7 +91,7 @@ export function DepositForm({ weddingId }: { weddingId: string }) {
           <TextInput name="amount" required inputMode="decimal" placeholder="500" />
         </Field>
         <Field label="Échéance" hint="jj/mm/aaaa">
-          <TextInput name="due_on" lang="fr" inputMode="numeric" placeholder="jj/mm/aaaa" autoComplete="off" required pattern="\d{2}/\d{2}/\d{4}" title="jj/mm/aaaa" />
+          <FrenchDateInput name="due_on" required />
         </Field>
         {state.error ? <Alert>{state.error}</Alert> : null}
         {state.success ? <Alert tone="success">{state.success}</Alert> : null}
