@@ -7,16 +7,11 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
+import { prepareLogoFile } from "@/lib/images/prepare-logo";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
 import { publicObjectUrl } from "@/lib/storage";
-import {
-  changePassword,
-  saveAccountName,
-  saveBusinessBasics,
-  saveLogo,
-  saveNotificationPrefs,
-} from "@/server/actions/account";
+import { changePassword, saveAccountName, saveBusinessBasics, saveNotificationPrefs } from "@/server/actions/account";
 
 export function AccountNameForm({ name }: { name: string }) {
   const [state, action, pending] = useActionState(saveAccountName, {});
@@ -75,35 +70,76 @@ export function BusinessForm({
   );
 }
 
+const LOGO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
 export function LogoField({ userId, logoPath }: { userId: string; logoPath: string | null }) {
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const src = logoPath ? publicObjectUrl("vendor-media", logoPath) : null;
+  const [success, setSuccess] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"idle" | "prepare" | "upload" | "save">("idle");
+  const [savedPath, setSavedPath] = useState(logoPath);
+  const src = savedPath ? publicObjectUrl("vendor-media", savedPath) : null;
+  const pending = phase !== "idle";
+  const progress = phase === "prepare" ? 30 : phase === "upload" ? 70 : phase === "save" ? 90 : null;
 
   async function onFile(file: File) {
-    const check = validateUpload(file, "photo");
+    if (!LOGO_TYPES.has(file.type)) {
+      setSuccess(null);
+      setError("Formats acceptés : JPG, PNG ou WebP.");
+      return;
+    }
+    setPhase("prepare");
+    setError(null);
+    setSuccess(null);
+    let prepared = file;
+    try {
+      prepared = await prepareLogoFile(file);
+    } catch {
+      setPhase("idle");
+      setError("Cette image n'a pas pu être préparée.");
+      return;
+    }
+    const check = validateUpload(prepared, "photo");
     if (!check.ok) {
+      setPhase("idle");
       setError(check.error);
       return;
     }
-    setPending(true);
-    setError(null);
     const supabase = createClient();
-    const path = `${userId}/logo-${crypto.randomUUID()}-${safeFileName(file.name)}`;
-    const uploaded = await supabase.storage.from("vendor-media").upload(path, file, { contentType: file.type });
+    const path = `${userId}/logo-${crypto.randomUUID()}-${safeFileName(prepared.name)}`;
+    setPhase("upload");
+    const uploaded = await supabase.storage.from("vendor-media").upload(path, prepared, { contentType: prepared.type, upsert: false });
     if (uploaded.error) {
-      setPending(false);
+      setPhase("idle");
       setError(uploaded.error.message);
       return;
     }
-    const saved = await saveLogo(path);
-    setPending(false);
-    if (saved.error) setError(saved.error);
-    else window.location.reload();
+    setPhase("save");
+    const { data: profile, error: readError } = await supabase.from("vendor_profiles").select("id, logo_path").eq("user_id", userId).maybeSingle();
+    if (readError || !profile) {
+      await supabase.storage.from("vendor-media").remove([path]);
+      setPhase("idle");
+      setError("Enregistrez d'abord le nom commercial.");
+      return;
+    }
+    const saved = await supabase.from("vendor_profiles").update({ logo_path: path }).eq("id", profile.id);
+    if (saved.error) {
+      await supabase.storage.from("vendor-media").remove([path]);
+      setPhase("idle");
+      setError(saved.error.message);
+      return;
+    }
+    if (profile.logo_path && profile.logo_path !== path) {
+      await supabase.storage.from("vendor-media").remove([profile.logo_path]);
+    }
+    setSavedPath(path);
+    setPhase("idle");
+    setSuccess("Logo enregistré.");
+    const url = publicObjectUrl("vendor-media", path);
+    if (url) window.dispatchEvent(new CustomEvent("vow-logo", { detail: url }));
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" aria-busy={pending}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="Logo" className="h-16 w-16 rounded-2xl object-cover" />
@@ -113,14 +149,16 @@ export function LogoField({ userId, logoPath }: { userId: string; logoPath: stri
       <FileDrop
         accept="image/jpeg,image/png,image/webp"
         disabled={pending}
-        hint="JPG, PNG ou WebP · le logo de votre activité."
-        progress={pending ? 60 : null}
+        hint="JPG, PNG ou WebP · le logo de votre activité. Une grande photo est réduite avant l'envoi."
+        progress={progress}
         onFiles={(files) => {
           const file = files[0];
           if (file) void onFile(file);
         }}
       />
+      {pending ? <p className="text-sm text-muted">{phase === "prepare" ? "Préparation du logo…" : phase === "upload" ? "Envoi…" : "Enregistrement…"}</p> : null}
       {error ? <Alert>{error}</Alert> : null}
+      {success ? <Alert tone="success">{success}</Alert> : null}
     </div>
   );
 }

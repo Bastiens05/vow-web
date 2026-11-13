@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
@@ -66,6 +66,16 @@ export function CoupleSidebar({
 }) {
   const path = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
+  const [liveLogo, setLiveLogo] = useState<string | null>(null);
+  useEffect(() => {
+    function onLogo(event: Event) {
+      const url = (event as CustomEvent<string>).detail;
+      if (typeof url === "string" && url) setLiveLogo(url);
+    }
+    window.addEventListener("vow-logo", onLogo);
+    return () => window.removeEventListener("vow-logo", onLogo);
+  }, []);
+  const shownLogo = liveLogo ?? identityLogo;
   const items = live
     ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
     : itemsProp;
@@ -110,11 +120,11 @@ export function CoupleSidebar({
           identityActive ? "bg-accent-soft font-medium text-ink" : "border border-line bg-ivory/70 hover:bg-ink/[0.04]"
         } ${collapsed ? "justify-center px-0" : ""}`}
       >
-        {identityLogo ? (
+        {shownLogo ? (
           <span
             aria-hidden
             className="h-9 w-9 shrink-0 rounded-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${identityLogo})` }}
+            style={{ backgroundImage: `url(${shownLogo})` }}
           />
         ) : (
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">

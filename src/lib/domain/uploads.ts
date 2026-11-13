@@ -1,4 +1,5 @@
 export const PHOTO_MAX_BYTES = 8 * 1024 * 1024;
+export const LOGO_MAX_EDGE = 1024;
 export const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
 
 const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -41,6 +42,15 @@ export function validateUpload(
     return { ok: false, error: `Le fichier doit faire moins de ${limit}.` };
   }
   return { ok: true };
+}
+
+export function fittedSize(width: number, height: number, maxEdge = LOGO_MAX_EDGE) {
+  if (width <= 0 || height <= 0) return { width: 1, height: 1 };
+  const scale = Math.min(1, maxEdge / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
 }
 
 export function safeFileName(name: string): string {
