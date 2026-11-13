@@ -75,7 +75,12 @@ export function assertInvoiceImmutable(before: IssuedInvoice, after: IssuedInvoi
 }
 
 export type FinanceQuote = { status: string; amountCents: number };
-export type FinanceInvoice = { status: string; amountCents: number };
+export type FinanceInvoice = {
+  status: string;
+  amountCents: number;
+  createdOn?: string;
+  paymentCents?: number;
+};
 export type FinancePayment = { kind: string; amountCents: number; paidOn: string };
 
 export type FinanceSnapshot = {
@@ -109,11 +114,22 @@ export function financeSnapshot(input: {
     settledInvoicesCents: sum(
       input.invoices.filter((invoice) => invoice.status === "paid").map((invoice) => invoice.amountCents),
     ),
-    collectedThisYearCents: sum(
-      input.payments
-        .filter((payment) => payment.paidOn.startsWith(input.year))
-        .map((payment) => payment.amountCents),
-    ),
+    collectedThisYearCents:
+      sum(
+        input.payments
+          .filter((payment) => payment.paidOn.startsWith(input.year))
+          .map((payment) => payment.amountCents),
+      ) +
+      sum(
+        input.invoices
+          .filter(
+            (invoice) =>
+              invoice.status === "paid" &&
+              invoice.paymentCents === 0 &&
+              Boolean(invoice.createdOn?.startsWith(input.year)),
+          )
+          .map((invoice) => invoice.amountCents),
+      ),
   };
 }
 

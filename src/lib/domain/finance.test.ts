@@ -81,6 +81,21 @@ describe("finance totals", () => {
     expect(snapshot.collectedThisYearCents).toBe(240000);
   });
 
+  it("keeps an already paid invoice in this year until a payment is recorded", () => {
+    const snapshot = financeSnapshot({
+      year: "2026",
+      quotes: [],
+      invoices: [
+        { status: "paid", amountCents: 80000, createdOn: "2026-04-02", paymentCents: 0 },
+        { status: "paid", amountCents: 50000, createdOn: "2025-04-02", paymentCents: 0 },
+        { status: "paid", amountCents: 20000, createdOn: "2026-05-01", paymentCents: 20000 },
+      ],
+      payments: [{ kind: "solde", amountCents: 20000, paidOn: "2026-05-01" }],
+    });
+    expect(snapshot.collectedThisYearCents).toBe(100000);
+    expect(snapshot.settledInvoicesCents).toBe(150000);
+  });
+
   it("counts a recorded payment even when the invoice row is older", () => {
     const snapshot = financeSnapshot({
       year: "2026",
