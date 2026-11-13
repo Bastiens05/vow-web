@@ -135,7 +135,7 @@ export default async function MessagesPage({
         )}
       </aside>
       <section className={`${mobileOpen ? "flex" : "hidden md:flex"} relative min-h-[70dvh] flex-col overflow-hidden md:min-h-0`}>
-        <HeroPhoto src="/hero/venue.jpg" position="center 72%" sizes="70vw" veil="chat" soft />
+        <HeroPhoto src="/hero/venue-golden.jpg" position="center 72%" sizes="70vw" veil="chat" soft />
         {active ? (
           <>
             <div className="relative z-10 flex items-center gap-3 border-b border-white/50 bg-white/40 px-4 py-3 backdrop-blur-md">
