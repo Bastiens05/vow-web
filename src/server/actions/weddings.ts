@@ -66,7 +66,7 @@ export async function createWedding(_prev: ActionState, formData: FormData): Pro
     const url = await magicInvitationUrl({ email: coupleEmail, role: "couple", token, fallback });
     await sendInvitationEmail({ to: coupleEmail, title, url, role: "couple" });
   }
-  redirect(`/mariage/${data}/inviter`);
+  redirect(`/mariage/${data}`);
 }
 
 export async function createInvitation(_prev: ActionState, formData: FormData): Promise<ActionState> {

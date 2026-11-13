@@ -36,7 +36,8 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await page.getByLabel("Lieu", { exact: true }).fill("Château");
   await page.getByLabel("Ville du lieu").fill("Léognan");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
-  await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Léa & Hugo" })).toBeVisible();
+  await expect(page.locator('img[src*="venue-golden"]')).toBeVisible();
 
   await page.goto("/espace/mariages/nouveau");
   await page.getByLabel("Prénom", { exact: true }).nth(0).fill("Secret");
@@ -45,7 +46,7 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await page.getByLabel("Nom", { exact: true }).nth(1).fill("Bernard");
   await page.getByLabel("Date du mariage").fill("2027-08-01");
   await page.getByRole("button", { name: "Créer le mariage" }).click();
-  await expect(page.getByRole("heading", { name: "Inviter" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Secret & Hidden" })).toBeVisible();
   await page.goto("/espace");
   await expect(page.getByText("Léa & Hugo")).toBeVisible();
   await expect(page.getByText("Secret & Hidden")).toBeVisible();
