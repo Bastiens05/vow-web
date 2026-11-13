@@ -5,10 +5,11 @@ const weddingId = "ac7f5c8d-4d7a-42ff-ae97-66f51f135cba";
 
 describe("navigation prestataire", () => {
   it("garde la navigation globale sur l'accueil et la liste des mariages", () => {
-    const expected = ["Accueil", "Mariages", "Messages", "Réglages"];
+    const expected = ["Accueil", "Mariages", "Messages", "Paiements", "Réglages"];
     expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
     expect(navigationItems("/mariages", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
-    expect(vendorSpaceMenuLabels).toEqual(["Mariages", "Messages"]);
+    expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).find((item) => item.label === "Paiements")?.href).toBe("/tresorerie");
+    expect(vendorSpaceMenuLabels).toEqual(["Mariages", "Messages", "Paiements"]);
   });
 
   it("n'ouvre pas le menu d'un mariage depuis /mariages", () => {
@@ -28,6 +29,8 @@ describe("navigation prestataire", () => {
     expect(vendorWeddingSection("/messages", names)).toBeNull();
     expect(vendorWeddingSection("/reglages", names)).toBeNull();
     expect(vendorWeddingSection("/admin", names)).toBeNull();
+    expect(vendorWeddingSection("/coffre-fort", names)).toBeNull();
+    expect(vendorWeddingSection("/tresorerie", names)).toBeNull();
     expect(vendorWeddingSection("/espace/mariages/nouveau", names)).toBeNull();
     expect(vendorWeddingSection(`/mariage/${weddingId}`, names)).toEqual({
       title: "Mariage de Bastien et Lorène",

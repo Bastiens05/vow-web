@@ -48,6 +48,7 @@ export function vendorAccess(input: AccessInput): AccessDecision {
 const OPEN = [
   "/abonnement",
   "/reglages",
+  "/coffre-fort",
   "/admin",
   "/connexion",
   "/inscription",

@@ -15,7 +15,7 @@ describe("isPublicPath", () => {
 
 describe("backTarget", () => {
   it("gives top-level tabs no back link, including the weddings list", () => {
-    for (const path of ["/espace", "/mariages", "/demandes", "/nouveautes", "/reglages"]) {
+    for (const path of ["/espace", "/mariages", "/demandes", "/nouveautes", "/reglages", "/coffre-fort"]) {
       expect(backTarget(path, "vendor", false)).toBeNull();
       expect(isTopLevelPath(path)).toBe(true);
     }

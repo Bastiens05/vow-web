@@ -4,6 +4,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 
+const vaultButtonClass =
+  "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-ink/[0.05] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+
+export function VaultLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} aria-label={label} className={vaultButtonClass}>
+      <Lock className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+    </Link>
+  );
+}
+
 export function VaultButton({ href, missing, children }: { href: string; missing: number; children: ReactNode }) {
   const [mobile, setMobile] = useState(false);
   const [open, setOpen] = useState(false);
@@ -25,8 +36,7 @@ export function VaultButton({ href, missing, children }: { href: string; missing
       ) : null}
     </>
   );
-  const className =
-    "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-ink/[0.05] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+  const className = vaultButtonClass;
   if (!mobile) {
     return (
       <Link href={href} aria-label={label} className={className}>

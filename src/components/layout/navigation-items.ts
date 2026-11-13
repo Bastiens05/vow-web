@@ -9,7 +9,7 @@ function weddingIdFrom(path: string) {
   return match?.[1] ?? null;
 }
 
-export const vendorSpaceMenuLabels = ["Mariages", "Messages"];
+export const vendorSpaceMenuLabels = ["Mariages", "Messages", "Paiements"];
 
 export function vendorWeddingSection(path: string, names: Record<string, string>) {
   const id = weddingIdFrom(path);
@@ -78,6 +78,7 @@ export function navigationItems(
           { href: "/espace", label: "Accueil", icon: "home" },
           { href: "/mariages", label: "Mariages", icon: "list" },
           { href: "/messages", label: "Messages", icon: "message" },
+          { href: "/tresorerie", label: "Paiements", icon: "wallet" },
           { href: "/reglages", label: "Réglages", icon: "gear" },
         ]
       : [

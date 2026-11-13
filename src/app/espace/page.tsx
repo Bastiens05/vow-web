@@ -114,7 +114,9 @@ export default async function DashboardPage() {
       ) : null}
       {ledger ? (
         <section className="mb-8 grid gap-4 sm:grid-cols-3">
-          <SignalCard icon={Wallet} label="Encaissé cette année" value={formatEuros(ledger.revenueCents)} detail="Paiements enregistrés" />
+          <Link href="/tresorerie" className="block rounded-3xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+            <SignalCard icon={Wallet} label="Encaissé cette année" value={formatEuros(ledger.revenueCents)} detail="Paiements enregistrés" />
+          </Link>
           <SignalCard icon={CalendarRange} label="Mariages à venir" value={String(upcoming.filter((wedding) => !wedding.isDemo).length || "À ajouter")} detail="Hors mariages de démonstration" />
           {ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews > 0 ? (
             <SignalCard icon={Bell} label="À traiter" value={String(ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews)} detail="devis, acomptes, avis" />
