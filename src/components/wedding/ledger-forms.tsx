@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
 import { FrenchDateInput } from "@/components/ui/french-date";
 import { PAYMENT_KINDS, PAYMENT_METHODS, paymentKindLabel, paymentMethodLabel } from "@/lib/domain/finance";
+import type { VendorCategory } from "@/lib/domain/categories";
+import { offerExample } from "@/lib/domain/trades";
 import { createDeposit, createQuote, recordPayment, setAgreedPrice } from "@/server/actions/ledger";
 
 export function AgreedPriceForm({ weddingId, amount }: { weddingId: string; amount: string }) {
@@ -17,7 +19,7 @@ export function AgreedPriceForm({ weddingId, amount }: { weddingId: string; amou
       <p className="mt-1 text-sm text-muted">Le montant du devis pour ce mariage. Créer la facture fige ensuite le numéro et les mentions.</p>
       <form action={action} className="mt-3 grid gap-3">
         <Field label="Montant (€)">
-          <TextInput name="amount" required inputMode="decimal" placeholder="2400" defaultValue={amount} />
+          <TextInput name="amount" required inputMode="decimal" placeholder="Montant" defaultValue={amount} />
         </Field>
         {state.error ? <Alert>{state.error}</Alert> : null}
         {state.success ? <Alert tone="success">{state.success}</Alert> : null}
@@ -41,7 +43,7 @@ export function PaymentForm({ weddingId, invoiceId }: { weddingId: string; invoi
         </SelectInput>
       </Field>
       <Field label="Montant (€)">
-        <TextInput name="amount" required inputMode="decimal" placeholder="500" />
+        <TextInput name="amount" required inputMode="decimal" placeholder="Montant" />
       </Field>
       <Field label="Date" hint="jj/mm/aaaa">
         <FrenchDateInput name="paid_on" required />
@@ -60,17 +62,17 @@ export function PaymentForm({ weddingId, invoiceId }: { weddingId: string; invoi
   );
 }
 
-export function QuoteForm({ weddingId }: { weddingId: string }) {
+export function QuoteForm({ weddingId, category = null }: { weddingId: string; category?: VendorCategory | null }) {
   const [state, action, pending] = useActionState(createQuote.bind(null, weddingId), {});
   return (
     <Card>
       <h2 className="text-lg font-semibold">Nouveau devis</h2>
       <form action={action} className="mt-3 grid gap-3">
         <Field label="Titre">
-          <TextInput name="title" required placeholder="Reportage journée" />
+          <TextInput name="title" required placeholder={offerExample(category)} />
         </Field>
         <Field label="Montant (€)">
-          <TextInput name="amount" required inputMode="decimal" placeholder="2400" />
+          <TextInput name="amount" required inputMode="decimal" placeholder="Montant" />
         </Field>
         {state.error ? <Alert>{state.error}</Alert> : null}
         {state.success ? <Alert tone="success">{state.success}</Alert> : null}
@@ -88,7 +90,7 @@ export function DepositForm({ weddingId }: { weddingId: string }) {
       <p className="mt-1 text-sm text-muted">Le couple est rappelé dans l&apos;application trois jours avant l&apos;échéance. Le paiement Stripe reste fermé sans clés.</p>
       <form action={action} className="mt-3 grid gap-3">
         <Field label="Montant (€)">
-          <TextInput name="amount" required inputMode="decimal" placeholder="500" />
+          <TextInput name="amount" required inputMode="decimal" placeholder="Montant" />
         </Field>
         <Field label="Échéance" hint="jj/mm/aaaa">
           <FrenchDateInput name="due_on" required />

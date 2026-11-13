@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canDeliver, canSeeSheet, pratiqueLabel, sheetsFor } from "./trades";
+import { canDeliver, canSeeSheet, offerExample, pratiqueLabel, sheetsFor } from "./trades";
 
 describe("sheetsFor", () => {
   it("gives the couple every sheet", () => {
@@ -31,6 +31,15 @@ describe("sheetsFor", () => {
     expect(sheetsFor("vendor", "dj")).toEqual(["practical", "music"]);
     expect(canSeeSheet("vendor", "florist", "music")).toBe(false);
     expect(canSeeSheet("vendor", "florist", "photos")).toBe(false);
+  });
+});
+
+describe("offer examples", () => {
+  it("follows the trade and never invents a price", () => {
+    expect(offerExample("dj")).toBe("Animation soirée");
+    expect(offerExample("caterer")).toBe("Repas");
+    expect(offerExample(null)).toBe("Prestation");
+    expect(offerExample("florist")).not.toBe("Reportage journée");
   });
 });
 

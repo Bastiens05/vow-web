@@ -55,7 +55,7 @@ export default async function ProfilePage() {
           <Card>
             <h2 className="font-semibold tracking-tight text-3xl">Offres</h2>
             <p className="mt-1 mb-4 text-sm text-muted">Les formules affichées sur la page publique.</p>
-            <OffersEditor offers={offers} />
+            <OffersEditor offers={offers} category={vendor?.category ?? null} />
           </Card>
           <Card>
             <h2 className="font-semibold tracking-tight text-3xl">Portfolio</h2>

@@ -81,7 +81,7 @@ export default async function SettingsPage() {
           <h2 className="text-lg font-semibold tracking-tight">Activité</h2>
           <BusinessForm
             businessName={session.vendor?.business_name ?? ""}
-            category={session.vendor?.category ?? "photographer"}
+            category={session.vendor?.category ?? null}
             city={session.vendor?.city ?? ""}
             phone={session.vendor?.contact_phone ?? ""}
           />

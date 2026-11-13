@@ -23,6 +23,25 @@ export function canDeliver(role: "vendor" | "couple", category: VendorCategory |
   return category === "photographer" || category === "videographer";
 }
 
+const OFFER_EXAMPLES: Record<VendorCategory, string> = {
+  photographer: "Reportage journée",
+  videographer: "Film de la journée",
+  dj: "Animation soirée",
+  florist: "Bouquet et compositions",
+  caterer: "Repas",
+  venue: "Location de la salle",
+  planner: "Coordination du jour",
+  beauty: "Coiffure et maquillage",
+  officiant: "Cérémonie",
+  other: "Prestation",
+};
+
+/** A title hint for a quote or an offer. Never a price. */
+export function offerExample(category: VendorCategory | null): string {
+  if (!category) return "Prestation";
+  return OFFER_EXAMPLES[category];
+}
+
 export function pratiqueLabel(role: "vendor" | "couple", category: VendorCategory | null): string | null {
   const sheets = sheetsFor(role, category);
   const extra = sheets.filter((sheet) => sheet !== "practical");
