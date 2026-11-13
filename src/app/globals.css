@@ -113,16 +113,14 @@ a {
 }
 
 .auth-aside {
+  position: relative;
   display: flex;
   min-height: 14rem;
   flex-direction: column;
   justify-content: space-between;
   gap: 1.5rem;
-  background-image:
-    linear-gradient(to top, rgba(18, 17, 16, 0.72), rgba(18, 17, 16, 0.28)),
-    url(/hero/venue.jpg);
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
+  background: #121110;
   color: #f7f3ec;
   padding: 1.5rem;
 }
@@ -215,11 +213,6 @@ a {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background-image:
-      linear-gradient(to top, rgba(18, 17, 16, 0.72), rgba(18, 17, 16, 0.28)),
-      url(/hero/venue.jpg);
-    background-size: cover;
-    background-position: center;
     color: #f7f3ec;
     padding: 3rem;
   }

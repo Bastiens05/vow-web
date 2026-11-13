@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
+import { HeroPhoto } from "@/components/brand/hero-photo";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/domain/format";
@@ -63,11 +64,7 @@ export function MessageThread({
 
   return (
     <div className="relative flex flex-col overflow-hidden rounded-[28px]">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center opacity-30 blur-2xl"
-        style={{ backgroundImage: "url(/hero/venue.jpg)" }}
-      />
+      <HeroPhoto src="/hero/venue.jpg" position="center 62%" sizes="80vw" veil="none" soft />
       <div className="relative flex flex-col gap-4 px-3 py-4 pb-28 md:h-[min(70dvh,40rem)] md:overflow-y-auto md:pb-4">
         {shown.length === 0 ? <p className="text-base text-ink">Écrivez le premier message.</p> : null}
         {shown.map((message) => (

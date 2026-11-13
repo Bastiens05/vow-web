@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { HeroPhoto } from "@/components/brand/hero-photo";
 import { Archive, Briefcase, CalendarRange, FolderOpen, MessageCircle, PenLine, Share2, Sparkles, Users, WifiOff, type LucideIcon } from "lucide-react";
 
 type Audience = "couples" | "vendors";
@@ -67,16 +68,9 @@ export function Landing() {
   const [audience, setAudience] = useState<Audience>("couples");
   return (
     <div>
-      <section
-        className="relative flex min-h-[760px] items-end bg-[#121110] text-[#f7f3ec] lg:min-h-[820px]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to top, rgba(18,17,16,0.88) 0%, rgba(18,17,16,0.35) 42%, rgba(18,17,16,0.28) 100%), url(/hero/venue.jpg)",
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-        }}
-      >
-        <div className="mx-auto w-full max-w-6xl px-6 pb-28 pt-24 lg:pb-36 lg:pt-28">
+      <section className="relative flex min-h-[760px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[820px]">
+        <HeroPhoto src="/hero/venue.jpg" position="center 62%" priority sizes="100vw" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-28 pt-24 lg:pb-36 lg:pt-28">
           <h1 className="max-w-4xl font-serif text-6xl font-normal leading-[0.95] tracking-tight text-[#f7f3ec] sm:text-7xl lg:text-8xl">
             Le mariage, orchestré.
           </h1>

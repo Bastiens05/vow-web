@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroPhoto } from "@/components/brand/hero-photo";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { categoryLabel } from "@/lib/domain/categories";
@@ -73,16 +74,9 @@ export default async function WeddingLayout({
       </div>
       )}
       {overview ? (
-        <section
-          className="relative -mx-4 mb-2 flex min-h-[78vh] items-center justify-center overflow-hidden px-6 py-20 text-center text-[#f7f3ec] sm:-mx-6"
-          style={{
-            backgroundImage:
-              "linear-gradient(to top, rgba(18,17,16,0.88), rgba(18,17,16,0.32) 46%, rgba(18,17,16,0.22)), url(/hero/venue.jpg)",
-            backgroundPosition: "center",
-            backgroundSize: "cover",
-          }}
-        >
-          <div>
+        <section className="relative -mx-4 mb-2 flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#121110] px-6 py-20 text-center text-[#f7f3ec] sm:-mx-6">
+          <HeroPhoto src="/hero/venue.jpg" position="center 62%" priority sizes="(min-width: 768px) 80vw, 100vw" />
+          <div className="relative z-10">
             <h1 className="font-serif text-6xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{space.title}</h1>
             <p className="mt-5 text-lg text-[#f7f3ec]">{formatLongDate(space.wedding.wedding_date)}</p>
             <p className="text-lg text-[#f7f3ec]">{venue}</p>
