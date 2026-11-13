@@ -68,7 +68,7 @@ export function Landing() {
   const [audience, setAudience] = useState<Audience>("couples");
   return (
     <div>
-      <section className="relative flex min-h-[760px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[820px]">
+      <section className="relative flex min-h-[640px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[700px]">
         <HeroPhoto src="/hero/venue.jpg" position="center 62%" priority sizes="100vw" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-28 pt-24 lg:pb-36 lg:pt-28">
           <h1 className="max-w-4xl font-serif text-6xl font-normal leading-[0.95] tracking-tight text-[#f7f3ec] sm:text-7xl lg:text-8xl">
@@ -88,10 +88,10 @@ export function Landing() {
           </Link>
         </div>
       </section>
-      <div className="relative z-10 mx-auto -mt-24 grid max-w-6xl gap-4 px-5 sm:px-6 md:grid-cols-3 lg:-mt-28">
-        <HeroCard icon={CalendarRange} title="Jour J partagé" text="Le programme du jour, visible par chaque métier, au même endroit." />
-        <HeroCard icon={PenLine} title="Documents & signatures" text="Contrats, pièces et signatures, sans les chercher dans les messages." />
-        <HeroCard icon={MessageCircle} title="Messages" text="Un fil clair entre les mariés et chaque prestataire." />
+      <div className="relative z-10 mx-auto -mt-28 grid max-w-6xl gap-4 px-5 sm:px-6 md:grid-cols-3 lg:-mt-32">
+        <HeroCard icon={CalendarRange} title="Jour J partagé" text="Le programme, visible par chaque métier." />
+        <HeroCard icon={PenLine} title="Documents & signatures" text="Contrats et signatures au même endroit." />
+        <HeroCard icon={MessageCircle} title="Messages" text="Un fil entre les mariés et chaque métier." />
       </div>
       <section id="ce-qui-compte" className="mx-auto max-w-6xl px-5 py-16 lg:py-24">
         <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">

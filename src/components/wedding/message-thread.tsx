@@ -2,9 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { HeroPhoto } from "@/components/brand/hero-photo";
+import { Send } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/server/actions/space";
@@ -14,10 +13,12 @@ export function MessageThread({
   weddingId,
   vendorUserId,
   messages,
+  avatars = {},
 }: {
   weddingId: string;
   vendorUserId: string;
   messages: MessageView[];
+  avatars?: Record<string, string | null>;
 }) {
   const router = useRouter();
   const action = sendMessage.bind(null, weddingId, vendorUserId);
@@ -63,30 +64,36 @@ export function MessageThread({
   }, [router, weddingId, vendorUserId]);
 
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-[28px]">
-      <HeroPhoto src="/hero/venue.jpg" position="center 62%" sizes="80vw" veil="none" soft />
-      <div className="relative flex flex-col gap-4 px-3 py-4 pb-28 md:h-[min(70dvh,40rem)] md:overflow-y-auto md:pb-4">
+    <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-28 md:pb-4">
         {shown.length === 0 ? <p className="text-base text-ink">Écrivez le premier message.</p> : null}
-        {shown.map((message) => (
-          <article key={message.id} className={`flex max-w-[85%] items-end gap-2 ${message.mine ? "ml-auto flex-row-reverse" : "mr-auto"}`}>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent bg-paper text-sm font-medium text-ink">
-              {initials(message.authorName)}
-            </span>
-            <div>
-              <div
-                className={
-                  message.mine
-                    ? "rounded-[24px] bg-ink px-4 py-3 text-ivory"
-                    : "rounded-[24px] border border-white/50 bg-white/55 px-4 py-3 text-ink shadow-[var(--vow-shadow)] backdrop-blur-md"
-                }
-              >
-                {message.mine ? null : <p className="mb-1 text-sm font-medium text-ink">{message.authorName}</p>}
-                <p className="whitespace-pre-wrap text-base leading-7">{message.body}</p>
+        {shown.map((message) => {
+          const photo = avatars[message.authorId] ?? null;
+          return (
+            <article key={message.id} className={`flex max-w-[85%] items-end gap-2 ${message.mine ? "ml-auto" : "mr-auto"}`}>
+              {message.mine ? null : photo ? (
+                <img src={photo} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-medium text-ink">
+                  {initials(message.authorName)}
+                </span>
+              )}
+              <div>
+                <div
+                  className={
+                    message.mine
+                      ? "rounded-[24px] bg-[#1c1b19]/80 px-4 py-3 text-[#f7f3ec] backdrop-blur-md"
+                      : "rounded-[24px] border border-white/70 bg-white/75 px-4 py-3 text-ink shadow-[var(--vow-shadow)] backdrop-blur-md"
+                  }
+                >
+                  {message.mine ? null : <p className="mb-1 text-sm font-medium text-ink">{message.authorName}</p>}
+                  <p className="whitespace-pre-wrap text-base leading-7">{message.body}</p>
+                </div>
+                <p className={`mt-1 text-xs text-ink ${message.mine ? "text-right" : ""}`}>{formatDateTime(message.createdAt)}</p>
               </div>
-              <p className={`mt-1 text-xs text-ink/70 ${message.mine ? "text-right" : ""}`}>{formatDateTime(message.createdAt)}</p>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
         <div ref={bottom} />
       </div>
       <form
@@ -100,7 +107,7 @@ export function MessageThread({
           }
           await formAction(formData);
         }}
-        className="fixed inset-x-0 z-30 flex items-end gap-2 border-t border-line bg-paper/95 px-3 py-3 backdrop-blur bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:static md:z-10 md:mt-3 md:border-0 md:bg-transparent md:px-3 md:py-0 md:backdrop-blur-none"
+        className="fixed inset-x-3 z-30 flex items-center gap-2 rounded-full border border-white/70 bg-white/65 p-1.5 shadow-[var(--vow-shadow)] backdrop-blur-md bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:static md:z-10 md:mx-3 md:mb-3"
       >
         <label className="sr-only" htmlFor="chat-body">Message</label>
         <textarea
@@ -109,14 +116,19 @@ export function MessageThread({
           name="body"
           rows={1}
           required
-          placeholder="Message"
-          className="max-h-32 min-h-12 flex-1 resize-none rounded-full border border-line bg-paper px-5 py-3 text-base text-ink outline-none focus:border-accent"
+          placeholder="Écrire un message…"
+          className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-4 py-2 text-base text-ink outline-none"
         />
-        <Button type="submit" disabled={pending}>
-          {pending ? "…" : "Envoyer"}
-        </Button>
+        <button
+          type="submit"
+          aria-label="Envoyer"
+          disabled={pending}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-ink disabled:opacity-50"
+        >
+          <Send className="h-5 w-5" aria-hidden />
+        </button>
       </form>
-      {state.error ? <Alert>{state.error}</Alert> : null}
+      {state.error ? <div className="px-4 pb-3"><Alert>{state.error}</Alert></div> : null}
     </div>
   );
 }

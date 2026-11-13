@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock, FolderOpen, Users, Wallet, type LucideIcon } from "lucide-react";
+import { ChevronRight, Clock, FolderOpen, Users, Wallet, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { countLabel, moneyStatus, questionStatus, sheetStatus } from "@/lib/doma
 import { reminderKindLabel } from "@/lib/domain/reminders";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
-import { formatEuros } from "@/lib/domain/money";
+import { compareWeddingTimes } from "@/lib/domain/day";
 import { formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import { siteUrl } from "@/lib/env";
@@ -35,7 +35,7 @@ export default async function WeddingOverviewPage({
   const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
   const showGallery = canDeliver(space.actingAsCouple ? "couple" : space.role, space.session.vendor?.category ?? null);
   const showInvite = space.host;
-  const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites, vendorInvites, budgetLines, weddingBudget, requests, slots] = await Promise.all([
+  const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites, vendorInvites, budgetLines, weddingBudget, requests, slots, vaultItems, appointments] = await Promise.all([
     vendorIds.length
       ? supabase.from("vendor_profiles").select("id, business_name, user_id, category").in("user_id", vendorIds)
       : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string; category: string }[] }),
@@ -54,8 +54,10 @@ export default async function WeddingOverviewPage({
     supabase.from("invitations").select("id").eq("wedding_id", id).eq("invited_role", "vendor").is("accepted_at", null),
     supabase.from("budget_lines").select("amount_cents, paid").eq("wedding_id", id),
     supabase.from("wedding_budgets").select("total_cents").eq("wedding_id", id).maybeSingle(),
-    supabase.from("wedding_document_requests").select("status").eq("wedding_id", id),
+    supabase.from("wedding_document_requests").select("status, title, due_on").eq("wedding_id", id),
     supabase.from("timeline_slots").select("title, starts_at").eq("wedding_id", id).order("sort_order"),
+    supabase.from("vault_items").select("id").eq("wedding_id", id),
+    supabase.from("appointments").select("full_name, note, starts_at, status").eq("wedding_id", id).order("starts_at"),
   ]);
   const questionIds = new Set((questions.data ?? []).map((row) => row.id));
   const answers = (items.data ?? []).filter((row) => questionIds.has(row.questionnaire_id)).map((row) => row.answer);
@@ -70,16 +72,25 @@ export default async function WeddingOverviewPage({
   const galleryCount = files.data?.length ?? 0;
   const fiche = space.actingAsCouple ? "Infos pratiques" : "Ma fiche";
   const vendorCount = space.members.filter((member) => member.role === "vendor").length;
-  const documentCount = documents.data?.length ?? 0;
+  const documentCount = (documents.data?.length ?? 0) + (vaultItems.data?.length ?? 0);
   const budgetText =
     space.role === "couple" || space.actingAsCouple
       ? "Privé"
       : moneyStatus((invoices.data ?? []).map((row) => row.status), quotes.data?.length ?? 0);
-  const nextStep = countdownLabel(daysUntil(space.wedding.wedding_date, todayIso()));
   const vendorStat = vendorStatCard(vendorCount, vendorInvites.data?.length ?? 0);
   const documentStat = documentStatCard(requests.data ?? [], documentCount);
   const budgetStat = budgetStatCard(budgetLines.data ?? [], weddingBudget.data?.total_cents ?? null, invoices.data ?? [], budgetText);
-  const stepStat = stepStatCard(slots.data ?? [], space.wedding.wedding_date, nextStep);
+  const stepStat = stepStatCard({
+    appointment: nextAppointment(appointments.data ?? []),
+    request: nextRequest(requests.data ?? [], todayIso()),
+    slot: nextSlot(slots.data ?? []),
+    weddingDate: space.wedding.wedding_date,
+    hrefs: {
+      rdv: space.role === "couple" || space.actingAsCouple ? `/mariage/${id}/rdv` : "/espace/rendez-vous",
+      documents: `/mariage/${id}/documents`,
+      jour: `/mariage/${id}/jour`,
+    },
+  });
   return (
     <div className="grid gap-6">
       <div className="relative z-10 -mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -91,7 +102,7 @@ export default async function WeddingOverviewPage({
           title="Budget"
           {...budgetStat}
         />
-        <SummaryCard href={`/mariage/${id}/jour`} icon={Clock} title="Prochaine étape" {...stepStat} />
+        <SummaryCard href={stepStat.href} icon={Clock} title="Prochaine étape" value={stepStat.value} detail={stepStat.detail} progress={stepStat.progress} />
       </div>
       <Card>
         <h2 className="text-lg font-semibold tracking-tight">{space.role === "couple" || space.actingAsCouple ? "Prestataires" : "Membres"}</h2>
@@ -313,12 +324,13 @@ function SummaryCard({
   progress: number | null;
 }) {
   return (
-    <Link href={href} className="rounded-[28px] border border-line bg-paper p-5 text-center shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
+    <Link href={href} className="relative rounded-[28px] border border-line bg-paper p-5 text-center shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
+      <ChevronRight className="absolute right-4 top-4 h-5 w-5 text-ink/50" aria-hidden />
       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent text-accent">
         <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
       </span>
       <p className="mt-4 text-base font-medium text-ink">{title}</p>
-      <p className="mt-2 font-serif text-4xl font-normal leading-none text-ink">{value}</p>
+      <p className={`mt-2 font-serif font-normal leading-none text-ink ${value.length > 8 ? "text-3xl" : "text-5xl"}`}>{value}</p>
       <p className="mt-2 text-sm leading-6 text-ink">{detail}</p>
       {progress === null ? null : (
         <span className="mt-4 block h-1.5 overflow-hidden rounded-full bg-accent-soft">
@@ -331,26 +343,26 @@ function SummaryCard({
 
 function vendorStatCard(confirmed: number, waiting: number) {
   const expected = confirmed + waiting;
-  if (expected === 0) return { value: "À ajouter", detail: "Aucun prestataire pour l'instant", progress: null };
+  if (expected === 0) return { value: "0/0", detail: "Aucun prestataire pour l'instant", progress: null };
   return {
-    value: String(confirmed),
-    detail: `${confirmed} confirmé${confirmed > 1 ? "s" : ""} sur ${expected}`,
+    value: `${confirmed}/${expected}`,
+    detail: "confirmés",
     progress: confirmed / expected,
   };
 }
 
 function documentStatCard(requests: { status: string }[], files: number) {
-  if (requests.length === 0) {
-    if (files === 0) return { value: "À ajouter", detail: "Aucun document pour l'instant", progress: null };
-    return { value: String(files), detail: files > 1 ? `${files} fichiers déposés` : "1 fichier déposé", progress: null };
+  const pending = requests.filter((row) => row.status !== "validated").length;
+  if (pending > 0) {
+    const done = requests.length - pending;
+    return {
+      value: `${pending} en attente`,
+      detail: files > 0 ? `${files} fichier${files > 1 ? "s" : ""}` : "Demandes ouvertes",
+      progress: requests.length === 0 ? null : done / requests.length,
+    };
   }
-  const done = requests.filter((row) => row.status === "validated").length;
-  const pending = requests.length - done;
-  return {
-    value: pending === 0 ? "À jour" : String(pending),
-    detail: `${done} validé${done > 1 ? "s" : ""} sur ${requests.length}`,
-    progress: done / requests.length,
-  };
+  if (files > 0) return { value: files > 1 ? `${files} fichiers` : "1 fichier", detail: "Coffre et documents", progress: null };
+  return { value: "À jour", detail: "Rien en attente", progress: null };
 }
 
 function budgetStatCard(
@@ -362,22 +374,72 @@ function budgetStatCard(
   const planned = lines.reduce((sum, line) => sum + line.amount_cents, 0) || plannedTotal || 0;
   const spent = lines.filter((line) => line.paid).reduce((sum, line) => sum + line.amount_cents, 0);
   if (planned > 0) {
-    return { value: formatEuros(spent), detail: `sur ${formatEuros(planned)}`, progress: Math.min(1, spent / planned) };
+    const ratio = Math.min(1, spent / planned);
+    return { value: `${Math.round(ratio * 100)} %`, detail: `Dépensé : ${wholeEuros(spent)} / ${wholeEuros(planned)}`, progress: ratio };
   }
   const billed = invoices.reduce((sum, row) => sum + row.amount_cents, 0);
   const paid = invoices.filter((row) => row.status === "paid").reduce((sum, row) => sum + row.amount_cents, 0);
   if (billed > 0) {
-    return { value: formatEuros(paid), detail: `sur ${formatEuros(billed)} facturé`, progress: Math.min(1, paid / billed) };
+    const ratio = Math.min(1, paid / billed);
+    return { value: `${Math.round(ratio * 100)} %`, detail: `Dépensé : ${wholeEuros(paid)} / ${wholeEuros(billed)}`, progress: ratio };
   }
-  if (fallback === "Aucun" || fallback === "Privé") return { value: "À ajouter", detail: "Aucun montant prévu", progress: null };
+  if (fallback === "Aucun" || fallback === "Privé") return { value: "0 %", detail: "Aucun montant prévu", progress: null };
   return { value: fallback, detail: "D'après les devis et factures", progress: null };
 }
 
-function stepStatCard(slots: { title: string; starts_at: string }[], weddingDate: string, countdown: string) {
-  const next = slots[0];
-  if (!next) return { value: "À ajouter", detail: formatLongDate(weddingDate), progress: null };
-  const time = /^\d{2}:\d{2}/.test(next.starts_at) ? formatSlotTime(next.starts_at) : "";
-  return { value: next.title, detail: time ? `${formatLongDate(weddingDate)} · ${time}` : countdown, progress: null };
+function wholeEuros(cents: number) {
+  return `${Math.round(cents / 100).toLocaleString("fr-FR")} €`;
+}
+
+function nextAppointment(rows: { full_name: string; note: string; starts_at: string; status: string }[]) {
+  const now = Date.now();
+  return (
+    rows
+      .filter((row) => row.status !== "cancelled" && Date.parse(row.starts_at) >= now)
+      .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at))[0] ?? null
+  );
+}
+
+function nextRequest(rows: { title: string; due_on: string | null; status: string }[], today: string) {
+  return (
+    rows
+      .filter((row) => row.status !== "validated" && row.due_on && row.due_on >= today)
+      .sort((a, b) => (a.due_on ?? "").localeCompare(b.due_on ?? ""))[0] ?? null
+  );
+}
+
+function nextSlot(rows: { title: string; starts_at: string }[]) {
+  return [...rows].sort((a, b) => compareWeddingTimes(a.starts_at, b.starts_at))[0] ?? null;
+}
+
+function stepStatCard({
+  appointment,
+  request,
+  slot,
+  weddingDate,
+  hrefs,
+}: {
+  appointment: { full_name: string; note: string; starts_at: string } | null;
+  request: { title: string; due_on: string | null } | null;
+  slot: { title: string; starts_at: string } | null;
+  weddingDate: string;
+  hrefs: { rdv: string; documents: string; jour: string };
+}) {
+  if (appointment) {
+    const when = new Date(appointment.starts_at);
+    const detail = Number.isNaN(when.getTime())
+      ? appointment.starts_at
+      : new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(when);
+    return { href: hrefs.rdv, value: appointment.note.trim() || appointment.full_name || "Rendez-vous", detail, progress: null };
+  }
+  if (request?.due_on) {
+    return { href: hrefs.documents, value: request.title, detail: formatLongDate(request.due_on), progress: null };
+  }
+  if (slot) {
+    const time = /^\d{2}:\d{2}/.test(slot.starts_at) ? formatSlotTime(slot.starts_at) : "";
+    return { href: hrefs.jour, value: slot.title, detail: time ? `${formatLongDate(weddingDate)} · ${time}` : formatLongDate(weddingDate), progress: null };
+  }
+  return { href: hrefs.jour, value: "À planifier", detail: formatLongDate(weddingDate), progress: null };
 }
 
 function CameraIcon() {
