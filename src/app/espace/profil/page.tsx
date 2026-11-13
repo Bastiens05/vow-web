@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { AccountNav } from "@/components/layout/account-nav";
+import { ContactFormLink } from "@/components/account/contact-form-link";
 import { OffersEditor } from "@/components/vendor/offers-editor";
 import { PhotoManager } from "@/components/vendor/photo-manager";
 import { ProfileForm } from "@/components/vendor/profile-form";
@@ -8,6 +10,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ButtonLink } from "@/components/ui/button";
 import { getVendorEditor } from "@/server/data";
 import { requireSession } from "@/server/session";
+import { siteUrl } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Ma vitrine" };
 
@@ -18,6 +21,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <AccountNav admin={session.isAdmin} />
       <PageHeader
         eyebrow="Vitrine"
         title="Votre page publique"
@@ -30,6 +34,19 @@ export default async function ProfilePage() {
           ) : null
         }
       />
+      {vendor ? (
+        <Card className="mb-6">
+          <h2 className="text-lg font-semibold tracking-tight">Lien pour votre bio</h2>
+          <div className="mt-3">
+            <ContactFormLink url={`${siteUrl()}/demande/${vendor.slug}`} />
+          </div>
+          <div className="mt-4">
+            <ButtonLink href="/demandes" variant="ghost">
+              Voir les demandes
+            </ButtonLink>
+          </div>
+        </Card>
+      ) : null}
       <Card>
         <ProfileForm vendor={vendor} />
       </Card>

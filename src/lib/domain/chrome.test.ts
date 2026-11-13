@@ -15,7 +15,7 @@ describe("isPublicPath", () => {
 
 describe("backTarget", () => {
   it("gives top-level tabs no back link, including the weddings list", () => {
-    for (const path of ["/espace", "/mariages", "/demandes", "/alertes", "/reglages"]) {
+    for (const path of ["/espace", "/mariages", "/demandes", "/nouveautes", "/reglages"]) {
       expect(backTarget(path, "vendor", false)).toBeNull();
       expect(isTopLevelPath(path)).toBe(true);
     }
@@ -24,7 +24,7 @@ describe("backTarget", () => {
   it("sends a wedding back to the list, and a sheet back to the wedding", () => {
     expect(backTarget("/mariage/abc", "vendor", false)).toEqual({ label: "Mariages", href: "/mariages" });
     expect(backTarget("/mariage/abc", "couple", true)).toEqual({ label: "Accueil", href: "/espace" });
-    expect(backTarget("/mariage/abc/devis", "vendor", false)).toEqual({ label: "Aperçu", href: "/mariage/abc" });
+    expect(backTarget("/mariage/abc/devis", "vendor", false)).toEqual({ label: "Mariages", href: "/mariages" });
     expect(backTarget("/mariage/abc/devis", "vendor", false)?.href).not.toBe("/mariage/abc/devis");
   });
 });

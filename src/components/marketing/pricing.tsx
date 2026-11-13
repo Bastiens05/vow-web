@@ -10,7 +10,7 @@ import {
 
 export function Pricing() {
   return (
-    <section id="formules" className="relative overflow-hidden border-t border-line bg-ivory">
+    <section id="tarifs" className="relative overflow-hidden border-t border-line bg-ivory">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--vow-ink)_8%,transparent),transparent_70%)]"
@@ -47,7 +47,7 @@ function PlanCard({ plan, featured }: { plan: VendorPlan; featured: boolean }) {
   return (
     <li
       className={cn(
-        "flex h-full flex-col rounded-[2rem] border p-6 lg:p-8",
+        "flex h-full flex-col rounded-3xl border border-line p-6 shadow-[var(--vow-shadow)] lg:p-8",
         featured
           ? "border-ink bg-ink text-ivory shadow-[var(--vow-shadow)] lg:-translate-y-3"
           : "border-line bg-paper text-ink",

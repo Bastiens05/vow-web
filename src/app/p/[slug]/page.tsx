@@ -8,6 +8,8 @@ import { categoryLabel } from "@/lib/domain/categories";
 import { featureEnabled } from "@/lib/domain/plans";
 import { publicCoupleName } from "@/lib/domain/references";
 import { formatPriceCents } from "@/lib/domain/price";
+import { visiblePrice } from "@/lib/domain/promo";
+import { todayIso } from "@/lib/domain/format";
 import { publicObjectUrl } from "@/lib/storage";
 import { getPublicVendor } from "@/server/data";
 import { createClient } from "@/lib/supabase/server";
@@ -83,9 +85,7 @@ export default async function PublicVendorPage({ params }: PageProps) {
               <Card key={offer.id}>
                 <h3 className="font-semibold tracking-tight text-2xl">{offer.title}</h3>
                 {offer.description ? <p className="mt-2 text-sm leading-6 text-muted">{offer.description}</p> : null}
-                {offer.price_cents !== null ? (
-                  <p className="mt-3 text-sm text-gold-deep">{formatPriceCents(offer.price_cents)}</p>
-                ) : null}
+                {offer.price_cents !== null ? <OfferPrice offer={offer} /> : null}
               </Card>
             ))}
           </div>
@@ -144,6 +144,41 @@ export default async function PublicVendorPage({ params }: PageProps) {
           <Badge>{vendor.city || "France"}</Badge>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function OfferPrice({
+  offer,
+}: {
+  offer: {
+    price_cents: number | null;
+    promo_kind: "percent" | "amount" | null;
+    promo_value: number | null;
+    promo_label: string;
+    promo_starts_on: string | null;
+    promo_ends_on: string | null;
+  };
+}) {
+  const price = visiblePrice(
+    {
+      priceCents: offer.price_cents,
+      promoKind: offer.promo_kind,
+      promoValue: offer.promo_value,
+      promoLabel: offer.promo_label,
+      promoStartsOn: offer.promo_starts_on,
+      promoEndsOn: offer.promo_ends_on,
+    },
+    todayIso(),
+  );
+  if (price.currentCents === null) return null;
+  return (
+    <div className="mt-3">
+      {price.originalCents !== null ? (
+        <p className="text-sm text-muted line-through">{formatPriceCents(price.originalCents)}</p>
+      ) : null}
+      <p className="text-sm text-gold-deep">{formatPriceCents(price.currentCents)}</p>
+      {price.badge ? <p className="mt-2 inline-flex rounded-full bg-ink px-3 py-1 text-xs text-ivory">{price.badge}</p> : null}
     </div>
   );
 }

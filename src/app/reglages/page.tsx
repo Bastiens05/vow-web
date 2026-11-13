@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccountNav } from "@/components/layout/account-nav";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ShareForm } from "@/components/account/share-form";
 import { PhoneFactorForm } from "@/components/account/phone-factor";
@@ -9,13 +10,21 @@ import {
   NotificationForm,
   PasswordForm,
 } from "@/components/account/settings-forms";
+import { BillingControls } from "@/app/abonnement/offer";
+import { ContactFormLink } from "@/components/account/contact-form-link";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { stripeEnabled, stripeTestMode } from "@/server/stripe";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { rotateCalendar } from "@/server/actions/suite";
 import { requireSession } from "@/server/session";
+import { ClientDocumentSettings } from "@/components/account/client-document-settings";
+import { VendorVaultBoard } from "@/components/account/vendor-vault-board";
+import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
+import { documentSuggestions } from "@/lib/domain/client-documents";
+import { isVendorCategory } from "@/lib/domain/categories";
 import { AvailabilityForm, TeamInviteForm } from "./extras";
 
 export const metadata: Metadata = { title: "Réglages" };
@@ -25,6 +34,21 @@ export default async function SettingsPage() {
   const vendor = session.profile.role === "vendor";
   const owner = Boolean(session.vendor && session.vendor.user_id === session.userId);
   const supabase = await createClient();
+  const { data: vaultFiles } = owner && session.vendor
+    ? await supabase
+        .from("vendor_vault_files")
+        .select("id, title, category, file_name, expires_on, alert_days, auto_share")
+        .eq("vendor_id", session.vendor.id)
+        .order("created_at", { ascending: false })
+    : { data: [] };
+  const { data: templates } = owner && session.vendor
+    ? await supabase
+        .from("vendor_document_templates")
+        .select("id, title, note, required, offset_days")
+        .eq("vendor_id", session.vendor.id)
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true })
+    : { data: [] };
   const { data: feedToken } = await supabase.rpc("ensure_calendar_feed");
   const feed = feedToken ? `${siteUrl()}/api/calendar/${feedToken}` : "";
   const webcal = feed.replace(/^https?:/, "webcal:");
@@ -36,6 +60,7 @@ export default async function SettingsPage() {
         title="Réglages"
         description="Le compte, l'activité et la sortie."
       />
+      {vendor ? <AccountNav admin={session.isAdmin} /> : null}
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Compte</h2>
         <p className="text-sm text-muted">E-mail de connexion : {session.email}</p>
@@ -64,6 +89,59 @@ export default async function SettingsPage() {
               </ButtonLink>
             ) : null}
           </div>
+        </Card>
+      ) : null}
+      {owner && session.vendor ? (
+        <Card>
+          <VendorVaultBoard
+            userId={session.userId}
+            today={new Date().toISOString().slice(0, 10)}
+            files={(vaultFiles ?? []).flatMap((file) =>
+              isVendorVaultCategory(file.category)
+                ? [
+                    {
+                      id: file.id,
+                      title: file.title,
+                      category: file.category,
+                      fileName: file.file_name,
+                      expiresOn: file.expires_on,
+                      alertDays: file.alert_days,
+                      autoShare: file.auto_share,
+                    },
+                  ]
+                : [],
+            )}
+          />
+        </Card>
+      ) : null}
+      {owner && session.vendor ? (
+        <Card>
+          <ClientDocumentSettings
+            templates={(templates ?? []).map((item) => ({
+              id: item.id,
+              title: item.title,
+              note: item.note,
+              required: item.required,
+              offsetDays: item.offset_days,
+            }))}
+            suggestions={documentSuggestions(isVendorCategory(session.vendor.category) ? session.vendor.category : null)}
+          />
+        </Card>
+      ) : null}
+      {vendor ? (
+        <Card className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Abonnement</h2>
+          <p className="text-sm leading-6 text-muted">
+            Ajoutez une carte ou un prélèvement SEPA, puis gérez la formule, les factures et la résiliation.
+          </p>
+          <BillingControls
+            enabled={stripeEnabled()}
+            testMode={stripeTestMode()}
+            hasCustomer={Boolean(session.billing?.stripe_customer_id)}
+          />
+          <ButtonLink href="/abonnement" variant="secondary">
+            Voir les formules
+          </ButtonLink>
         </Card>
       ) : null}
       <Card className="space-y-4">
@@ -130,6 +208,35 @@ export default async function SettingsPage() {
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold tracking-tight">Double sécurité par SMS</h2>
           <PhoneFactorForm />
+        </Card>
+      ) : null}
+      {vendor && session.vendor ? (
+        <Card className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Ma vitrine</h2>
+          <p className="text-sm leading-6 text-muted">
+            La page publique et le formulaire de contact à mettre dans votre bio.
+          </p>
+          <ContactFormLink url={`${siteUrl()}/demande/${session.vendor.slug}`} />
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href="/espace/profil" variant="secondary">
+              Modifier la vitrine
+            </ButtonLink>
+            {session.vendor.published ? (
+              <ButtonLink href={`/p/${session.vendor.slug}`} variant="secondary">
+                Voir la page
+              </ButtonLink>
+            ) : null}
+            <ButtonLink href="/demandes" variant="secondary">
+              Demandes reçues
+            </ButtonLink>
+          </div>
+        </Card>
+      ) : null}
+      {vendor ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Abonnement</h2>
+          <p className="text-sm leading-6 text-muted">La formule de votre espace prestataire.</p>
+          <ButtonLink href="/abonnement">Ouvrir l&apos;abonnement</ButtonLink>
         </Card>
       ) : null}
       <Card>

@@ -1,6 +1,9 @@
+import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { categoryLabel } from "@/lib/domain/categories";
-import { coupleFullNames, formatLongDate, weddingTitle } from "@/lib/domain/format";
+import { coupleFullNames, formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
+import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +40,15 @@ export default async function WeddingLayout({
     space.wedding.partner_two_name,
     space.wedding.partner_two_last_name,
   );
+  const path = (await headers()).get("x-vow-path") ?? "";
+  const overview = path === `/mariage/${id}`;
+  const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser";
+  const roleLine = coupleView
+    ? null
+    : vendor
+      ? `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}`
+      : "Espace";
+  const figure = heroCountdown(daysUntil(space.wedding.wedding_date, todayIso())).figure;
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
       <RealtimeRefresh
@@ -60,20 +72,42 @@ export default async function WeddingLayout({
         <p className="min-w-0 flex-1 truncate text-sm text-muted">{space.title}</p>
       </div>
       )}
-      <p className="text-[11px] uppercase tracking-[0.22em] text-gold-deep">
-        {formatLongDate(space.wedding.wedding_date)}
-      </p>
-      <h1 className="mt-2 font-semibold tracking-tight text-4xl sm:text-5xl">{space.title}</h1>
-      {fullNames ? <p className="mt-2 text-sm text-muted">{fullNames}</p> : null}
-      <p className="mt-2 text-sm text-muted">
-        {[space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser"}
-      </p>
-      {coupleView ? null : (
-      <p className="mb-8 mt-3 text-sm font-medium">
-        {vendor ? `Espace prestataire${space.session.vendor ? ` · ${categoryLabel(space.session.vendor.category)}` : ""}` : "Espace"}
-      </p>
+      {overview ? (
+        <section
+          className="relative -mx-4 mb-2 flex min-h-[34rem] items-center justify-center overflow-hidden px-6 py-16 text-center text-[#f7f3ec] sm:-mx-6"
+          style={{
+            backgroundImage:
+              "linear-gradient(to top, rgba(18,17,16,0.78), rgba(18,17,16,0.28) 48%, rgba(18,17,16,0.18)), url(/hero/lieu.jpg)",
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+          }}
+        >
+          <div>
+            <h1 className="font-serif text-5xl font-normal tracking-tight text-[#f7f3ec] sm:text-7xl">{space.title}</h1>
+            <p className="mt-4 text-base text-[#f7f3ec]/85">{formatLongDate(space.wedding.wedding_date)}</p>
+            <p className="text-base text-[#f7f3ec]/85">{venue}</p>
+            {fullNames ? <p className="mt-2 text-sm text-[#f7f3ec]/75">{fullNames}</p> : null}
+            <p className="mt-6 font-serif text-7xl font-normal leading-none tracking-tight text-[#f7f3ec] sm:text-8xl">{figure}</p>
+            {roleLine ? <p className="mt-4 text-sm text-[#f7f3ec]/75">{roleLine}</p> : null}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link href={`/mariage/${id}/jour`} className="inline-flex min-h-12 items-center rounded-2xl bg-[#1c1b19] px-5 text-sm font-medium text-[#f7f3ec]">
+                Ouvrir le Jour J
+              </Link>
+              <Link href={`/mariage/${id}/messages`} className="inline-flex min-h-12 items-center rounded-2xl bg-[#fbf8f3] px-5 text-sm font-medium text-[#1c1b19]">
+                Messages
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <header className="mb-8">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-accent">{formatLongDate(space.wedding.wedding_date)}</p>
+          <h1 className="mt-2 text-4xl tracking-tight sm:text-5xl">{space.title}</h1>
+          {fullNames ? <p className="mt-2 text-sm text-muted">{fullNames}</p> : null}
+          <p className="mt-2 text-sm text-muted">{venue}</p>
+          {roleLine ? <p className="mt-3 text-sm font-medium">{roleLine}</p> : null}
+        </header>
       )}
-      {coupleView ? <div className="mb-8" /> : null}
       {children}
     </div>
   );

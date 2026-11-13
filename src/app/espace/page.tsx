@@ -76,6 +76,13 @@ export default async function DashboardPage() {
     : { data: [] as { kind: string }[] };
   const recoClicks = (recoEvents ?? []).filter((event) => event.kind === "click").length;
   const recoLeads = (recoEvents ?? []).filter((event) => event.kind === "lead").length;
+  const { count: newLeads } = isVendor && session.vendor
+    ? await supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_id", session.vendor.id)
+        .eq("status", "nouvelle")
+    : { count: 0 };
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
@@ -99,6 +106,15 @@ export default async function DashboardPage() {
           <p className="mt-3 max-w-xl text-base text-muted">Créez votre espace, puis invitez vos prestataires.</p>
         </header>
       )}
+      {isVendor && (newLeads ?? 0) > 0 ? (
+        <Link href="/demandes" className="mb-8 block">
+          <Card className="transition active:scale-[0.99]">
+            <p className="text-sm font-medium">Nouvelles demandes de contact</p>
+            <p className="mt-1 text-2xl font-semibold">{newLeads}</p>
+            <p className="mt-1 text-xs text-muted">{newLeads === 1 ? "1 demande à lire" : `${newLeads} demandes à lire`}</p>
+          </Card>
+        </Link>
+      ) : null}
       {ledger ? (
         <section className="mb-8 grid gap-3 sm:grid-cols-3">
           <Card>
@@ -193,7 +209,7 @@ export default async function DashboardPage() {
           </EmptyState>
         </div>
       ) : null}
-      {isVendor ? <WeddingDirectory weddings={weddings} /> : null}
+      {isVendor ? <WeddingDirectory weddings={weddings} upcomingTitle="Prochains mariages" /> : null}
     </div>
   );
 }

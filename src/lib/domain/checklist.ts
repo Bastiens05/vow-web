@@ -14,7 +14,6 @@ export function vendorSteps(input: {
   hasTimeline: boolean;
   hasDocument: boolean;
 }): Step[] {
-  const wedding = input.primaryWeddingId;
   return [
     {
       id: "profile",
@@ -31,19 +30,19 @@ export function vendorSteps(input: {
     {
       id: "couple",
       label: "Inviter le couple",
-      href: wedding ? `/mariage/${wedding}/inviter` : "/espace/mariages/nouveau",
+      href: "/mariages",
       done: input.coupleJoined,
     },
     {
       id: "timeline",
       label: "Poser le programme du jour",
-      href: wedding ? `/mariage/${wedding}/jour` : "/espace",
+      href: "/mariages",
       done: input.hasTimeline,
     },
     {
       id: "document",
       label: "Déposer un document",
-      href: wedding ? `/mariage/${wedding}/documents` : "/espace",
+      href: "/mariages",
       done: input.hasDocument,
     },
   ];

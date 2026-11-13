@@ -15,6 +15,7 @@ const invited: TesterGrantRow = {
   plan: "studio",
   free_until: "2027-11-12T12:00:00.000Z",
   discount_percent: 40,
+  grant_type: "tester",
   status: "invited",
   token: "apercu-token-invite",
   created_at: "2026-11-12T12:00:00.000Z",

@@ -1,35 +1,45 @@
 import type { Metadata } from "next";
+import { AccountNav } from "@/components/layout/account-nav";
 import { redirect } from "next/navigation";
-import { CodeForm } from "@/app/admin/code-form";
 import { TesterOfferBoard, type TesterGrantRow } from "@/components/admin/tester-offer-board";
+import { ButtonLink } from "@/components/ui/button";
 import { categoryLabel } from "@/lib/domain/categories";
 import type { VendorCategory } from "@/lib/domain/categories";
 import { vendorAccess } from "@/lib/domain/billing";
-import { isVendorPlan } from "@/lib/domain/plans";
+import { effectiveVendorPlan, isVendorPlan, planLabel } from "@/lib/domain/plans";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 
 export const metadata: Metadata = { title: "Administration" };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string; trade?: string; plan?: string }>;
+}) {
+  const query = await searchParams;
   const session = await requireSession();
   if (!session.isAdmin) redirect("/espace");
   const supabase = await createClient();
-  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: codes }, { data: grants }] = await Promise.all([
+  const [{ data: vendors }, { data: bills }, { data: profiles }, { data: grants }, { data: notices }] = await Promise.all([
     supabase.from("vendor_profiles").select("id, business_name, category, city, user_id, weddings_per_year").order("business_name"),
-    supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until"),
-    supabase.from("profiles").select("id, email, full_name"),
-    supabase.from("tester_codes").select("id, label, max_uses, use_count, expires_at, access_until").order("created_at", { ascending: false }),
-    supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, status, token, created_at").order("created_at", { ascending: false }),
+    supabase.from("vendor_billing").select("vendor_id, status, trial_ends_at, tester_until, plan, comped"),
+    supabase.from("profiles").select("id, email, full_name, role, created_at").order("created_at", { ascending: false }),
+    supabase.from("tester_grants").select("id, email, first_name, last_name, trade, plan, free_until, discount_percent, grant_type, status, token, created_at").order("created_at", { ascending: false }),
+    supabase.from("grant_notices").select("grant_id, activated_at"),
   ]);
+  const pendingGrants = new Set((notices ?? []).filter((notice) => !notice.activated_at).map((notice) => notice.grant_id));
   const billByVendor = new Map((bills ?? []).map((bill) => [bill.vendor_id, bill]));
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  const vendorByUser = new Map((vendors ?? []).map((vendor) => [vendor.user_id, vendor]));
+  const recent = (profiles ?? []).slice(0, 12);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-8">
+      <AccountNav admin />
       <p className="text-xs font-medium text-gold-deep">Administration</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">Prestataires</h1>
-      <p className="mt-2 text-sm text-muted">Essais, abonnements et codes. Le code saisi ici n&apos;est pas conservé en clair.</p>
+      <p className="mt-2 text-sm text-muted">Essais, abonnements et invitations.</p>
       <div className="mt-8 overflow-x-auto rounded-3xl border border-line bg-paper">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead className="text-muted">
@@ -68,38 +78,62 @@ export default async function AdminPage() {
           </tbody>
         </table>
       </div>
-      <TesterOfferBoard
-        grants={(grants ?? []).flatMap((grant): TesterGrantRow[] =>
-          isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan }] : [],
-        )}
-      />
-      <section className="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-3xl border border-line bg-paper p-5">
-          <h2 className="text-lg font-semibold tracking-tight">Nouveau code</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Sans date de fin, l&apos;accès reste ouvert. Le nombre d&apos;utilisations est un maximum.
-          </p>
-          <div className="mt-4">
-            <CodeForm />
-          </div>
-        </div>
-        <div className="rounded-3xl border border-line bg-paper p-5">
-          <h2 className="text-lg font-semibold tracking-tight">Codes</h2>
-          <ul className="mt-4 divide-y divide-line">
-            {(codes ?? []).length === 0 ? <li className="py-3 text-sm text-muted">Aucun code.</li> : null}
-            {(codes ?? []).map((code) => (
-              <li key={code.id} className="py-3 text-sm">
-                <p className="font-medium">{code.label}</p>
-                <p className="text-muted">
-                  {code.use_count}/{code.max_uses} utilisations
-                  {code.access_until ? ` · jusqu'au ${new Date(code.access_until).toLocaleDateString("fr-FR")}` : " · sans date de fin"}
-                  {code.expires_at ? ` · saisir avant le ${new Date(code.expires_at).toLocaleDateString("fr-FR")}` : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold tracking-tight">Inscriptions récentes</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Chaque nouveau compte apparaît ici et dans la cloche. Inviter ouvre le formulaire avec l&apos;e-mail déjà rempli.
+        </p>
+        <div className="mt-4 overflow-x-auto rounded-3xl border border-line bg-paper">
+          <table className="w-full min-w-[40rem] text-left text-sm">
+            <thead className="text-muted">
+              <tr>
+                <th className="px-4 py-3 font-medium">E-mail</th>
+                <th className="px-4 py-3 font-medium">Rôle</th>
+                <th className="px-4 py-3 font-medium">Métier</th>
+                <th className="px-4 py-3 font-medium">Date</th>
+                <th className="px-4 py-3 font-medium">Formule</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {recent.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-3 text-muted" colSpan={6}>
+                    Aucune inscription.
+                  </td>
+                </tr>
+              ) : null}
+              {recent.map((person) => {
+                const vendor = vendorByUser.get(person.id);
+                const bill = vendor ? billByVendor.get(vendor.id) : null;
+                const plan = bill?.plan && isVendorPlan(bill.plan) ? effectiveVendorPlan(bill.plan) : null;
+                const trade = vendor?.category ?? "";
+                const href = `/admin?email=${encodeURIComponent(person.email)}${trade ? `&trade=${encodeURIComponent(trade)}` : ""}${plan ? `&plan=${plan}` : ""}#inviter`;
+                return (
+                  <tr key={person.id} className="border-t border-line">
+                    <td className="px-4 py-3">{person.email}</td>
+                    <td className="px-4 py-3">{person.role === "vendor" ? "Prestataire" : "Mariés"}</td>
+                    <td className="px-4 py-3">{vendor ? categoryLabel(vendor.category as VendorCategory) : "—"}</td>
+                    <td className="px-4 py-3">{new Date(person.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-4 py-3">{plan ? planLabel(plan, Boolean(bill?.comped)) : "—"}</td>
+                    <td className="px-4 py-3 text-right">
+                      <ButtonLink href={href} variant="secondary">
+                        Inviter
+                      </ButtonLink>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </section>
+      <TesterOfferBoard
+        prefill={{ email: query.email, trade: query.trade, plan: query.plan }}
+        grants={(grants ?? []).flatMap((grant): TesterGrantRow[] =>
+          isVendorPlan(grant.plan) ? [{ ...grant, plan: grant.plan, pending: pendingGrants.has(grant.id) }] : [],
+        )}
+      />
     </div>
   );
 }

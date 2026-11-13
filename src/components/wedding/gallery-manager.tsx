@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FileDrop } from "@/components/ui/file-drop";
 import { Field, TextInput } from "@/components/ui/field";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +22,8 @@ export function GalleryManager({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,12 +31,11 @@ export function GalleryManager({
     const data = new FormData(form);
     const title = String(data.get("title") ?? "").trim();
     const expiry = String(data.get("expires_on") ?? "");
-    const file = data.get("file");
     if (title.length < 2) {
       setError("Donnez un titre à la livraison.");
       return;
     }
-    if (!(file instanceof File) || file.size === 0) {
+    if (!file || file.size === 0) {
       setError("Choisissez un fichier.");
       return;
     }
@@ -48,6 +50,7 @@ export function GalleryManager({
       return;
     }
     setPending(true);
+    setProgress(30);
     setError(null);
     const supabase = createClient();
     const path = `${weddingId}/${userId}/${crypto.randomUUID()}-${safeFileName(prepared.name)}`;
@@ -91,6 +94,8 @@ export function GalleryManager({
       return;
     }
     form.reset();
+    setFile(null);
+    setProgress(100);
     setPending(false);
     router.refresh();
   }
@@ -108,9 +113,14 @@ export function GalleryManager({
         <Field label="Disponible jusqu'au">
           <TextInput name="expires_on" type="date" />
         </Field>
-        <Field label="Fichier">
-          <input name="file" type="file" required className="block w-full text-sm" />
-        </Field>
+        <FileDrop
+          accept="image/jpeg,image/png,image/webp,application/pdf,video/mp4,video/quicktime,video/webm"
+          disabled={pending}
+          hint="Photo, vidéo ou PDF · 50 Mo maximum. Les photos s'ouvrent depuis votre pellicule sur téléphone."
+          names={file ? [file.name] : []}
+          progress={progress}
+          onFiles={(files) => setFile(files[0] ?? null)}
+        />
         {error ? <Alert>{error}</Alert> : null}
         <Button type="submit" disabled={pending}>{pending ? "Dépôt…" : "Déposer"}</Button>
       </form>

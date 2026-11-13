@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { FileDrop } from "@/components/ui/file-drop";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
 import { VENDOR_CATEGORIES, categoryLabel } from "@/lib/domain/categories";
 import type { QuoteDraft } from "@/lib/domain/quote-extract";
@@ -17,10 +18,7 @@ export function QuoteIntake({ weddingId, userId }: { weddingId: string; userId: 
   const [draft, setDraft] = useState<(QuoteDraft & { id: string }) | null>(null);
   const [state, action, saving] = useActionState(confirmQuoteInvite.bind(null, weddingId), {});
 
-  async function onFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+  async function onFile(file: File) {
     const check = validateUpload(file, "document");
     if (!check.ok) {
       setError(check.error);
@@ -49,10 +47,18 @@ export function QuoteIntake({ weddingId, userId }: { weddingId: string; userId: 
     <section className="mt-8 rounded-3xl border border-line bg-paper p-4">
       <h3 className="text-lg font-semibold">Inviter depuis un devis</h3>
       <p className="mt-1 text-sm text-muted">PDF ou image. Rien n&apos;est envoyé tant que vous n&apos;avez pas confirmé. Aucune commission.</p>
-      <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line px-4 text-sm">
-        {pending ? "Lecture…" : "Déposer un devis"}
-        <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void onFile(event)} />
-      </label>
+      <div className="mt-3">
+        <FileDrop
+          accept="application/pdf,image/jpeg,image/png,image/webp"
+          disabled={pending}
+          hint="PDF, JPG, PNG ou WebP · 10 Mo maximum."
+          progress={pending ? 50 : null}
+          onFiles={(files) => {
+            const file = files[0];
+            if (file) void onFile(file);
+          }}
+        />
+      </div>
       {error ? <div className="mt-3"><Alert>{error}</Alert></div> : null}
       {draft ? (
         <form action={action} className="mt-4 grid gap-3">

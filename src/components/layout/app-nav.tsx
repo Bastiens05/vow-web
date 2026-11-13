@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/logo";
 import { headers } from "next/headers";
 import { BackControl } from "@/components/layout/back-control";
 import { CoupleSidebar } from "@/components/layout/couple-sidebar";
@@ -12,6 +13,7 @@ import { coupleHeroTitle, todayIso } from "@/lib/domain/format";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
 import { getSession, type SessionProfile } from "@/server/session";
+import { publicObjectUrl } from "@/lib/storage";
 
 export async function DesktopNav() {
   const session = await getSession();
@@ -20,33 +22,70 @@ export async function DesktopNav() {
   if (session && (couple || session.profile.role === "vendor")) {
     const countdown = context.weddingDate ? heroCountdown(daysUntil(context.weddingDate, todayIso())) : null;
     const figure = countdown && countdown.figure !== "—" ? countdown.figure : null;
+    const inWedding = context.vendorInWedding && !couple;
+    const studio = session.vendor?.business_name?.trim() || "";
+    const logo = session.vendor?.logo_path ? publicObjectUrl("vendor-media", session.vendor.logo_path) : null;
     return (
       <CoupleSidebar
         items={couple ? context.coupleItems : context.sideItems}
-        weddingName={context.weddingName}
-        countdown={figure}
-        userName={session.vendor?.business_name || session.profile.full_name || "Vous"}
+        weddingName={couple ? context.weddingName : "Votre espace"}
+        countdown={couple ? figure : null}
+        userName={studio || session.profile.full_name || "Vous"}
         navLabel={couple ? "Espace mariés" : "Espace prestataire"}
+        identityHref={couple ? undefined : "/espace"}
+        identityLogo={couple ? null : logo}
+        identityMark={couple ? undefined : studio || "Votre espace"}
+        live={
+          !couple && session.profile.role === "vendor"
+            ? {
+                role: "vendor",
+                category: session.vendor?.category ?? null,
+                primaryWeddingId: null,
+                actingAsCouple: context.actingAsCouple,
+                isAdmin: Boolean(session.isAdmin),
+                weddingNames: context.weddingNames,
+              }
+            : null
+        }
+        section={
+          inWedding
+            ? {
+                title: context.openedWeddingName || "Ce mariage",
+                backHref: "/mariages",
+                backLabel: "Retour à tous les mariages",
+              }
+            : null
+        }
         groups={
           couple
             ? undefined
             : [
                 {
-                  caption: "Espace",
-                  labels: context.sideItems.map((item) => item.label).filter((label) => label !== "Réglages" && label !== "Admin"),
+                  caption: inWedding ? "" : "Espace",
+                  labels: context.sideItems
+                    .map((item) => item.label)
+                    .filter((label) => !["Réglages", "Admin", "Aperçu"].includes(label)),
                 },
               ]
         }
         extra={
           <SpaceSwitcher vendorHref={context.vendorHref} coupleHref={context.coupleHref} />
         }
+        account={
+          couple
+            ? undefined
+            : [
+                { href: "/reglages", label: "Réglages", icon: "gear" },
+                ...(session.isAdmin ? [{ href: "/admin", label: "Admin", icon: "gear" as const }] : []),
+              ]
+        }
       />
     );
   }
   return (
     <aside className="sticky top-0 hidden h-dvh w-[232px] flex-col border-r border-line bg-ivory px-3 py-6 md:flex">
-      <Link href={session ? "/espace" : "/"} className="px-3 text-lg font-semibold tracking-[0.22em]">
-        VOW
+      <Link href={session ? "/espace" : "/"} className="px-3" aria-label="VOW">
+        <Logo />
       </Link>
       <SpaceSwitcher vendorHref={context.vendorHref} coupleHref={context.coupleHref} />
       {context.back ? (
@@ -74,12 +113,12 @@ export async function MobileChrome() {
   const name = session?.vendor?.business_name || session?.profile.full_name || "";
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-paper/80 px-4 pr-36 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-[var(--vow-glass)] px-4 pr-36 backdrop-blur-md md:hidden">
         {context.back ? (
           <BackControl fallback={context.back.href} label={context.back.label} />
         ) : (
-          <Link href={session ? "/espace" : "/"} className="shrink-0 text-base font-semibold tracking-[0.22em]">
-            VOW
+          <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
+            <Logo />
           </Link>
         )}
         <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
@@ -99,15 +138,30 @@ export async function MobileChrome() {
   );
 }
 
-export function PublicHeader() {
+export function PublicHeader({ accounts = true }: { accounts?: boolean }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-paper/80 px-4 backdrop-blur">
-      <Link href="/" className="text-base font-semibold tracking-[0.22em]">
-        VOW
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-[var(--vow-glass)] px-4 backdrop-blur-md">
+      <Link href="/" aria-label="VOW">
+        <Logo />
       </Link>
-      <Link href="/connexion" className="inline-flex min-h-11 items-center text-sm font-medium">
-        Connexion
-      </Link>
+      <nav className="flex items-center gap-1 text-sm sm:gap-3">
+        <Link href="/#ce-qui-compte" className="hidden min-h-11 items-center px-2 sm:inline-flex">
+          Fonctionnalités
+        </Link>
+        <Link href="/#tarifs" className="hidden min-h-11 items-center px-2 sm:inline-flex">
+          Tarifs
+        </Link>
+        {accounts ? (
+          <>
+            <Link href="/connexion" className="inline-flex min-h-11 items-center px-2 font-medium">
+              Connexion
+            </Link>
+            <Link href="/inscription" className="inline-flex min-h-11 items-center rounded-2xl bg-ink px-3 text-ivory">
+              Créer un compte
+            </Link>
+          </>
+        ) : null}
+      </nav>
     </header>
   );
 }
@@ -125,7 +179,10 @@ async function navContext(session: SessionProfile | null) {
       back: null,
       coupleItems: [],
       sideItems: [],
+      vendorInWedding: false,
       weddingName: "Votre mariage",
+      openedWeddingName: null as string | null,
+      weddingNames: {} as Record<string, string>,
       weddingDate: null as string | null,
     };
   }
@@ -145,8 +202,10 @@ async function navContext(session: SessionProfile | null) {
     actingAsCouple = space.actingAsCouple;
   }
   const coupleId = session.profile.role === "couple" ? (coupleWedding?.id ?? null) : actingAsCouple && match ? match[1] : null;
-  const named = coupleWedding ?? (match ? weddings.find((wedding) => wedding.id === match[1]) : null);
-  const focus = session.profile.role === "vendor" ? (primary ?? named) : named;
+  const opened = match ? weddings.find((wedding) => wedding.id === match[1]) : null;
+  const inWedding = Boolean(match) && session.profile.role === "vendor" && !actingAsCouple;
+  const named = coupleWedding ?? opened;
+    const focus = session.profile.role === "vendor" ? (primary ?? named) : named;
   const primaryWeddingId = session.profile.role === "couple" ? (coupleWedding?.id ?? null) : (primary?.id ?? null);
   return {
     primaryWeddingId,
@@ -173,7 +232,10 @@ async function navContext(session: SessionProfile | null) {
       actingAsCouple,
       Boolean(session.isAdmin),
     ),
+    vendorInWedding: inWedding,
     weddingName: focus ? coupleHeroTitle(focus.partner_one_name, focus.partner_two_name) : "Votre espace",
+    openedWeddingName: opened ? coupleHeroTitle(opened.partner_one_name, opened.partner_two_name) : null,
+    weddingNames: Object.fromEntries(weddings.map((wedding) => [wedding.id, coupleHeroTitle(wedding.partner_one_name, wedding.partner_two_name)])),
     weddingDate: focus?.wedding_date ?? null,
   };
 }

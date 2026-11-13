@@ -57,7 +57,7 @@ export async function markReady(formData: FormData) {
   const ids = Array.isArray(note.user_ids) ? note.user_ids.filter((id) => id !== session.userId) : [];
   await mailAndPush(ids, "VOW · Relais", note.body ?? "", `/mariage/${weddingId}/jour`);
   revalidatePath(`/mariage/${weddingId}/jour`);
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
 }
 
 export async function toggleRain(formData: FormData) {

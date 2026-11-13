@@ -34,9 +34,14 @@ export function VendorBubbles({ weddingId, people }: { weddingId: string; people
                   <TradeMark category={person.category} />
                 </span>
               </span>
-              <span className="mt-3 block truncate text-sm font-medium">{name}</span>
+              <h3 className="mt-3 truncate text-sm font-medium">{name}</h3>
               <span className="mt-0.5 block truncate text-xs text-muted">{trade}</span>
             </Link>
+            {person.phone ? (
+              <a href={`tel:${person.phone}`} className="mt-1 block truncate text-xs underline">
+                {person.phone}
+              </a>
+            ) : null}
             <div className="mt-3 flex items-center justify-center gap-1.5">
               {person.phone ? (
                 <RoundAction href={`tel:${person.phone}`} label="Appeler">

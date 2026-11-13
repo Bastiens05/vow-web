@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { FileDrop } from "@/components/ui/file-drop";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { publicObjectUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
@@ -22,39 +23,42 @@ export function PhotoManager({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [names, setNames] = useState<string[]>([]);
+  const [progress, setProgress] = useState<number | null>(null);
 
-  async function onChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    const check = validateUpload(file, "photo");
-    if (!check.ok) {
-      setError(check.error);
-      return;
-    }
-    setPending(true);
+  async function onFiles(files: File[]) {
     setError(null);
+    setNames(files.map((file) => file.name));
+    setPending(true);
     const supabase = createClient();
-    const path = `${userId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-    const uploaded = await supabase.storage.from("vendor-media").upload(path, file, {
-      contentType: file.type,
-      upsert: false,
-    });
-    if (uploaded.error) {
-      setPending(false);
-      setError(uploaded.error.message);
-      return;
+    for (let index = 0; index < files.length; index += 1) {
+      const file = files[index];
+      if (!file) continue;
+      const check = validateUpload(file, "photo");
+      if (!check.ok) {
+        setError(check.error);
+        continue;
+      }
+      setProgress(Math.round((index / files.length) * 100));
+      const path = `${userId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+      const uploaded = await supabase.storage.from("vendor-media").upload(path, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+      if (uploaded.error) {
+        setError(uploaded.error.message);
+        continue;
+      }
+      const inserted = await supabase.from("vendor_photos").insert({
+        vendor_id: vendorId,
+        storage_path: path,
+      });
+      if (inserted.error) {
+        await supabase.storage.from("vendor-media").remove([path]);
+        setError(inserted.error.message);
+      }
     }
-    const inserted = await supabase.from("vendor_photos").insert({
-      vendor_id: vendorId,
-      storage_path: path,
-    });
-    if (inserted.error) {
-      await supabase.storage.from("vendor-media").remove([path]);
-      setPending(false);
-      setError(inserted.error.message);
-      return;
-    }
+    setProgress(100);
     setPending(false);
     router.refresh();
   }
@@ -81,10 +85,15 @@ export function PhotoManager({
           );
         })}
       </div>
-      <label className="inline-flex cursor-pointer items-center gap-3 text-sm">
-        <input type="file" accept="image/jpeg,image/png,image/webp" className="text-sm" onChange={onChange} disabled={pending} />
-        {pending ? <span className="text-muted">Envoi…</span> : null}
-      </label>
+      <FileDrop
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        disabled={pending}
+        hint="JPG, PNG ou WebP · 8 Mo maximum. Sur téléphone, le sélecteur ouvre vos photos."
+        names={names}
+        progress={progress}
+        onFiles={(files) => void onFiles(files)}
+      />
       {error ? <Alert>{error}</Alert> : null}
     </div>
   );

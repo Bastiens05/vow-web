@@ -91,7 +91,7 @@ test("une demande devient un mariage, un rappel part, et le prestataire ne déca
 
   const cron = await page.request.get("/api/cron/reminders");
   expect(cron.ok()).toBeTruthy();
-  await couplePage.goto("/alertes");
+  await couplePage.goto("/nouveautes");
   await expect(couplePage.getByText(/Rappel J-30/).first()).toBeVisible();
   await couplePage.close();
 });

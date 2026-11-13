@@ -131,6 +131,11 @@ export type Database = {
           title: string;
           description: string;
           price_cents: number | null;
+          promo_kind: "percent" | "amount" | null;
+          promo_value: number | null;
+          promo_label: string;
+          promo_starts_on: string | null;
+          promo_ends_on: string | null;
           sort_order: number;
           created_at: string;
         },
@@ -140,9 +145,24 @@ export type Database = {
           title: string;
           description?: string;
           price_cents?: number | null;
+          promo_kind?: "percent" | "amount" | null;
+          promo_value?: number | null;
+          promo_label?: string;
+          promo_starts_on?: string | null;
+          promo_ends_on?: string | null;
           sort_order?: number;
         },
-        { title?: string; description?: string; price_cents?: number | null; sort_order?: number }
+        {
+          title?: string;
+          description?: string;
+          price_cents?: number | null;
+          promo_kind?: "percent" | "amount" | null;
+          promo_value?: number | null;
+          promo_label?: string;
+          promo_starts_on?: string | null;
+          promo_ends_on?: string | null;
+          sort_order?: number;
+        }
       >;
       vendor_photos: Table<
         {
@@ -1015,8 +1035,9 @@ export type Database = {
           last_name: string;
           trade: string;
           plan: "essentiel" | "pro" | "studio";
-          free_until: string;
-          discount_percent: number;
+          free_until: string | null;
+          discount_percent: number | null;
+          grant_type: "tester" | "lifetime";
           status: "invited" | "accepted" | "revoked";
           invited_by: string | null;
           token: string;
@@ -1052,35 +1073,161 @@ export type Database = {
           vendor_id?: string | null;
           accepted_at?: string | null;
           revoked_at?: string | null;
+          grant_type?: "tester" | "lifetime";
         }
       >;
-      tester_codes: Table<
+      vendor_document_templates: Table<
         {
           id: string;
-          label: string;
-          code_hash: string;
-          max_uses: number;
-          use_count: number;
-          expires_at: string | null;
-          access_until: string | null;
+          vendor_id: string;
+          title: string;
+          note: string;
+          required: boolean;
+          offset_days: number | null;
+          position: number;
           created_at: string;
         },
         {
-          id?: string;
-          label: string;
-          code_hash: string;
-          max_uses: number;
-          use_count?: number;
-          expires_at?: string | null;
-          access_until?: string | null;
+          vendor_id: string;
+          title: string;
+          note?: string;
+          required?: boolean;
+          offset_days?: number | null;
+          position?: number;
         },
         {
-          label?: string;
-          max_uses?: number;
-          use_count?: number;
-          expires_at?: string | null;
-          access_until?: string | null;
+          title?: string;
+          note?: string;
+          required?: boolean;
+          offset_days?: number | null;
+          position?: number;
         }
+      >;
+      wedding_document_requests: Table<
+        {
+          id: string;
+          wedding_id: string;
+          vendor_id: string;
+          template_id: string | null;
+          title: string;
+          note: string;
+          required: boolean;
+          due_on: string | null;
+          position: number;
+          status: "needed" | "sent" | "validated" | "correction";
+          file_path: string | null;
+          file_name: string | null;
+          correction_note: string;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        },
+        {
+          wedding_id: string;
+          vendor_id: string;
+          template_id?: string | null;
+          title: string;
+          note?: string;
+          required?: boolean;
+          due_on?: string | null;
+          position?: number;
+          status?: "needed" | "sent" | "validated" | "correction";
+        },
+        {
+          status?: "needed" | "sent" | "validated" | "correction";
+          file_path?: string | null;
+          file_name?: string | null;
+          correction_note?: string;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+        }
+      >;
+      vendor_vault_files: Table<
+        {
+          id: string;
+          vendor_id: string;
+          title: string;
+          category: "rc_pro" | "kbis" | "tech" | "cgv" | "other";
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          expires_on: string | null;
+          alert_days: number;
+          auto_share: boolean;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          vendor_id: string;
+          title: string;
+          category?: "rc_pro" | "kbis" | "tech" | "cgv" | "other";
+          storage_path: string;
+          file_name: string;
+          mime_type?: string;
+          expires_on?: string | null;
+          alert_days?: number;
+          auto_share?: boolean;
+        },
+        {
+          title?: string;
+          category?: "rc_pro" | "kbis" | "tech" | "cgv" | "other";
+          storage_path?: string;
+          file_name?: string;
+          mime_type?: string;
+          expires_on?: string | null;
+          alert_days?: number;
+          auto_share?: boolean;
+          updated_at?: string;
+        }
+      >;
+      vendor_vault_versions: Table<
+        { id: string; file_id: string; storage_path: string; file_name: string; created_at: string },
+        { file_id: string; storage_path: string; file_name: string },
+        Record<string, never>
+      >;
+      vendor_vault_shares: Table<
+        { id: string; file_id: string; wedding_id: string; recipient_user_id: string | null; created_at: string },
+        { file_id: string; wedding_id: string; recipient_user_id?: string | null },
+        Record<string, never>
+      >;
+      grant_notices: Table<
+        {
+          id: string;
+          user_id: string;
+          grant_id: string;
+          body: string;
+          created_at: string;
+          seen_at: string | null;
+          activated_at: string | null;
+        },
+        {
+          user_id: string;
+          grant_id: string;
+          body: string;
+          seen_at?: string | null;
+          activated_at?: string | null;
+        },
+        {
+          seen_at?: string | null;
+          activated_at?: string | null;
+          body?: string;
+        }
+      >;
+      admin_notices: Table<
+        {
+          id: string;
+          profile_id: string;
+          body: string;
+          href: string;
+          created_at: string;
+        },
+        { profile_id: string; body: string; href?: string },
+        { body?: string }
+      >;
+      admin_notice_reads: Table<
+        { notice_id: string; user_id: string; read_at: string },
+        { notice_id: string; user_id: string; read_at?: string },
+        { read_at?: string }
       >;
       recommendation_events: Table<
         { id: string; recommendation_id: string; kind: string; created_at: string },
@@ -1330,17 +1477,21 @@ export type Database = {
         };
         Returns: string;
       };
-      create_tester_code: {
-        Args: { p_label: string; p_code: string; p_max_uses: number; p_expires: string | null; p_access_until: string | null };
-        Returns: string;
-      };
-      redeem_tester_code: { Args: { p_code: string }; Returns: string };
       choose_vendor_plan: { Args: { p_plan: string }; Returns: string };
+      mark_admin_notices_seen: { Args: Record<string, never>; Returns: undefined };
       lookup_tester_invite: {
         Args: { p_token: string };
         Returns: { email: string; first_name: string; last_name: string; trade: string; plan: string }[];
       };
       revoke_tester_grant: { Args: { p_id: string }; Returns: undefined };
+      activate_tester_grant: { Args: { p_id: string }; Returns: undefined };
+      mark_grant_notices_seen: { Args: Record<string, never>; Returns: undefined };
+      decline_invitation: { Args: { p_token: string }; Returns: undefined };
+      merge_weddings: { Args: { p_keep: string; p_drop: string }; Returns: string };
+      my_pending_invitations: {
+        Args: Record<string, never>;
+        Returns: { token: string; invited_role: string; title: string }[];
+      };
       create_tester_grant: {
         Args: {
           p_email: string;
@@ -1349,9 +1500,18 @@ export type Database = {
           p_trade: string;
           p_plan: string;
           p_discount: number;
+          p_grant_type?: string;
         };
         Returns: string;
       };
+      add_wedding_document_request: {
+        Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };
+        Returns: string;
+      };
+      submit_document_request: { Args: { p_id: string; p_path: string; p_name: string }; Returns: undefined };
+      review_document_request: { Args: { p_id: string; p_status: string; p_note: string }; Returns: undefined };
+      replace_vendor_vault_file: { Args: { p_id: string; p_path: string; p_name: string; p_mime: string }; Returns: undefined };
+      share_vendor_vault: { Args: { p_file: string; p_wedding: string; p_couple: boolean; p_users: string[] }; Returns: undefined };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       undo_timeline_shift: {
         Args: {

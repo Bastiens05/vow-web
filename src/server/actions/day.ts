@@ -70,7 +70,7 @@ async function fanOut(note: { id: string; weddingId: string; body: string }, aut
   });
   }
   revalidatePath(`/mariage/${note.weddingId}/jour`);
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
 }
 
 export async function shiftSlot(
@@ -118,7 +118,7 @@ export async function undoShift(input: {
   });
   if (error) return { error: messageFromError(error) };
   revalidatePath(`/mariage/${input.weddingId}/jour`);
-  revalidatePath("/alertes");
+  revalidatePath("/nouveautes");
   return { success: "Décalage annulé." };
 }
 
@@ -140,6 +140,8 @@ export async function markAlertsRead() {
   const session = await requireSession();
   const supabase = await createClient();
   const { data: notes } = await supabase.from("wedding_notifications").select("id, author_id").limit(80);
+  await supabase.rpc("mark_grant_notices_seen");
+  await supabase.rpc("mark_admin_notices_seen");
   const unread = (notes ?? []).filter((note) => note.author_id !== session.userId);
   if (unread.length === 0) return;
   await supabase.from("notification_reads").upsert(

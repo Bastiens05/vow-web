@@ -38,6 +38,7 @@ export function LinkInvite({
 }) {
   const [state, action, pending] = useActionState(createInvitation, {});
   const waiting = invitations.filter((invitation) => invitation.accepted_at === null && invitation.invited_role === role);
+  const created = state.success?.match(/https?:\/\/\S+/)?.[0] ?? null;
   return (
     <section className={quiet ? "mt-8 border-t border-line pt-6" : "mt-6 rounded-3xl border border-line bg-paper p-5"}>
       <RealtimeRefresh
@@ -73,7 +74,8 @@ export function LinkInvite({
           </Field>
         ) : null}
         {state.error ? <Alert>{state.error}</Alert> : null}
-        {state.success ? <Alert tone="success">{state.success}</Alert> : null}
+        {state.success ? <Alert tone="success">{state.success.replace(/https?:\/\/\S+/, "").trim()}</Alert> : null}
+        {created ? <code className="block overflow-x-auto rounded-lg bg-ivory px-3 py-2 text-xs">{created}</code> : null}
         <Button type="submit" variant={quiet ? "secondary" : "primary"} disabled={pending} className="w-fit">
           {pending ? "Envoi…" : submitLabel}
         </Button>

@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes 
 import { cn } from "@/lib/cn";
 
 export const fieldClass =
-  "w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-ink focus-visible:ring-2 focus-visible:ring-ink/20";
+  "w-full rounded-2xl border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/30";
 
 export function Field({
   label,

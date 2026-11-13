@@ -13,4 +13,29 @@ describe("tester grant mail", () => {
     expect(content.buttonUrl).toContain("role=vendor");
     expect(content.body).toContain("40 %");
   });
+
+  it("says a lifetime invitation is free forever", () => {
+    const content = testerGrantEmailContent({
+      planLabel: "Pro",
+      discountPercent: 0,
+      url: "https://vow-web.vercel.app/inscription?role=vendor",
+      grantType: "lifetime",
+    });
+    expect(content.body).toContain("pour toujours");
+    expect(content.body).toContain("Pro");
+    expect(content.body).not.toContain("remise");
+  });
+
+  it("points an existing account at the in-app activation", () => {
+    const content = testerGrantEmailContent({
+      planLabel: "Pro",
+      discountPercent: 40,
+      url: "https://vow-web.vercel.app/nouveautes",
+      grantType: "tester",
+      existingAccount: true,
+    });
+    expect(content.body).toContain("VOW vous offre Pro");
+    expect(content.buttonLabel).toBe("Activer l'offre");
+    expect(content.buttonUrl).toContain("/nouveautes");
+  });
 });
