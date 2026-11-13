@@ -22,6 +22,7 @@ export function PracticalBoard({
   canEditGuests,
   canEditMusic = false,
   showDetails = true,
+  showHeadings = true,
   photosId = "photos",
   guestsId = "guests",
 }: {
@@ -38,20 +39,21 @@ export function PracticalBoard({
   canEditGuests: boolean;
   canEditMusic?: boolean;
   showDetails?: boolean;
+  showHeadings?: boolean;
   photosId?: string;
   guestsId?: string;
 }) {
   return (
     <div className="space-y-8">
-      {showMusic ? <Music weddingId={weddingId} notes={musicNotes} canEdit={canEditMusic} /> : null}
+      {showMusic ? <Music weddingId={weddingId} notes={musicNotes} canEdit={canEditMusic} showHeading={showHeadings} /> : null}
       {showDetails ? <DetailsForm weddingId={weddingId} practical={practical} canEdit={canEditDetails} /> : null}
-      {showPhotos ? <Groups id={photosId} weddingId={weddingId} groups={groups} canEdit={canEditPhotos} /> : null}
-      {showGuests ? <Guests id={guestsId} weddingId={weddingId} guests={guests} canEdit={canEditGuests} /> : null}
+      {showPhotos ? <Groups id={photosId} weddingId={weddingId} groups={groups} canEdit={canEditPhotos} showHeading={showHeadings} /> : null}
+      {showGuests ? <Guests id={guestsId} weddingId={weddingId} guests={guests} canEdit={canEditGuests} showHeading={showHeadings} /> : null}
     </div>
   );
 }
 
-function Music({ weddingId, notes, canEdit }: { weddingId: string; notes: string; canEdit: boolean }) {
+function Music({ weddingId, notes, canEdit, showHeading }: { weddingId: string; notes: string; canEdit: boolean; showHeading: boolean }) {
   const action = saveMusic.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   const field = (
@@ -61,7 +63,7 @@ function Music({ weddingId, notes, canEdit }: { weddingId: string; notes: string
   );
   return (
     <section>
-      <h3 className="text-lg font-semibold tracking-tight">Musique</h3>
+      {showHeading ? <h3 className="text-lg font-semibold tracking-tight">Musique</h3> : null}
       {canEdit ? (
         <form action={formAction} className="mt-3 space-y-3">
           {field}
@@ -131,13 +133,29 @@ function DetailsForm({
   );
 }
 
-function Groups({ id, weddingId, groups, canEdit }: { id: string; weddingId: string; groups: PhotoGroupRow[]; canEdit: boolean }) {
+function Groups({
+  id,
+  weddingId,
+  groups,
+  canEdit,
+  showHeading,
+}: {
+  id: string;
+  weddingId: string;
+  groups: PhotoGroupRow[];
+  canEdit: boolean;
+  showHeading: boolean;
+}) {
   const action = addPhotoGroup.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="text-lg font-semibold tracking-tight">Photos de groupe</h2>
-      <p className="mt-1 mb-4 text-sm text-muted">L’ordre de passage, les personnes, une note pour le photographe.</p>
+      {showHeading ? (
+        <>
+          <h2 className="text-lg font-semibold tracking-tight">Photos de groupe</h2>
+          <p className="mt-1 mb-4 text-sm text-muted">L’ordre de passage, les personnes, une note pour le photographe.</p>
+        </>
+      ) : null}
       <ol className="space-y-2">
         {groups.map((group, index) => (
           <li key={group.id} className="flex items-start justify-between gap-3 rounded-2xl bg-ivory px-4 py-3">
@@ -180,13 +198,29 @@ function Groups({ id, weddingId, groups, canEdit }: { id: string; weddingId: str
   );
 }
 
-function Guests({ id, weddingId, guests, canEdit }: { id: string; weddingId: string; guests: GuestRow[]; canEdit: boolean }) {
+function Guests({
+  id,
+  weddingId,
+  guests,
+  canEdit,
+  showHeading,
+}: {
+  id: string;
+  weddingId: string;
+  guests: GuestRow[];
+  canEdit: boolean;
+  showHeading: boolean;
+}) {
   const action = addGuest.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="text-lg font-semibold tracking-tight">Invités</h2>
-      <p className="mt-1 mb-4 text-sm text-muted">Table et régime, pour le traiteur et le plan de salle.</p>
+      {showHeading ? (
+        <>
+          <h2 className="text-lg font-semibold tracking-tight">Invités</h2>
+          <p className="mt-1 mb-4 text-sm text-muted">Table et régime, pour le traiteur et le plan de salle.</p>
+        </>
+      ) : null}
       <div className="overflow-x-auto rounded-2xl border border-line">
         <table className="w-full min-w-[32rem] text-left text-sm">
           <thead className="text-xs text-muted">

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, TextArea, TextInput } from "@/components/ui/field";
 import { PROFILE_FIELDS, filledRatio, type ProfileFacts } from "@/lib/domain/profile";
@@ -35,7 +36,7 @@ export function ProfileForm({ weddingId, facts }: { weddingId: string; facts: Pr
 
 export function ProfileSlice({ facts, percent }: { facts: { key: string; label: string; value: string }[]; percent: number }) {
   return (
-    <section className="rounded-3xl border border-line bg-paper p-5">
+    <Card>
       <p className="text-sm font-medium">{percent} % déjà rempli</p>
       <p className="mt-1 text-sm text-muted">Le couple a déjà saisi ces informations. On ne les redemande pas.</p>
       <ul className="mt-4 grid gap-2">
@@ -47,6 +48,6 @@ export function ProfileSlice({ facts, percent }: { facts: { key: string; label: 
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }
