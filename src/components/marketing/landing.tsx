@@ -85,7 +85,7 @@ export function Landing() {
           </div>
         </div>
       </section>
-      <div className="relative z-10 mx-auto mt-6 grid max-w-6xl gap-4 px-5 md:-mt-28 md:px-6 lg:-mt-32">
+      <div className="relative z-10 mx-auto mt-6 grid max-w-6xl gap-4 px-5 md:-mt-28 md:grid-cols-3 md:px-6 lg:-mt-32">
         <HeroCard icon={CalendarRange} title="Jour J partagé" text="Le programme, visible par chaque métier." />
         <HeroCard icon={PenLine} title="Documents & signatures" text="Contrats et signatures au même endroit." />
         <HeroCard icon={MessageCircle} title="Messages" text="Un fil entre les mariés et chaque métier." />
