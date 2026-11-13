@@ -9,6 +9,16 @@ function weddingIdFrom(path: string) {
   return match?.[1] ?? null;
 }
 
+export function vendorWeddingSection(path: string, names: Record<string, string>) {
+  const id = weddingIdFrom(path);
+  if (!id) return null;
+  return {
+    title: names[id] || "Ce mariage",
+    backHref: "/mariages",
+    backLabel: "Retour à tous les mariages",
+  };
+}
+
 export function navigationItems(
   path: string,
   role: "vendor" | "couple" | null,

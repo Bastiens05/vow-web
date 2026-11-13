@@ -7,7 +7,7 @@ import { Logo } from "@/components/brand/logo";
 import { signOut } from "@/server/actions/auth";
 import { LineIcon } from "@/components/ui/line-icon";
 import type { IconName } from "@/components/ui/nav-link";
-import { navigationItems } from "@/components/layout/navigation-items";
+import { navigationItems, vendorWeddingSection } from "@/components/layout/navigation-items";
 import type { VendorCategory } from "@/lib/domain/categories";
 
 type Item = { href: string; label: string; icon: IconName };
@@ -69,15 +69,11 @@ export function CoupleSidebar({
   const items = live
     ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
     : itemsProp;
-  const openedId = /^\/mariage\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i.exec(path)?.[1] ?? null;
-  const vendorInside = Boolean(live && live.role === "vendor" && !live.actingAsCouple && openedId);
-  const activeSection = vendorInside
-    ? {
-        title: live?.weddingNames[openedId ?? ""] || section?.title || "Ce mariage",
-        backHref: "/mariages",
-        backLabel: "Retour à tous les mariages",
-      }
-    : section;
+  const activeSection =
+    live && live.role === "vendor" && !live.actingAsCouple
+      ? vendorWeddingSection(path, live.weddingNames)
+      : section;
+  const vendorInside = Boolean(live && live.role === "vendor" && !live.actingAsCouple && activeSection);
   const activeGroups = vendorInside
     ? [{ caption: "", labels: items.map((item) => item.label).filter((label) => !["Réglages", "Admin"].includes(label)) }]
     : live?.role === "vendor" && !live.actingAsCouple
