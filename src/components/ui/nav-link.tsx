@@ -13,12 +13,14 @@ export function NavLink({
   icon,
   active,
   variant,
+  unread = false,
 }: {
   href: string;
   label: string;
   icon: IconName;
   active: boolean;
   variant: "side" | "tab";
+  unread?: boolean;
 }) {
   return (
     <Link
@@ -31,16 +33,19 @@ export function NavLink({
         variant === "tab" && (active ? "text-accent" : "text-muted"),
       )}
     >
-      <NavBody label={label} icon={icon} tab={variant === "tab"} active={active} />
+      <NavBody label={label} icon={icon} tab={variant === "tab"} active={active} unread={unread} />
     </Link>
   );
 }
 
-function NavBody({ label, icon, tab, active }: { label: string; icon: IconName; tab: boolean; active: boolean }) {
+function NavBody({ label, icon, tab, active, unread }: { label: string; icon: IconName; tab: boolean; active: boolean; unread: boolean }) {
   const { pending } = useLinkStatus();
   return (
     <span className={cn("inline-flex items-center gap-2", tab && "flex-col gap-1", pending && "opacity-60")}>
-      <LineIcon name={icon} className="h-5 w-5" />
+      <span className="relative">
+        <LineIcon name={icon} className="h-5 w-5" />
+        {unread ? <span className="absolute -right-1 -top-0.5 h-2.5 w-2.5 rounded-full bg-accent" aria-label="Non lu" /> : null}
+      </span>
       <span className={tab ? "max-w-full truncate text-center text-xs leading-none" : undefined}>{label}</span>
       {pending ? <span className="sr-only">Chargement</span> : null}
       {active ? <span className="sr-only">Page actuelle</span> : null}

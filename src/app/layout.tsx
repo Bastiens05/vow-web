@@ -9,6 +9,7 @@ import { assistantEnabled } from "@/lib/domain/assistant";
 import { DesktopNav, MobileChrome, PublicHeader } from "@/components/layout/app-nav";
 import { BillingGate } from "@/components/layout/billing-gate";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
+import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { VaultButton, VaultLink } from "@/components/layout/vault-button";
 import { VaultBoard } from "@/components/wedding/vault-board";
 import { VAULT_CHECKLIST } from "@/lib/domain/vault";
@@ -90,6 +91,14 @@ async function AlertSlot() {
         {assistantEnabled() ? (
           <AssistantDock role={session.profile.role} defaultWeddingId={await defaultAssistantWedding(session.userId, session.profile.role)} />
         ) : null}
+        <RealtimeRefresh
+          channel="message-badges"
+          subscriptions={[
+            { table: "messages", event: "INSERT" },
+            { table: "message_reads", event: "INSERT" },
+            { table: "notification_reads", event: "INSERT" },
+          ]}
+        />
         <AlertDock
           calm
           inApp={session.profile.notify_in_app}

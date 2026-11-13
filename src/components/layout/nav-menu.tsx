@@ -19,6 +19,7 @@ export function NavMenu({
   primaryWeddingId,
   actingAsCouple,
   isAdmin = false,
+  messageUnread = false,
 }: {
   role: "vendor" | "couple" | null;
   category: VendorCategory | null;
@@ -27,6 +28,7 @@ export function NavMenu({
   primaryWeddingId: string | null;
   actingAsCouple: boolean;
   isAdmin?: boolean;
+  messageUnread?: boolean;
 }) {
   const path = usePathname() ?? "";
   const items = navigationItems(path, role, category, signedIn, primaryWeddingId, actingAsCouple, isAdmin);
@@ -78,14 +80,24 @@ export function NavMenu({
       }
     >
       {shown.map((item) => (
-        <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} />
+        <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant={variant} unread={messageUnread && item.label === "Messages"} />
       ))}
-      {usePlus ? <MoreTab items={moreTabs} path={path} showSignOut={mobileVendor} /> : null}
+      {usePlus ? <MoreTab items={moreTabs} path={path} showSignOut={mobileVendor} messageUnread={messageUnread} /> : null}
     </nav>
   );
 }
 
-function MoreTab({ items, path, showSignOut = false }: { items: Item[]; path: string; showSignOut?: boolean }) {
+function MoreTab({
+  items,
+  path,
+  showSignOut = false,
+  messageUnread = false,
+}: {
+  items: Item[];
+  path: string;
+  showSignOut?: boolean;
+  messageUnread?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const active = items.some((item) => isActive(path, item.href));
   return (
@@ -108,7 +120,7 @@ function MoreTab({ items, path, showSignOut = false }: { items: Item[]; path: st
                 <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
                 <div onClick={() => setOpen(false)} className="grid gap-1">
                   {items.map((item) => (
-                    <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant="side" />
+                    <NavLink key={item.href + item.label} {...item} active={isActive(path, item.href)} variant="side" unread={messageUnread && item.label === "Messages"} />
                   ))}
                   {showSignOut ? (
                     <form action={signOut}>

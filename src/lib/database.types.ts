@@ -402,6 +402,7 @@ export type Database = {
           kind: string;
           body: string;
           created_at: string;
+          message_id: string | null;
         },
         {
           id?: string;
@@ -409,8 +410,14 @@ export type Database = {
           author_id: string;
           kind: string;
           body: string;
+          message_id?: string | null;
         },
-        { body?: string }
+        { body?: string; message_id?: string | null }
+      >;
+      message_reads: Table<
+        { message_id: string; user_id: string; read_at: string },
+        { message_id: string; user_id: string; read_at?: string },
+        { read_at?: string }
       >;
       notification_reads: Table<
         { notification_id: string; user_id: string; read_at: string },
@@ -1505,6 +1512,7 @@ export type Database = {
         Returns: string;
       };
       wedding_vendor_id: { Args: { p_wedding: string; p_user: string }; Returns: string };
+      unread_message_count: { Args: Record<string, never>; Returns: number };
       add_wedding_document_request: {
         Args: { p_wedding: string; p_title: string; p_note: string; p_required: boolean; p_due: string | null };
         Returns: string;
