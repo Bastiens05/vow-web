@@ -27,12 +27,12 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
     const photo = vendors.some((person) => person.category === "photographer" || person.category === "videographer" || person.category === "planner");
     const guests = vendors.some((person) => person.category === "caterer" || person.category === "venue" || person.category === "planner");
     return (
-      <div className="grid gap-10">
+      <div className="grid min-w-0 gap-4">
         <HashScroll />
-        <header>
-          <h2 className="text-3xl font-semibold tracking-tight">Documents</h2>
+        <header className="min-w-0">
+          <h2 className="text-3xl font-semibold tracking-tight text-balance">Documents</h2>
           <FullNames wedding={space.wedding} />
-          <p className="mt-1 text-sm text-muted">Un espace par prestataire.</p>
+          <p className="mt-2 max-w-prose text-sm leading-6 text-pretty text-muted">Un espace par prestataire.</p>
         </header>
         {vendors.length === 0 ? (
           <Card>
@@ -86,13 +86,16 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   const today = new Date().toISOString().slice(0, 10);
   const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
   return (
-    <Card>
-      <h2 className="font-semibold tracking-tight text-3xl">Documents</h2>
-      <FullNames wedding={space.wedding} />
-      <p className="mt-1 mb-5 text-sm leading-6 text-muted">
-        Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
-      </p>
+    <div className="mx-auto grid w-full min-w-0 max-w-3xl gap-4">
+      <header className="min-w-0">
+        <h2 className="text-3xl font-semibold tracking-tight text-balance">Documents</h2>
+        <FullNames wedding={space.wedding} />
+        <p className="mt-2 max-w-prose break-words text-sm leading-6 text-pretty text-muted">
+          Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
+        </p>
+      </header>
       {space.session.vendor && space.session.vendor.user_id === space.session.userId ? (
+        <Card>
         <VaultPicker
           weddingId={id}
           today={today}
@@ -114,24 +117,30 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
             .filter((member) => member.role === "vendor" && member.userId !== space.session.userId)
             .map((member) => ({ userId: member.userId, label: member.fullName }))}
         />
+        </Card>
       ) : null}
-      <DocumentManager
-        weddingId={id}
-        userId={space.session.userId}
-        documents={documents}
-        names={names}
-        requests={requests ?? []}
-        canRequest={space.host}
-        canSign={space.actingAsCouple}
-      />
-    </Card>
+      <Card>
+        <h3 className="text-lg font-semibold tracking-tight">Documents du mariage</h3>
+        <div className="mt-4">
+          <DocumentManager
+            weddingId={id}
+            userId={space.session.userId}
+            documents={documents}
+            names={names}
+            requests={requests ?? []}
+            canRequest={space.host}
+            canSign={space.actingAsCouple}
+          />
+        </div>
+      </Card>
+    </div>
   );
 }
 
 function FullNames({ wedding }: { wedding: { partner_one_name: string; partner_one_last_name: string | null; partner_two_name: string; partner_two_last_name: string | null } }) {
   const full = coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name);
   if (!full) return null;
-  return <p className="mt-1 text-sm text-muted">{full}</p>;
+  return <p className="mt-1 break-words text-sm text-muted">{full}</p>;
 }
 
 async function OrphanSheet({ weddingId, kind }: { weddingId: string; kind: "photos" | "guests" }) {
