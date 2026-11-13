@@ -73,7 +73,7 @@ export function BusinessForm({
   phone,
 }: {
   businessName: string;
-  category: VendorCategory;
+  category: VendorCategory | null;
   city: string;
   phone: string;
 }) {
@@ -84,7 +84,8 @@ export function BusinessForm({
         <TextInput name="business_name" required defaultValue={businessName} />
       </Field>
       <Field label="Métier">
-        <SelectInput name="category" defaultValue={category} required>
+        <SelectInput name="category" defaultValue={category ?? ""} required>
+          <option value="">Choisir un métier</option>
           {VENDOR_CATEGORIES.map((value) => (
             <option key={value} value={value}>
               {categoryLabel(value)}

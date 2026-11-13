@@ -7,10 +7,11 @@ import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/field";
 import { FrenchDateInput } from "@/components/ui/french-date";
 import { formatPriceCents } from "@/lib/domain/price";
 import { promoBadge, type PromoKind } from "@/lib/domain/promo";
-import type { Tables } from "@/lib/database.types";
+import type { Tables, VendorCategory } from "@/lib/database.types";
+import { offerExample } from "@/lib/domain/trades";
 import { addOffer, deleteOffer, saveOfferPromo } from "@/server/actions/vendor";
 
-export function OffersEditor({ offers }: { offers: Tables<"vendor_offers">[] }) {
+export function OffersEditor({ offers, category = null }: { offers: Tables<"vendor_offers">[]; category?: VendorCategory | null }) {
   const [state, action, pending] = useActionState(addOffer, {});
   return (
     <div className="space-y-4">
@@ -21,10 +22,10 @@ export function OffersEditor({ offers }: { offers: Tables<"vendor_offers">[] }) 
       </ul>
       <form action={action} className="grid gap-3 sm:grid-cols-2">
         <Field label="Nouvelle offre">
-          <TextInput name="title" required placeholder="Reportage journée" />
+          <TextInput name="title" required placeholder={offerExample(category)} />
         </Field>
         <Field label="Prix (€)">
-          <TextInput name="price" inputMode="decimal" placeholder="2400" />
+          <TextInput name="price" inputMode="decimal" placeholder="Prix" />
         </Field>
         <div className="sm:col-span-2">
           <Field label="Détail">

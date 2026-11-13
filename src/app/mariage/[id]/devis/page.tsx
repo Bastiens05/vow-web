@@ -162,7 +162,7 @@ export default async function QuotesPage({
       {canWrite ? (
         <>
           <AgreedPriceForm weddingId={id} amount={agreedAmount} />
-          <QuoteForm weddingId={id} />
+          <QuoteForm weddingId={id} category={space.session.vendor?.category ?? null} />
           <DepositForm weddingId={id} />
         </>
       ) : null}

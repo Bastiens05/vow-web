@@ -107,6 +107,12 @@ a {
   text-underline-offset: 3px;
 }
 
+@media (max-width: 767px) {
+  .vow-tab-clearance {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .auth-screen {
   background: var(--vow-bg);
   color: var(--vow-ink);

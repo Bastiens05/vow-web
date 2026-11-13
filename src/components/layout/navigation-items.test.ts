@@ -9,6 +9,9 @@ describe("navigation prestataire", () => {
     expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
     expect(navigationItems("/mariages", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
     expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).find((item) => item.label === "Paiements")?.href).toBe("/tresorerie");
+    expect(navigationItems("/espace", "vendor", "dj", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
+    expect(navigationItems("/espace", "vendor", "caterer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
+    expect(navigationItems("/espace", "vendor", null, true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
     expect(vendorSpaceMenuLabels).toEqual(["Mariages", "Messages", "Paiements"]);
   });
 
@@ -48,5 +51,14 @@ describe("navigation prestataire", () => {
     );
     expect(wedding.map((item) => item.label)).not.toContain("Aperçu");
     expect(wedding.at(-1)).toEqual({ href: "/admin", label: "Admin", icon: "gear" });
+    const dj = navigationItems(`/mariage/${weddingId}`, "vendor", "dj", true, weddingId, false, false).map((item) => item.label);
+    const caterer = navigationItems(`/mariage/${weddingId}`, "vendor", "caterer", true, weddingId, false, false).map((item) => item.label);
+    const florist = navigationItems(`/mariage/${weddingId}`, "vendor", "florist", true, weddingId, false, false).map((item) => item.label);
+    expect(dj).toContain("Musique");
+    expect(dj).not.toContain("Groupes");
+    expect(caterer).toContain("Invités");
+    expect(florist).toContain("Infos");
+    expect(florist).not.toContain("Groupes");
+    expect(florist).not.toContain("Galerie");
   });
 });

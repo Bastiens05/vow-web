@@ -27,7 +27,8 @@ export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | nu
           <TextInput name="slug" defaultValue={vendor?.slug ?? ""} placeholder="atelier-lumiere" />
         </Field>
         <Field label="Catégorie">
-          <SelectInput name="category" defaultValue={vendor?.category ?? "photographer"} required>
+          <SelectInput name="category" defaultValue={vendor?.category ?? ""} required>
+            <option value="">Choisir un métier</option>
             {VENDOR_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {categoryLabel(category)}
