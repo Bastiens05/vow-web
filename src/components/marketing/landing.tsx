@@ -69,7 +69,7 @@ export function Landing() {
   return (
     <div>
       <section className="relative flex min-h-[640px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[700px]">
-        <HeroPhoto src="/hero/venue.jpg" position="center 62%" priority sizes="100vw" />
+        <HeroPhoto src="/hero/venue.jpg" position="75% 58%" positionFromMd="center 62%" priority sizes="100vw" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-8 pt-24 md:pb-28 lg:pb-36 lg:pt-28">
           <h1 className="max-w-4xl font-serif text-6xl font-normal leading-[0.95] tracking-tight text-[#f7f3ec] sm:text-7xl lg:text-8xl">
             Le mariage, orchestré.
