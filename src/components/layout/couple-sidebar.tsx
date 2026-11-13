@@ -67,6 +67,7 @@ export function CoupleSidebar({
   const path = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
   const [liveLogo, setLiveLogo] = useState<string | null>(null);
+  const [logoFailed, setLogoFailed] = useState(false);
   useEffect(() => {
     function onLogo(event: Event) {
       const url = (event as CustomEvent<string>).detail;
@@ -76,6 +77,9 @@ export function CoupleSidebar({
     return () => window.removeEventListener("vow-logo", onLogo);
   }, []);
   const shownLogo = liveLogo ?? identityLogo;
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [shownLogo]);
   const items = live
     ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
     : itemsProp;
@@ -120,14 +124,13 @@ export function CoupleSidebar({
           identityActive ? "bg-accent-soft font-medium text-ink" : "border border-line bg-ivory/70 hover:bg-ink/[0.04]"
         } ${collapsed ? "justify-center px-0" : ""}`}
       >
-        {shownLogo ? (
-          <span
-            aria-hidden
-            className="h-9 w-9 shrink-0 rounded-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${shownLogo})` }}
-          />
+        {shownLogo && !logoFailed ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-paper">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={shownLogo} alt="" className="h-8 w-8 object-contain" onError={() => setLogoFailed(true)} />
+          </span>
         ) : (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
             {monogram(identityMark || weddingName)}
           </span>
         )}
