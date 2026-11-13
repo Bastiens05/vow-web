@@ -108,6 +108,7 @@ describe("migration", () => {
       "vendor_vault_files",
       "vendor_vault_versions",
       "vendor_vault_shares",
+      "message_reads",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);
@@ -120,6 +121,22 @@ describe("migration", () => {
     expect(sql).toContain("'wedding-gallery'");
     expect(sql).toContain("wedding_documents_select");
     expect(sql).toContain("is_wedding_member");
+  });
+
+  it("lets only the couple and the planner write photo groups", () => {
+    expect(sql).toContain("function public.can_compose_photo_groups(wid uuid)");
+    expect(sql).toContain("policy photo_groups_insert");
+    expect(sql).toContain("public.can_compose_photo_groups(wedding_id)");
+    expect(sql).toContain("function public.mark_photo_group_called(p_group uuid)");
+    expect(sql).toContain("security definer");
+  });
+
+  it("records a message as read for the current user only", () => {
+    expect(sql).toContain("create table public.message_reads");
+    expect(sql).toContain("policy message_reads_insert");
+    expect(sql).toContain("user_id = auth.uid()");
+    expect(sql).toContain("function public.unread_message_count()");
+    expect(sql).toContain("security invoker");
   });
 
   it("lets a couple resolve a vendor on their own wedding", () => {

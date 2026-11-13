@@ -33,9 +33,11 @@ export function ChromeFrame({
       {mobile}
       <div className="md:grid md:min-h-dvh md:grid-cols-[auto_minmax(0,1fr)]">
         {desktop}
-        <main className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-10">{children}</main>
+        <div className="min-w-0">
+          {alerts}
+          <main className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-10">{children}</main>
+        </div>
       </div>
-      {alerts}
     </>
   );
 }

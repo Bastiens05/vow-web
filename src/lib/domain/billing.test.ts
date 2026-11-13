@@ -103,6 +103,7 @@ describe("subscriptionGate", () => {
     expect(subscriptionGate("/mariage/abc")).toBe(true);
     expect(subscriptionGate("/abonnement")).toBe(false);
     expect(subscriptionGate("/reglages")).toBe(false);
+    expect(subscriptionGate("/coffre-fort")).toBe(false);
     expect(subscriptionGate("/")).toBe(false);
     expect(subscriptionGate("/invitation/abc")).toBe(false);
   });

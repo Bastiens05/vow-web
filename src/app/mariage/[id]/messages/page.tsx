@@ -4,13 +4,15 @@ import { ChevronLeft } from "lucide-react";
 import { HeroPhoto } from "@/components/brand/hero-photo";
 import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { AddVendorInvite } from "@/components/wedding/invite-block";
+import { MarkThreadRead } from "@/components/wedding/mark-thread-read";
 import { MessageThread } from "@/components/wedding/message-thread";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { todayIso } from "@/lib/domain/format";
+import { threadHasUnread } from "@/lib/domain/message-reads";
 import { publicObjectUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
-import { getWeddingSpace, listMessages } from "@/server/data";
+import { getWeddingSpace, listMessages, messageReadIds } from "@/server/data";
 
 export const metadata: Metadata = { title: "Messages" };
 
@@ -40,10 +42,16 @@ export default async function MessagesPage({
   const vendors = (directory ?? []).filter((person) => person.member_role === "vendor");
   const { data: recent } = await supabase
     .from("messages")
-    .select("body, created_at, author_id, vendor_user_id")
+    .select("id, body, created_at, author_id, vendor_user_id")
     .eq("wedding_id", id)
     .order("created_at", { ascending: false })
     .limit(80);
+  const history = (recent ?? []).map((row) => ({
+    id: row.id,
+    authorId: row.author_id,
+    vendorUserId: row.vendor_user_id,
+  }));
+  const readIds = await messageReadIds(history.map((row) => row.id));
   const latest = new Map<string, { body: string; createdAt: string; authorId: string }>();
   for (const row of recent ?? []) {
     const key = row.vendor_user_id;
@@ -67,7 +75,7 @@ export default async function MessagesPage({
           avatar: avatarOf.get(person.user_id) ?? null,
           excerpt: last ? excerptOf(last.body) : "",
           time: last ? threadTime(last.createdAt) : "",
-          unread: Boolean(last && last.authorId !== space.session.userId),
+          unread: threadUnread(history, person.user_id, space.session.userId, readIds, last?.authorId),
         };
       })
     : [
@@ -78,7 +86,7 @@ export default async function MessagesPage({
           avatar: null,
           excerpt: latest.get(space.session.userId) ? excerptOf(latest.get(space.session.userId)!.body) : "",
           time: latest.get(space.session.userId) ? threadTime(latest.get(space.session.userId)!.createdAt) : "",
-          unread: Boolean(latest.get(space.session.userId) && latest.get(space.session.userId)!.authorId !== space.session.userId),
+          unread: threadUnread(history, space.session.userId, space.session.userId, readIds, latest.get(space.session.userId)?.authorId),
         },
       ];
   const requested = couple ? query.avec ?? "" : query.avec ?? space.session.userId;
@@ -95,7 +103,13 @@ export default async function MessagesPage({
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-line bg-paper md:grid md:h-[calc(100dvh-7rem)] md:grid-cols-[300px_minmax(0,1fr)]">
-      <RealtimeRefresh channel={`messages-picker-${id}`} subscriptions={[{ table: "messages", event: "INSERT", filter: `wedding_id=eq.${id}` }]} />
+      <RealtimeRefresh
+        channel={`messages-picker-${id}`}
+        subscriptions={[
+          { table: "messages", event: "INSERT", filter: `wedding_id=eq.${id}` },
+          { table: "message_reads", event: "INSERT" },
+        ]}
+      />
       <aside className={`${mobileOpen ? "hidden md:flex" : "flex"} min-h-[70dvh] flex-col border-line md:min-h-0 md:border-r`}>
         <div className="px-5 pb-3 pt-5">
           <h2 className="text-3xl font-semibold tracking-tight text-ink">Messages</h2>
@@ -149,6 +163,12 @@ export default async function MessagesPage({
               </div>
               <span className="rounded-full border border-accent bg-white/75 px-3 py-1 font-serif text-lg text-ink">{figure}</span>
             </div>
+            <MarkThreadRead
+              weddingId={id}
+              vendorUserId={couple ? active.userId : space.session.userId}
+              cursor={messages.at(-1)?.id ?? ""}
+              mobileOpen={mobileOpen}
+            />
             <MessageThread weddingId={id} vendorUserId={couple ? active.userId : space.session.userId} messages={messages} avatars={avatars} />
           </>
         ) : (
@@ -171,6 +191,18 @@ function RoundAvatar({ name, src }: { name: string; src: string | null }) {
 function initials(name: string) {
   const parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
   return parts.map((part) => part[0]?.toUpperCase() ?? "").join("") || "V";
+}
+
+function threadUnread(
+  messages: { id: string; authorId: string; vendorUserId: string | null }[],
+  vendorUserId: string,
+  viewerId: string,
+  readIds: Set<string> | null,
+  lastAuthorId: string | undefined,
+) {
+  if (!lastAuthorId) return false;
+  if (!readIds) return lastAuthorId !== viewerId;
+  return threadHasUnread(messages, vendorUserId, viewerId, readIds);
 }
 
 function excerptOf(body: string) {

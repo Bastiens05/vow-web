@@ -1,13 +1,13 @@
 "use client";
 
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { signOut } from "@/server/actions/auth";
 import { LineIcon } from "@/components/ui/line-icon";
 import type { IconName } from "@/components/ui/nav-link";
-import { navigationItems } from "@/components/layout/navigation-items";
+import { navigationItems, vendorSpaceMenuLabels, vendorWeddingSection } from "@/components/layout/navigation-items";
 import type { VendorCategory } from "@/lib/domain/categories";
 
 type Item = { href: string; label: string; icon: IconName };
@@ -66,22 +66,34 @@ export function CoupleSidebar({
 }) {
   const path = usePathname() ?? "";
   const collapsed = useSyncExternalStore(subscribeSidebar, readSidebarCollapsed, () => false);
+  const [liveLogo, setLiveLogo] = useState<string | null>(null);
+  const [logoFailed, setLogoFailed] = useState(false);
+  useEffect(() => {
+    function onLogo(event: Event) {
+      const url = (event as CustomEvent<string>).detail;
+      if (typeof url === "string" && url) setLiveLogo(url);
+    }
+    window.addEventListener("vow-logo", onLogo);
+    return () => window.removeEventListener("vow-logo", onLogo);
+  }, []);
+  const shownLogo = liveLogo ?? identityLogo;
+  const [logoSrc, setLogoSrc] = useState(shownLogo);
+  if (logoSrc !== shownLogo) {
+    setLogoSrc(shownLogo);
+    setLogoFailed(false);
+  }
   const items = live
     ? navigationItems(path, live.role, live.category, true, live.primaryWeddingId, live.actingAsCouple, live.isAdmin)
     : itemsProp;
-  const openedId = /^\/mariage\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i.exec(path)?.[1] ?? null;
-  const vendorInside = Boolean(live && live.role === "vendor" && !live.actingAsCouple && openedId);
-  const activeSection = vendorInside
-    ? {
-        title: live?.weddingNames[openedId ?? ""] || section?.title || "Ce mariage",
-        backHref: "/mariages",
-        backLabel: "Retour à tous les mariages",
-      }
-    : section;
+  const activeSection =
+    live && live.role === "vendor" && !live.actingAsCouple
+      ? vendorWeddingSection(path, live.weddingNames)
+      : section;
+  const vendorInside = Boolean(live && live.role === "vendor" && !live.actingAsCouple && activeSection);
   const activeGroups = vendorInside
     ? [{ caption: "", labels: items.map((item) => item.label).filter((label) => !["Réglages", "Admin"].includes(label)) }]
     : live?.role === "vendor" && !live.actingAsCouple
-      ? [{ caption: "Espace", labels: ["Accueil", "Mariages", "Messages"] }]
+      ? [{ caption: "Espace", labels: vendorSpaceMenuLabels }]
       : groups;
   function toggle() {
     window.localStorage.setItem("vow-sidebar", collapsed ? "full" : "icons");
@@ -89,6 +101,8 @@ export function CoupleSidebar({
   }
   const settings = items.find((item) => item.label === "Réglages");
   const admin = items.find((item) => item.label === "Admin");
+  const homeHref = identityHref ?? items.find((item) => item.label === "Accueil")?.href ?? "/espace";
+  const identityActive = Boolean(identityHref) && path === homeHref;
   return (
     <aside
       className={`sticky top-3 z-20 my-3 ml-3 hidden h-[calc(100dvh-1.5rem)] flex-col rounded-3xl border border-line bg-[var(--vow-glass)] shadow-[var(--vow-shadow)] backdrop-blur-md transition-[width] duration-200 md:flex ${collapsed ? "w-[4.75rem]" : "w-64"}`}
@@ -105,18 +119,20 @@ export function CoupleSidebar({
         </button>
       </div>
       <Link
-        href={identityHref ?? items.find((item) => item.label === "Accueil")?.href ?? "/espace"}
+        href={homeHref}
         title={weddingName}
-        className={`mx-3 mt-3 flex items-center gap-3 rounded-2xl border border-line bg-ivory/70 px-3 py-3 transition hover:bg-ink/[0.04] ${collapsed ? "justify-center px-0" : ""}`}
+        aria-current={identityActive ? "page" : undefined}
+        className={`mx-3 mt-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+          identityActive ? "bg-accent-soft font-medium text-ink" : "border border-line bg-ivory/70 hover:bg-ink/[0.04]"
+        } ${collapsed ? "justify-center px-0" : ""}`}
       >
-        {identityLogo ? (
-          <span
-            aria-hidden
-            className="h-9 w-9 shrink-0 rounded-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${identityLogo})` }}
-          />
+        {shownLogo && !logoFailed ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-paper">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={shownLogo} alt="" className="h-8 w-8 object-contain" onError={() => setLogoFailed(true)} />
+          </span>
         ) : (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-ivory">
             {monogram(identityMark || weddingName)}
           </span>
         )}
@@ -163,7 +179,14 @@ export function CoupleSidebar({
       </nav>
       <div className="border-t border-line p-2">
         <div className={`flex items-center gap-2 px-2 py-2 ${collapsed ? "justify-center" : ""}`}>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">{monogram(userName)}</span>
+          {shownLogo && !logoFailed ? (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-paper">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={shownLogo} alt="" className="h-6 w-6 object-contain" onError={() => setLogoFailed(true)} />
+            </span>
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">{monogram(userName)}</span>
+          )}
           {collapsed ? null : <span className="min-w-0 truncate text-sm">{userName}</span>}
         </div>
         {account && account.length > 0 ? (

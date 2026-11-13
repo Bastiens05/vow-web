@@ -47,10 +47,10 @@ export async function VendorDossier({
     <section id={vendorId} className="grid gap-4">
       <header>
         <p className="text-xs uppercase tracking-[0.16em] text-muted">{trade}</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+        <h2 className="mt-1 break-words text-3xl font-semibold tracking-tight">
           {name} · {trade}
         </h2>
-        {phone || email ? <p className="mt-2 text-sm text-muted">{[phone, email].filter(Boolean).join(" · ")}</p> : null}
+        {phone || email ? <p className="mt-2 break-words text-sm text-muted">{[phone, email].filter(Boolean).join(" · ")}</p> : null}
       </header>
       <Card>
         <DocumentRequests weddingId={weddingId} vendorUserId={vendorId} vendorName={name} couple={couple} />

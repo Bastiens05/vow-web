@@ -36,11 +36,13 @@ export function DocumentManager({
   const [pending, setPending] = useState(false);
   const [chosen, setChosen] = useState<string[]>([]);
   const [progress, setProgress] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
 
   async function onFiles(files: File[]) {
     setChosen(files.map((file) => file.name));
     setPending(true);
     setError(null);
+    let failed = false;
     const supabase = createClient();
     for (let index = 0; index < files.length; index += 1) {
       const file = files[index];
@@ -48,6 +50,7 @@ export function DocumentManager({
       const check = validateUpload(file, "document");
       if (!check.ok) {
         setError(check.error);
+        failed = true;
         continue;
       }
       setProgress(Math.round((index / files.length) * 100));
@@ -58,6 +61,7 @@ export function DocumentManager({
       });
       if (uploaded.error) {
         setError(uploaded.error.message);
+        failed = true;
         continue;
       }
       const inserted = await supabase.from("documents").insert({
@@ -71,26 +75,29 @@ export function DocumentManager({
       if (inserted.error) {
         await supabase.storage.from("wedding-documents").remove([path]);
         setError(inserted.error.message);
+        failed = true;
       }
     }
-    setProgress(100);
+    setProgress(failed ? null : 100);
     setPending(false);
+    if (!failed) setAdding(false);
     router.refresh();
   }
 
+  const showDrop = adding || pending;
+
   return (
-    <div className="space-y-5">
-      <ul className="divide-y divide-line rounded-2xl border border-line bg-paper">
-        {documents.length === 0 ? (
-          <li className="px-4 py-6 text-sm text-muted">Aucun document pour l’instant.</li>
-        ) : null}
+    <div className="min-w-0 space-y-4">
+      {documents.length === 0 ? <p className="text-sm leading-6 text-muted">Aucun document pour l&apos;instant.</p> : null}
+      {documents.length > 0 ? (
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line">
         {documents.map((document) => {
           const request = requests.find((item) => item.document_id === document.id);
           return (
           <li key={document.id} className="flex flex-col gap-3 px-4 py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-medium">{document.file_name}</p>
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="break-words font-medium">{document.file_name}</p>
                 <p className="mt-1 text-xs text-muted">
                   {formatFileSize(document.size_bytes)} · {names[document.uploaded_by] ?? "Membre"} · {formatDateTime(document.created_at)}
                 </p>
@@ -147,15 +154,23 @@ export function DocumentManager({
           );
         })}
       </ul>
-      <FileDrop
-        accept=".pdf,.txt,.doc,.docx,.jpg,.jpeg,.png,.webp,application/pdf,text/plain,image/jpeg,image/png,image/webp"
-        multiple
-        disabled={pending}
-        hint="PDF, Word, texte, JPG, PNG ou WebP · 10 Mo maximum."
-        names={chosen}
-        progress={progress}
-        onFiles={(files) => void onFiles(files)}
-      />
+      ) : null}
+      {showDrop ? (
+        <FileDrop
+          accept=".pdf,.txt,.doc,.docx,.jpg,.jpeg,.png,.webp,application/pdf,text/plain,image/jpeg,image/png,image/webp"
+          multiple
+          compact
+          disabled={pending}
+          hint="PDF, Word, texte, JPG, PNG ou WebP · 10 Mo maximum."
+          names={chosen}
+          progress={progress}
+          onFiles={(files) => void onFiles(files)}
+        />
+      ) : (
+        <Button type="button" variant="secondary" onClick={() => setAdding(true)}>
+          Ajouter un document
+        </Button>
+      )}
       {error ? <Alert>{error}</Alert> : null}
     </div>
   );

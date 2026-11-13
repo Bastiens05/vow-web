@@ -24,6 +24,7 @@ describe("routes", () => {
 
   it("protects member areas only", () => {
     expect(isProtectedPath("/espace/profil")).toBe(true);
+    expect(isProtectedPath("/coffre-fort")).toBe(true);
     expect(isProtectedPath("/mariage/1/messages")).toBe(true);
     expect(isProtectedPath("/p/atelier-lumiere")).toBe(false);
     expect(isProtectedPath("/connexion")).toBe(false);

@@ -15,10 +15,11 @@ import { coupleChecklist, coupleSteps, dedupeTasks, firstRunSteps, openSteps, ve
 import { compareWeddingTimes, parisClockMinutes, selectLiveStep } from "@/lib/domain/day";
 import { coupleHeroTitle, formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
+import { threadHasUnread } from "@/lib/domain/message-reads";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
 import { moderateReview } from "@/server/actions/ledger";
-import { getCoupleFocus, getDashboardSignals, listMyWeddings } from "@/server/data";
+import { getCoupleFocus, getDashboardSignals, listMyWeddings, messageReadIds } from "@/server/data";
 import { requireSession } from "@/server/session";
 
 export const metadata: Metadata = { title: "Accueil" };
@@ -114,7 +115,9 @@ export default async function DashboardPage() {
       ) : null}
       {ledger ? (
         <section className="mb-8 grid gap-4 sm:grid-cols-3">
-          <SignalCard icon={Wallet} label="Encaissé cette année" value={formatEuros(ledger.revenueCents)} detail="Paiements enregistrés" />
+          <Link href="/tresorerie" className="block rounded-3xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+            <SignalCard icon={Wallet} label="Encaissé cette année" value={formatEuros(ledger.revenueCents)} detail="Paiements enregistrés" />
+          </Link>
           <SignalCard icon={CalendarRange} label="Mariages à venir" value={String(upcoming.filter((wedding) => !wedding.isDemo).length || "À ajouter")} detail="Hors mariages de démonstration" />
           {ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews > 0 ? (
             <SignalCard icon={Bell} label="À traiter" value={String(ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews)} detail="devis, acomptes, avis" />
@@ -242,7 +245,7 @@ async function CoupleHome({
 }) {
   const supabase = await createClient();
   const [{ data: notes }, { data: slots }, { data: directory }, { data: vault }] = await Promise.all([
-    supabase.from("messages").select("author_id, body, created_at, vendor_user_id").eq("wedding_id", weddingId).order("created_at", { ascending: false }).limit(40),
+    supabase.from("messages").select("id, author_id, body, created_at, vendor_user_id").eq("wedding_id", weddingId).order("created_at", { ascending: false }).limit(40),
     supabase.from("timeline_slots").select("title, starts_at, place, sort_order").eq("wedding_id", weddingId),
     supabase.rpc("wedding_directory", { p_wedding_id: weddingId }),
     supabase.from("vault_items").select("id").eq("wedding_id", weddingId).limit(1),
@@ -276,12 +279,27 @@ async function CoupleHome({
     }),
     ...extra.map((item) => ({ ...item, done: item.done ?? false })),
   ]);
-  const seen = new Set<string>();
-  const unread = (notes ?? []).filter((note) => {
+  const readIds = await messageReadIds((notes ?? []).map((note) => note.id));
+  const byThread = new Map<string, NonNullable<typeof notes>>();
+  for (const note of notes ?? []) {
     const key = note.vendor_user_id ?? note.author_id;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return note.author_id !== userId;
+    const list = byThread.get(key) ?? [];
+    list.push(note);
+    byThread.set(key, list);
+  }
+  const unread = [...byThread.values()].flatMap((list) => {
+    const latest = list[0];
+    if (!latest) return [];
+    const vendorUserId = latest.vendor_user_id ?? latest.author_id;
+    const open = readIds
+      ? threadHasUnread(
+          list.map((note) => ({ id: note.id, authorId: note.author_id, vendorUserId: note.vendor_user_id })),
+          vendorUserId,
+          userId,
+          readIds,
+        )
+      : latest.author_id !== userId;
+    return open ? [latest] : [];
   });
   const ordered = [...(slots ?? [])].sort((a, b) => compareWeddingTimes(a.starts_at, b.starts_at) || a.sort_order - b.sort_order);
   const live = days === 0 ? selectLiveStep(ordered.map((slot) => ({ ...slot, startsAt: slot.starts_at })), parisClockMinutes()) : null;

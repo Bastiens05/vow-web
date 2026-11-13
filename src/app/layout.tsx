@@ -9,7 +9,8 @@ import { assistantEnabled } from "@/lib/domain/assistant";
 import { DesktopNav, MobileChrome, PublicHeader } from "@/components/layout/app-nav";
 import { BillingGate } from "@/components/layout/billing-gate";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
-import { VaultButton } from "@/components/layout/vault-button";
+import { RealtimeRefresh } from "@/components/live/realtime-refresh";
+import { VaultButton, VaultLink } from "@/components/layout/vault-button";
 import { VaultBoard } from "@/components/wedding/vault-board";
 import { VAULT_CHECKLIST } from "@/lib/domain/vault";
 import { createClient } from "@/lib/supabase/server";
@@ -76,17 +77,28 @@ async function AlertSlot() {
   if (!session) return null;
   const latest = await latestUnreadAlert(session.userId);
   const vault = await coupleVault(session.userId);
+  const showCoupleVault = Boolean(vault && (session.profile.role === "couple" || vault.onCouplePage));
+  const showVendorVault = session.profile.role === "vendor" && Boolean(session.vendor) && !showCoupleVault;
   return (
-    <div className="pointer-events-none fixed right-0 top-0 z-50">
-      <div className="pointer-events-auto flex h-14 items-center gap-0.5 px-3 md:h-16 md:px-6">
-        {vault ? (
+    <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
+      <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
+        {showCoupleVault && vault ? (
           <VaultButton href={`/mariage/${vault.weddingId}/coffre`} missing={vault.missing}>
             <VaultBoard weddingId={vault.weddingId} userId={session.userId} checklist={VAULT_CHECKLIST} stored={vault.stored} />
           </VaultButton>
         ) : null}
+        {showVendorVault ? <VaultLink href="/coffre-fort" label="Coffre-fort" /> : null}
         {assistantEnabled() ? (
           <AssistantDock role={session.profile.role} defaultWeddingId={await defaultAssistantWedding(session.userId, session.profile.role)} />
         ) : null}
+        <RealtimeRefresh
+          channel="message-badges"
+          subscriptions={[
+            { table: "messages", event: "INSERT" },
+            { table: "message_reads", event: "INSERT" },
+            { table: "notification_reads", event: "INSERT" },
+          ]}
+        />
         <AlertDock
           calm
           inApp={session.profile.notify_in_app}
@@ -105,12 +117,13 @@ async function coupleVault(userId: string) {
   const weddings = await listMyWeddings(userId);
   const onPath = match ? weddings.find((wedding) => wedding.id === match[1]) : null;
   const preview = Boolean(onPath && onPath.is_demo && onPath.couple_preview && onPath.created_by === userId);
-  const card = onPath && (onPath.memberRole === "couple" || preview) ? onPath : preferredCoupleWedding(weddings, userId);
+  const onCouplePage = Boolean(onPath && (onPath.memberRole === "couple" || preview));
+  const card = onCouplePage ? onPath : preferredCoupleWedding(weddings, userId);
   if (!card) return null;
   const supabase = await createClient();
   const { data } = await supabase.from("vault_items").select("id, kind, label, file_name, storage_path").eq("wedding_id", card.id);
   const stored = data ?? [];
   const present = new Set(stored.map((item) => item.kind));
   const missing = VAULT_CHECKLIST.filter((item) => !present.has(item.kind)).length;
-  return { weddingId: card.id, missing, stored };
+  return { weddingId: card.id, missing, stored, onCouplePage };
 }

@@ -142,29 +142,51 @@ export type InboxThread = {
   title: string;
   body: string;
   createdAt: string;
+  unread: boolean;
 };
 
-export async function listInbox(): Promise<InboxThread[]> {
+export async function listInbox(userId: string): Promise<InboxThread[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("messages")
-    .select("body, created_at, wedding_id, weddings(partner_one_name, partner_two_name)")
+    .select("id, body, created_at, author_id, vendor_user_id, wedding_id, weddings(partner_one_name, partner_two_name)")
     .order("created_at", { ascending: false })
     .limit(80);
+  const rows = data ?? [];
+  const readIds = await messageReadIds(rows.map((row) => row.id));
   const seen = new Set<string>();
   const threads: InboxThread[] = [];
-  for (const row of data ?? []) {
+  for (const row of rows) {
     if (seen.has(row.wedding_id)) continue;
     seen.add(row.wedding_id);
     const wedding = Array.isArray(row.weddings) ? row.weddings[0] : row.weddings;
+    const threadMessages = rows
+      .filter((item) => item.wedding_id === row.wedding_id)
+      .map((item) => ({ id: item.id, authorId: item.author_id, vendorUserId: item.vendor_user_id }));
     threads.push({
       weddingId: row.wedding_id,
       title: wedding ? weddingTitle(wedding.partner_one_name, wedding.partner_two_name) : "Mariage",
       body: row.body,
       createdAt: row.created_at,
+      unread: threadMessages.some((message) => message.authorId !== userId && (readIds === null || !readIds.has(message.id))),
     });
   }
   return threads;
+}
+
+export const countUnreadMessages = cache(async (userId: string) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("unread_message_count");
+  if (!error && typeof data === "number") return data;
+  return (await latestUnreadAlert(userId)) ? 1 : 0;
+});
+
+export async function messageReadIds(ids: string[]): Promise<Set<string> | null> {
+  if (ids.length === 0) return new Set();
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("message_reads").select("message_id").in("message_id", ids);
+  if (error) return null;
+  return new Set((data ?? []).map((row) => row.message_id));
 }
 
 export async function getCoupleFocus(weddingId: string) {

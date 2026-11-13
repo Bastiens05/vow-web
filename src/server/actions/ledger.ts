@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { frenchDateToIso } from "@/lib/domain/french-date";
 import { eurosToCents } from "@/lib/domain/money";
 import { siteUrl } from "@/lib/env";
 import { messageFromError } from "@/lib/errors";
@@ -105,9 +106,9 @@ export async function createDeposit(weddingId: string, _prev: ActionState, formD
   const session = await requireSession();
   if (!session.vendor) return { error: "Complétez d'abord votre vitrine." };
   const cents = eurosToCents(String(formData.get("amount") ?? ""));
-  const due = String(formData.get("due_on") ?? "");
+  const due = frenchDateToIso(String(formData.get("due_on") ?? ""));
   if (cents === null || cents <= 0) return { error: "Indiquez le montant de l'acompte." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return { error: "Indiquez une date d'échéance." };
+  if (!due) return { error: "Indiquez l'échéance au format jj/mm/aaaa." };
   const supabase = await createClient();
   const { error } = await supabase.from("deposits").insert({
     wedding_id: weddingId,

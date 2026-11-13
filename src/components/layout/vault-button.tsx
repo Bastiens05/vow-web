@@ -3,6 +3,18 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
+import { positiveBadgeCount } from "@/lib/domain/badge-count";
+
+const vaultButtonClass =
+  "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-ink/[0.05] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+
+export function VaultLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} aria-label={label} className={vaultButtonClass}>
+      <Lock className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+    </Link>
+  );
+}
 
 export function VaultButton({ href, missing, children }: { href: string; missing: number; children: ReactNode }) {
   const [mobile, setMobile] = useState(false);
@@ -14,19 +26,19 @@ export function VaultButton({ href, missing, children }: { href: string; missing
     query.addEventListener("change", apply);
     return () => query.removeEventListener("change", apply);
   }, []);
-  const label = missing > 0 ? `Coffre, ${missing} pièce${missing > 1 ? "s" : ""} manquante${missing > 1 ? "s" : ""}` : "Coffre";
+  const count = positiveBadgeCount(missing);
+  const label = count ? `Coffre, ${count} pièce${count > 1 ? "s" : ""} manquante${count > 1 ? "s" : ""}` : "Coffre";
   const icon = (
     <>
       <Lock className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-      {missing > 0 ? (
+      {count ? (
         <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-medium leading-none text-white">
-          {missing}
+          {count}
         </span>
       ) : null}
     </>
   );
-  const className =
-    "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition hover:bg-ink/[0.05] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+  const className = vaultButtonClass;
   if (!mobile) {
     return (
       <Link href={href} aria-label={label} className={className}>

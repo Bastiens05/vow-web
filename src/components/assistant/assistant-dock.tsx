@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { assistantFailureMessage } from "@/lib/domain/assistant";
+import { enterSendsMessage, hasTouchKeyboard } from "@/lib/domain/composer-key";
 import { formatEuros } from "@/lib/domain/money";
 import { applyBudgetSplit, applyProposedProgramme, applySuggestedChecklist } from "@/server/actions/assistant";
 
@@ -122,10 +123,22 @@ export function AssistantDock({ role, defaultWeddingId }: { role: "couple" | "ve
               className="max-h-28 min-h-11 flex-1 resize-none rounded-2xl border border-line bg-paper px-3 py-2 text-sm outline-none focus:border-ink"
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  ask(input);
+                if (
+                  !enterSendsMessage(
+                    {
+                      key: event.key,
+                      shiftKey: event.shiftKey,
+                      isComposing: event.nativeEvent.isComposing,
+                      keyCode: event.nativeEvent.keyCode,
+                      repeat: event.repeat,
+                    },
+                    { touchKeyboard: hasTouchKeyboard() },
+                  )
+                ) {
+                  return;
                 }
+                event.preventDefault();
+                ask(input);
               }}
             />
             <Button type="submit" disabled={busy || input.trim().length === 0}>

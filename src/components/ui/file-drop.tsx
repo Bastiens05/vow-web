@@ -9,6 +9,7 @@ export function FileDrop({
   hint,
   progress = null,
   names = [],
+  compact = false,
   onFiles,
 }: {
   accept: string;
@@ -17,6 +18,7 @@ export function FileDrop({
   hint: string;
   progress?: number | null;
   names?: string[];
+  compact?: boolean;
   onFiles: (files: File[]) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
@@ -45,10 +47,11 @@ export function FileDrop({
         if (disabled) return;
         take(event.dataTransfer.files);
       }}
-      className={`rounded-2xl border border-dashed px-4 py-5 text-center transition ${
-        over ? "border-ink bg-ink/[0.04]" : "border-line bg-ivory/40"
-      } ${disabled ? "opacity-60" : ""}`}
+      className={`rounded-2xl border border-dashed text-center transition ${
+        compact ? "px-4 py-3" : "px-4 py-5"
+      } ${over ? "border-ink bg-ink/[0.04]" : "border-line bg-ivory/40"} ${disabled ? "opacity-60" : ""}`}
     >
+      {compact ? null : (
       <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-line bg-paper text-ink" aria-hidden>
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M12 16V6" />
@@ -56,7 +59,8 @@ export function FileDrop({
           <path d="M5 18h14" />
         </svg>
       </span>
-      <span className="mt-3 block text-sm font-medium">Déposez vos fichiers ici</span>
+      )}
+      <span className={`${compact ? "mt-0" : "mt-3"} block text-sm font-medium`}>Déposez vos fichiers ici</span>
       <button
         type="button"
         disabled={disabled}

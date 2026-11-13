@@ -11,14 +11,14 @@ import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
 import { backTarget, isPublicPath } from "@/lib/domain/chrome";
 import { coupleHeroTitle, todayIso } from "@/lib/domain/format";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
-import { getWeddingSpace, latestUnreadAlert, listMyWeddings } from "@/server/data";
+import { countUnreadMessages, getWeddingSpace, listMyWeddings } from "@/server/data";
 import { getSession, type SessionProfile } from "@/server/session";
 import { publicObjectUrl } from "@/lib/storage";
 
 export async function DesktopNav() {
   const session = await getSession();
   const context = await navContext(session);
-  const unread = session ? Boolean(await latestUnreadAlert(session.userId)) : false;
+  const unread = session ? (await countUnreadMessages(session.userId)) > 0 : false;
   const couple = session?.profile.role === "couple" || context.actingAsCouple;
   if (session && (couple || session.profile.role === "vendor")) {
     const countdown = context.weddingDate ? heroCountdown(daysUntil(context.weddingDate, todayIso())) : null;
@@ -66,7 +66,7 @@ export async function DesktopNav() {
                   caption: inWedding ? "" : "Espace",
                   labels: context.sideItems
                     .map((item) => item.label)
-                    .filter((label) => !["Réglages", "Admin", "Aperçu"].includes(label)),
+                    .filter((label) => !["Accueil", "Réglages", "Admin", "Aperçu"].includes(label)),
                 },
               ]
         }
@@ -103,6 +103,7 @@ export async function DesktopNav() {
         primaryWeddingId={context.primaryWeddingId}
         actingAsCouple={context.actingAsCouple}
         isAdmin={Boolean(session?.isAdmin)}
+        messageUnread={unread}
       />
       {session ? <SignOutButton /> : null}
     </aside>
@@ -113,6 +114,7 @@ export async function MobileChrome() {
   const session = await getSession();
   const context = await navContext(session);
   const name = session?.vendor?.business_name || session?.profile.full_name || "";
+  const unread = session ? (await countUnreadMessages(session.userId)) > 0 : false;
   return (
     <>
       <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-[var(--vow-glass)] px-4 pr-36 backdrop-blur-md md:hidden">
@@ -134,6 +136,7 @@ export async function MobileChrome() {
         primaryWeddingId={context.primaryWeddingId}
         actingAsCouple={context.actingAsCouple}
         isAdmin={Boolean(session?.isAdmin)}
+        messageUnread={unread}
       />
       )}
     </>

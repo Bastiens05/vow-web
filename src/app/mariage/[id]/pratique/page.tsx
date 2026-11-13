@@ -6,7 +6,7 @@ import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
 import { factsFromJson, fieldsForTrade, filledRatio, visibleFacts } from "@/lib/domain/profile";
 import { isVendorCategory } from "@/lib/domain/categories";
-import { canSeeSheet, pratiqueLabel } from "@/lib/domain/trades";
+import { canSeeSheet } from "@/lib/domain/trades";
 import { createClient } from "@/lib/supabase/server";
 import { getPracticalSheet, getWeddingSpace } from "@/server/data";
 
@@ -75,40 +75,94 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
       </div>
     );
   }
-  const label = pratiqueLabel(viewRole, category) ?? "Pratique";
-  const title =
-    label === "Groupes" ? "Groupes photo" : label === "Invités" ? "Tables et régimes" : label === "Musique" ? "Musique" : label === "Infos" ? "Infos du lieu" : "Infos pratiques";
   const ratio = filledRatio(facts, trade);
   const known = fieldsForTrade(trade)
     .map((field) => ({ key: field.key, label: field.label, value: visibleFacts(facts, trade)[field.key] ?? "" }))
     .filter((field) => field.value.length > 0);
+  const composeGroups = trade === "planner";
+  const groupesOnly = showPhotos && !showGuests && !showMusic;
+  const board = {
+    weddingId: id,
+    practical: sheet.practical,
+    groups: sheet.groups,
+    guests: sheet.guests,
+    canEditDetails: false,
+    musicNotes: music?.notes ?? "",
+    canEditMusic: false,
+  };
   return (
     <div className="grid gap-4">
       <ProfileSlice facts={known} percent={ratio.percent} />
-    <Card>
-      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-      <p className="mt-1 mb-6 text-sm leading-6 text-muted">
-        {showPhotos && !showGuests
-          ? "Les groupes photo de ce mariage. La liste des invités et les régimes restent chez le couple, le traiteur et le lieu."
-          : showGuests && !showPhotos
-            ? "Tables et régimes. L'ordre des groupes photo reste chez le couple, le photographe et le vidéaste."
-            : "Renseignées par le couple. Vous ne voyez que les fiches de votre métier."}
-      </p>
-      <PracticalBoard
-        weddingId={id}
-        practical={sheet.practical}
-        groups={sheet.groups}
-        guests={sheet.guests}
-        canEditDetails={false}
-        showPhotos={showPhotos}
-        showGuests={showGuests}
-        canEditPhotos={showPhotos}
-        canEditGuests={showGuests}
-        showMusic={showMusic}
-        musicNotes={music?.notes ?? ""}
-        canEditMusic={false}
-      />
-    </Card>
+      {showPhotos ? (
+        <Card>
+          <h2 className="text-lg font-semibold tracking-tight">Groupes photo</h2>
+          <p className="mt-1 mb-6 text-sm leading-6 text-muted">
+            {composeGroups
+              ? "Les groupes photo de ce mariage. La liste des invités et les régimes restent chez le couple, le traiteur et le lieu."
+              : "L'ordre, le titre, les personnes et la note. Les mariés composent la liste."}
+          </p>
+          <PracticalBoard
+            {...board}
+            showDetails={false}
+            showHeadings={false}
+            showPhotos
+            showGuests={false}
+            showMusic={false}
+            canEditPhotos={composeGroups}
+            canEditGuests={false}
+          />
+        </Card>
+      ) : null}
+      {showGuests ? (
+        <Card>
+          <h2 className="text-lg font-semibold tracking-tight">Tables et régimes</h2>
+          <p className="mt-1 mb-6 text-sm leading-6 text-muted">
+            Tables et régimes. L&apos;ordre des groupes photo reste chez le couple, le photographe et le vidéaste.
+          </p>
+          <PracticalBoard
+            {...board}
+            showDetails={false}
+            showHeadings={false}
+            showPhotos={false}
+            showGuests
+            showMusic={false}
+            canEditPhotos={false}
+            canEditGuests
+          />
+        </Card>
+      ) : null}
+      {showMusic ? (
+        <Card>
+          <h2 className="text-lg font-semibold tracking-tight">Musique</h2>
+          <p className="mt-1 mb-6 text-sm leading-6 text-muted">Pour le DJ. Les autres métiers ne voient pas cette note.</p>
+          <PracticalBoard
+            {...board}
+            showDetails={false}
+            showHeadings={false}
+            showPhotos={false}
+            showGuests={false}
+            showMusic
+            canEditPhotos={false}
+            canEditGuests={false}
+          />
+        </Card>
+      ) : null}
+      {groupesOnly ? null : (
+      <Card>
+        <h2 className="text-lg font-semibold tracking-tight">Infos pratiques</h2>
+        <p className="mt-1 mb-6 text-sm leading-6 text-muted">Renseignées par le couple. Vous ne voyez que les fiches de votre métier.</p>
+        <PracticalBoard
+          {...board}
+          showDetails
+          showHeadings={false}
+          showPhotos={false}
+          showGuests={false}
+          showMusic={false}
+          canEditPhotos={false}
+          canEditGuests={false}
+        />
+      </Card>
+      )}
     </div>
   );
 }

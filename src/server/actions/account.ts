@@ -88,22 +88,6 @@ export async function saveBusinessBasics(_prev: ActionState, formData: FormData)
   return { success: "Informations enregistrées." };
 }
 
-export async function saveLogo(path: string): Promise<ActionState> {
-  const session = await requireSession();
-  if (!session.vendor) return { error: "Enregistrez d'abord le nom commercial." };
-  if (!path.startsWith(`${session.userId}/`) || path.length > 300) return { error: "Logo invalide." };
-  const supabase = await createClient();
-  const previous = session.vendor.logo_path;
-  const { error } = await supabase.from("vendor_profiles").update({ logo_path: path }).eq("id", session.vendor.id);
-  if (error) return { error: messageFromError(error) };
-  if (previous && previous !== path) {
-    await supabase.storage.from("vendor-media").remove([previous]);
-  }
-  revalidatePath("/reglages");
-  revalidatePath(`/p/${session.vendor.slug}`);
-  return { success: "Logo enregistré." };
-}
-
 export async function createCoupleWedding(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireSession();
   if (session.profile.role !== "couple") return { error: "Réservé aux mariés." };

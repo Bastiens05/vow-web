@@ -15,6 +15,7 @@ import { ContactFormLink } from "@/components/account/contact-form-link";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { stripeEnabled, stripeTestMode } from "@/server/stripe";
 import { Card } from "@/components/ui/card";
+import { HashScroll } from "@/components/ui/hash-scroll";
 import { PageHeader } from "@/components/ui/page-header";
 import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -55,6 +56,7 @@ export default async function SettingsPage() {
   const google = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`;
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-5 py-8 lg:max-w-3xl">
+      <HashScroll />
       <PageHeader
         eyebrow={vendor ? "Espace prestataire" : "Réglages"}
         title="Réglages"
