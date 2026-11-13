@@ -35,7 +35,7 @@ export function ChromeFrame({
         {desktop}
         <div className="min-w-0">
           {alerts}
-          <main className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-10">{children}</main>
+          <main className="vow-tab-clearance min-w-0 md:pb-10">{children}</main>
         </div>
       </div>
     </>

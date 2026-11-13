@@ -45,7 +45,7 @@ export function PaymentForm({ weddingId, invoiceId }: { weddingId: string; invoi
       <Field label="Montant (€)">
         <TextInput name="amount" required inputMode="decimal" placeholder="Montant" />
       </Field>
-      <Field label="Date" hint="jj/mm/aaaa">
+      <Field label="Date">
         <FrenchDateInput name="paid_on" required />
       </Field>
       <Field label="Moyen">
@@ -92,7 +92,7 @@ export function DepositForm({ weddingId }: { weddingId: string }) {
         <Field label="Montant (€)">
           <TextInput name="amount" required inputMode="decimal" placeholder="Montant" />
         </Field>
-        <Field label="Échéance" hint="jj/mm/aaaa">
+        <Field label="Échéance">
           <FrenchDateInput name="due_on" required />
         </Field>
         {state.error ? <Alert>{state.error}</Alert> : null}
