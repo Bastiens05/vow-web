@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
-import { enterSendsMessage, hasTouchKeyboard } from "@/lib/domain/composer-key";
+import { acceptMessageSubmit, enterSendsMessage, hasTouchKeyboard } from "@/lib/domain/composer-key";
 import { formatDateTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/server/actions/space";
@@ -27,6 +27,7 @@ export function MessageThread({
   const [optimistic, setOptimistic] = useState<MessageView[]>([]);
   const bottom = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const sending = useRef(false);
   const draftKey = `vow-draft:${weddingId}:${vendorUserId}`;
   const shown = [...messages, ...optimistic.filter((item) => !messages.some((message) => message.body === item.body && message.mine))];
 
@@ -106,12 +107,18 @@ export function MessageThread({
       <form
         action={async (formData) => {
           const body = String(formData.get("body") ?? "").trim();
-          if (!body || pending) return;
+          if (!acceptMessageSubmit({ body, pending, locked: sending.current })) return;
+          sending.current = true;
+          if (bodyRef.current) bodyRef.current.value = "";
           setOptimistic((current) => [
             ...current,
             { id: `local-${Date.now()}`, body, createdAt: new Date().toISOString(), authorId: "me", authorName: "Vous", mine: true },
           ]);
-          await formAction(formData);
+          try {
+            await formAction(formData);
+          } finally {
+            sending.current = false;
+          }
         }}
         className="fixed inset-x-3 z-30 flex items-center gap-2 rounded-full border border-white/70 bg-white/65 p-1.5 shadow-[var(--vow-shadow)] backdrop-blur-md bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:static md:z-10 md:mx-3 md:mb-3"
       >
@@ -123,7 +130,8 @@ export function MessageThread({
           rows={1}
           required
           placeholder="Écrire un message…"
-          className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-4 py-2 text-base text-ink outline-none"
+          disabled={pending}
+          className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-4 py-2 text-base text-ink outline-none disabled:opacity-60"
           onKeyDown={(event) => {
             if (
               !enterSendsMessage(
@@ -140,7 +148,7 @@ export function MessageThread({
               return;
             }
             event.preventDefault();
-            if (!event.currentTarget.value.trim() || pending) return;
+            if (!acceptMessageSubmit({ body: event.currentTarget.value, pending, locked: sending.current })) return;
             event.currentTarget.form?.requestSubmit();
           }}
         />

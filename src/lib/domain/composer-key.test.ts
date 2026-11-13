@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enterSendsMessage } from "./composer-key";
+import { acceptMessageSubmit, enterSendsMessage } from "./composer-key";
 
 const desktop = { touchKeyboard: false };
 const phone = { touchKeyboard: true };
@@ -27,5 +27,12 @@ describe("envoi au clavier", () => {
   it("ignore une touche maintenue et les autres touches", () => {
     expect(enterSendsMessage({ ...enter, repeat: true }, desktop)).toBe(false);
     expect(enterSendsMessage({ ...enter, key: "a" }, desktop)).toBe(false);
+  });
+
+  it("ignores a second submit while the first is still sending", () => {
+    expect(acceptMessageSubmit({ body: "Bonjour", pending: false, locked: false })).toBe(true);
+    expect(acceptMessageSubmit({ body: "Bonjour", pending: true, locked: false })).toBe(false);
+    expect(acceptMessageSubmit({ body: "Bonjour", pending: false, locked: true })).toBe(false);
+    expect(acceptMessageSubmit({ body: "   ", pending: false, locked: false })).toBe(false);
   });
 });

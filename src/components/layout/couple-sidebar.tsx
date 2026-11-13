@@ -179,7 +179,14 @@ export function CoupleSidebar({
       </nav>
       <div className="border-t border-line p-2">
         <div className={`flex items-center gap-2 px-2 py-2 ${collapsed ? "justify-center" : ""}`}>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">{monogram(userName)}</span>
+          {shownLogo && !logoFailed ? (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-paper">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={shownLogo} alt="" className="h-6 w-6 object-contain" onError={() => setLogoFailed(true)} />
+            </span>
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">{monogram(userName)}</span>
+          )}
           {collapsed ? null : <span className="min-w-0 truncate text-sm">{userName}</span>}
         </div>
         {account && account.length > 0 ? (

@@ -37,8 +37,8 @@ export function DepositForm({ weddingId }: { weddingId: string }) {
         <Field label="Montant (€)">
           <TextInput name="amount" required inputMode="decimal" placeholder="500" />
         </Field>
-        <Field label="Échéance">
-          <TextInput name="due_on" type="date" required />
+        <Field label="Échéance" hint="jj/mm/aaaa">
+          <TextInput name="due_on" lang="fr" inputMode="numeric" placeholder="jj/mm/aaaa" autoComplete="off" required pattern="\d{2}/\d{2}/\d{4}" title="jj/mm/aaaa" />
         </Field>
         {state.error ? <Alert>{state.error}</Alert> : null}
         {state.success ? <Alert tone="success">{state.success}</Alert> : null}

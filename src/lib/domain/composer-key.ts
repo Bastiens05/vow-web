@@ -8,6 +8,12 @@ export function enterSendsMessage(
   return event.key === "Enter" && !event.shiftKey;
 }
 
+/** One send at a time. A second Enter in the same moment is ignored. */
+export function acceptMessageSubmit(input: { body: string; pending: boolean; locked: boolean }): boolean {
+  if (input.pending || input.locked) return false;
+  return input.body.trim().length > 0;
+}
+
 export function hasTouchKeyboard(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(pointer: coarse)").matches;
