@@ -9,6 +9,8 @@ function weddingIdFrom(path: string) {
   return match?.[1] ?? null;
 }
 
+export const vendorSpaceMenuLabels = ["Mariages", "Messages"];
+
 export function vendorWeddingSection(path: string, names: Record<string, string>) {
   const id = weddingIdFrom(path);
   if (!id) return null;

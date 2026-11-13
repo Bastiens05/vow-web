@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { navigationItems, vendorWeddingSection } from "./navigation-items";
+import { navigationItems, vendorSpaceMenuLabels, vendorWeddingSection } from "./navigation-items";
 
 const weddingId = "ac7f5c8d-4d7a-42ff-ae97-66f51f135cba";
 
@@ -8,6 +8,7 @@ describe("navigation prestataire", () => {
     const expected = ["Accueil", "Mariages", "Messages", "Réglages"];
     expect(navigationItems("/espace", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
     expect(navigationItems("/mariages", "vendor", "photographer", true, weddingId, false, false).map((item) => item.label)).toEqual(expected);
+    expect(vendorSpaceMenuLabels).toEqual(["Mariages", "Messages"]);
   });
 
   it("n'ouvre pas le menu d'un mariage depuis /mariages", () => {

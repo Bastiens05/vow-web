@@ -66,7 +66,7 @@ export async function DesktopNav() {
                   caption: inWedding ? "" : "Espace",
                   labels: context.sideItems
                     .map((item) => item.label)
-                    .filter((label) => !["Réglages", "Admin", "Aperçu"].includes(label)),
+                    .filter((label) => !["Accueil", "Réglages", "Admin", "Aperçu"].includes(label)),
                 },
               ]
         }
