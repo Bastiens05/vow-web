@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
+import { enterSendsMessage, hasTouchKeyboard } from "@/lib/domain/composer-key";
 import { formatDateTime } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "@/server/actions/space";
@@ -105,12 +106,11 @@ export function MessageThread({
       <form
         action={async (formData) => {
           const body = String(formData.get("body") ?? "").trim();
-          if (body) {
-            setOptimistic((current) => [
-              ...current,
-              { id: `local-${Date.now()}`, body, createdAt: new Date().toISOString(), authorId: "me", authorName: "Vous", mine: true },
-            ]);
-          }
+          if (!body || pending) return;
+          setOptimistic((current) => [
+            ...current,
+            { id: `local-${Date.now()}`, body, createdAt: new Date().toISOString(), authorId: "me", authorName: "Vous", mine: true },
+          ]);
           await formAction(formData);
         }}
         className="fixed inset-x-3 z-30 flex items-center gap-2 rounded-full border border-white/70 bg-white/65 p-1.5 shadow-[var(--vow-shadow)] backdrop-blur-md bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:static md:z-10 md:mx-3 md:mb-3"
@@ -124,6 +124,25 @@ export function MessageThread({
           required
           placeholder="Écrire un message…"
           className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-4 py-2 text-base text-ink outline-none"
+          onKeyDown={(event) => {
+            if (
+              !enterSendsMessage(
+                {
+                  key: event.key,
+                  shiftKey: event.shiftKey,
+                  isComposing: event.nativeEvent.isComposing,
+                  keyCode: event.nativeEvent.keyCode,
+                  repeat: event.repeat,
+                },
+                { touchKeyboard: hasTouchKeyboard() },
+              )
+            ) {
+              return;
+            }
+            event.preventDefault();
+            if (!event.currentTarget.value.trim() || pending) return;
+            event.currentTarget.form?.requestSubmit();
+          }}
         />
         <button
           type="submit"
