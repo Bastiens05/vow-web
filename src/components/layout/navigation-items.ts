@@ -26,7 +26,7 @@ export function navigationItems(
       { href: base ? `${base}/jour` : "/espace", label: "Jour J", icon: "clock" },
       { href: base ? `${base}/messages` : "/messages", label: "Messages", icon: "message" },
       { href: base ? `${base}/documents` : "/espace", label: "Documents", icon: "file" },
-      { href: base ? `${base}/pratique` : "/espace", label: "Fiches", icon: "spark" },
+      { href: base ? `${base}/pratique` : "/espace", label: "Pratique", icon: "spark" },
       { href: base ? `${base}/equipe` : "/espace", label: "Prestataires", icon: "people" },
       { href: base ? `${base}/budget` : "/espace", label: "Budget", icon: "wallet" },
       { href: "/reglages", label: "Réglages", icon: "gear" },

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Clock, FolderOpen, Users, Wallet, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,8 @@ import { countLabel, moneyStatus, questionStatus, sheetStatus } from "@/lib/doma
 import { reminderKindLabel } from "@/lib/domain/reminders";
 import { createClient } from "@/lib/supabase/server";
 import { setReminders } from "@/server/actions/signatures";
-import { todayIso } from "@/lib/domain/format";
+import { formatEuros } from "@/lib/domain/money";
+import { formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import { siteUrl } from "@/lib/env";
 import { recommendVendor } from "@/server/actions/relay";
@@ -33,7 +35,7 @@ export default async function WeddingOverviewPage({
   const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
   const showGallery = canDeliver(space.actingAsCouple ? "couple" : space.role, space.session.vendor?.category ?? null);
   const showInvite = space.host;
-  const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites] = await Promise.all([
+  const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites, vendorInvites, budgetLines, weddingBudget, requests, slots] = await Promise.all([
     vendorIds.length
       ? supabase.from("vendor_profiles").select("id, business_name, user_id, category").in("user_id", vendorIds)
       : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string; category: string }[] }),
@@ -43,12 +45,17 @@ export default async function WeddingOverviewPage({
     supabase.from("wedding_practical").select("ceremony_address, reception_address, postal_address, notes").eq("wedding_id", id).maybeSingle(),
     supabase.from("wedding_stops").select("id").eq("wedding_id", id),
     supabase.from("quotes").select("id").eq("wedding_id", id),
-    supabase.from("invoices").select("status").eq("wedding_id", id),
+    supabase.from("invoices").select("status, amount_cents").eq("wedding_id", id),
     supabase.from("documents").select("id").eq("wedding_id", id),
     showGallery ? supabase.from("deliveries").select("id").eq("wedding_id", id) : Promise.resolve({ data: [] as { id: string }[] }),
     showInvite
       ? supabase.from("invitations").select("id").eq("wedding_id", id).is("accepted_at", null)
       : Promise.resolve({ data: [] as { id: string }[] }),
+    supabase.from("invitations").select("id").eq("wedding_id", id).eq("invited_role", "vendor").is("accepted_at", null),
+    supabase.from("budget_lines").select("amount_cents, paid").eq("wedding_id", id),
+    supabase.from("wedding_budgets").select("total_cents").eq("wedding_id", id).maybeSingle(),
+    supabase.from("wedding_document_requests").select("status").eq("wedding_id", id),
+    supabase.from("timeline_slots").select("title, starts_at").eq("wedding_id", id).order("sort_order"),
   ]);
   const questionIds = new Set((questions.data ?? []).map((row) => row.id));
   const answers = (items.data ?? []).filter((row) => questionIds.has(row.questionnaire_id)).map((row) => row.answer);
@@ -69,17 +76,22 @@ export default async function WeddingOverviewPage({
       ? "Privé"
       : moneyStatus((invoices.data ?? []).map((row) => row.status), quotes.data?.length ?? 0);
   const nextStep = countdownLabel(daysUntil(space.wedding.wedding_date, todayIso()));
+  const vendorStat = vendorStatCard(vendorCount, vendorInvites.data?.length ?? 0);
+  const documentStat = documentStatCard(requests.data ?? [], documentCount);
+  const budgetStat = budgetStatCard(budgetLines.data ?? [], weddingBudget.data?.total_cents ?? null, invoices.data ?? [], budgetText);
+  const stepStat = stepStatCard(slots.data ?? [], space.wedding.wedding_date, nextStep);
   return (
     <div className="grid gap-6">
-      <div className="relative z-10 -mt-16 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard href={`/mariage/${id}/equipe`} title="Prestataires" value={String(vendorCount)} />
-        <SummaryCard href={`/mariage/${id}/documents`} title="Documents" value={String(documentCount)} />
+      <div className="relative z-10 -mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard href={`/mariage/${id}/equipe`} icon={Users} title="Prestataires" {...vendorStat} />
+        <SummaryCard href={`/mariage/${id}/documents`} icon={FolderOpen} title="Documents" {...documentStat} />
         <SummaryCard
           href={space.role === "couple" || space.actingAsCouple ? `/mariage/${id}/budget` : `/mariage/${id}/devis`}
+          icon={Wallet}
           title="Budget"
-          value={budgetText}
+          {...budgetStat}
         />
-        <SummaryCard href={`/mariage/${id}/jour`} title="Prochaine étape" value={nextStep} />
+        <SummaryCard href={`/mariage/${id}/jour`} icon={Clock} title="Prochaine étape" {...stepStat} />
       </div>
       <Card>
         <h2 className="text-lg font-semibold tracking-tight">{space.role === "couple" || space.actingAsCouple ? "Prestataires" : "Membres"}</h2>
@@ -285,16 +297,87 @@ function FileIcon() {
   );
 }
 
-function SummaryCard({ href, title, value }: { href: string; title: string; value: string }) {
+function SummaryCard({
+  href,
+  icon: Icon,
+  title,
+  value,
+  detail,
+  progress,
+}: {
+  href: string;
+  icon: LucideIcon;
+  title: string;
+  value: string;
+  detail: string;
+  progress: number | null;
+}) {
   return (
-    <Link href={href} className="rounded-3xl border border-line bg-paper p-5 shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-accent">
-        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+    <Link href={href} className="rounded-[28px] border border-line bg-paper p-5 text-center shadow-[var(--vow-shadow)] transition active:scale-[0.99]">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent text-accent">
+        <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
       </span>
-      <p className="mt-4 font-serif text-2xl leading-none text-ink">{value}</p>
-      <p className="mt-2 text-sm text-muted">{title}</p>
+      <p className="mt-4 text-base font-medium text-ink">{title}</p>
+      <p className="mt-2 font-serif text-4xl font-normal leading-none text-ink">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-ink">{detail}</p>
+      {progress === null ? null : (
+        <span className="mt-4 block h-1.5 overflow-hidden rounded-full bg-accent-soft">
+          <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.round(progress * 100)}%` }} />
+        </span>
+      )}
     </Link>
   );
+}
+
+function vendorStatCard(confirmed: number, waiting: number) {
+  const expected = confirmed + waiting;
+  if (expected === 0) return { value: "À ajouter", detail: "Aucun prestataire pour l'instant", progress: null };
+  return {
+    value: String(confirmed),
+    detail: `${confirmed} confirmé${confirmed > 1 ? "s" : ""} sur ${expected}`,
+    progress: confirmed / expected,
+  };
+}
+
+function documentStatCard(requests: { status: string }[], files: number) {
+  if (requests.length === 0) {
+    if (files === 0) return { value: "À ajouter", detail: "Aucun document pour l'instant", progress: null };
+    return { value: String(files), detail: files > 1 ? `${files} fichiers déposés` : "1 fichier déposé", progress: null };
+  }
+  const done = requests.filter((row) => row.status === "validated").length;
+  const pending = requests.length - done;
+  return {
+    value: pending === 0 ? "À jour" : String(pending),
+    detail: `${done} validé${done > 1 ? "s" : ""} sur ${requests.length}`,
+    progress: done / requests.length,
+  };
+}
+
+function budgetStatCard(
+  lines: { amount_cents: number; paid: boolean }[],
+  plannedTotal: number | null,
+  invoices: { status: string; amount_cents: number }[],
+  fallback: string,
+) {
+  const planned = lines.reduce((sum, line) => sum + line.amount_cents, 0) || plannedTotal || 0;
+  const spent = lines.filter((line) => line.paid).reduce((sum, line) => sum + line.amount_cents, 0);
+  if (planned > 0) {
+    return { value: formatEuros(spent), detail: `sur ${formatEuros(planned)}`, progress: Math.min(1, spent / planned) };
+  }
+  const billed = invoices.reduce((sum, row) => sum + row.amount_cents, 0);
+  const paid = invoices.filter((row) => row.status === "paid").reduce((sum, row) => sum + row.amount_cents, 0);
+  if (billed > 0) {
+    return { value: formatEuros(paid), detail: `sur ${formatEuros(billed)} facturé`, progress: Math.min(1, paid / billed) };
+  }
+  if (fallback === "Aucun" || fallback === "Privé") return { value: "À ajouter", detail: "Aucun montant prévu", progress: null };
+  return { value: fallback, detail: "D'après les devis et factures", progress: null };
+}
+
+function stepStatCard(slots: { title: string; starts_at: string }[], weddingDate: string, countdown: string) {
+  const next = slots[0];
+  if (!next) return { value: "À ajouter", detail: formatLongDate(weddingDate), progress: null };
+  const time = /^\d{2}:\d{2}/.test(next.starts_at) ? formatSlotTime(next.starts_at) : "";
+  return { value: next.title, detail: time ? `${formatLongDate(weddingDate)} · ${time}` : countdown, progress: null };
 }
 
 function CameraIcon() {

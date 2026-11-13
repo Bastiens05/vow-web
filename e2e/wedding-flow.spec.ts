@@ -87,13 +87,13 @@ test("prestataire, invitation, messages, déroulé et document", async ({ page, 
   await expect(couplePage.getByText("Merci, on est bien arrivés.")).toBeVisible();
   await expect(page.getByText("Merci, on est bien arrivés.")).toBeVisible({ timeout: 20_000 });
 
-  await couplePage.getByRole("link", { name: "Jour J" }).click();
+  await couplePage.getByRole("link", { name: "Jour J", exact: true }).click();
   await couplePage.getByLabel("Étape").fill("Cérémonie");
   await couplePage.getByLabel("Heure").fill("16:00");
   await couplePage.getByLabel("Lieu", { exact: true }).fill("Jardin");
   await couplePage.getByRole("button", { name: "Ajouter l'étape" }).click();
   await expect(couplePage.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
-  await page.getByRole("link", { name: "Jour J" }).click();
+  await page.getByRole("link", { name: "Jour J", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Cérémonie" })).toBeVisible();
   await expect(page.getByLabel("Étape")).toHaveCount(0);
 

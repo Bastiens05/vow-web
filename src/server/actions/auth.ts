@@ -82,9 +82,8 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
       error: "Le compte est créé, mais Supabase attend encore une confirmation par e-mail. Coupez « Confirm email » pour entrer tout de suite.",
     };
   }
-  if (!destination.startsWith("/invitation/") && !destination.startsWith("/equipe/")) {
-    await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
-  } else {
+  await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
+  if (destination.startsWith("/invitation/") || destination.startsWith("/equipe/")) {
     redirect(destination);
   }
   redirect(await landingPath(supabase, destination, true));

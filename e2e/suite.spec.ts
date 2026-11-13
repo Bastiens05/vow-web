@@ -33,9 +33,9 @@ test("le budget et l'équipe restent isolés", async ({ page, browser }) => {
   await couple.getByRole("button", { name: "Rejoindre le mariage" }).click();
   await expect(couple.getByRole("heading", { name: "Inès & Paul" })).toBeVisible();
   await couple.goto(`/mariage/${weddingId}/budget`);
-  await couple.getByLabel("Budget global (€)").fill("12000");
-  await couple.getByRole("button", { name: "Enregistrer" }).click();
-  await expect(couple.getByText(/12[\s\u202f]000,00/)).toBeVisible();
+  await couple.getByLabel("Budget global").fill("12000");
+  await couple.getByLabel("Budget global").blur();
+  await expect(couple.getByText(/12[\s\u202f]000/)).toBeVisible();
 
   const other = await freshPage(browser);
   await signUpVendor(other, otherEmail);
@@ -46,9 +46,10 @@ test("le budget et l'équipe restent isolés", async ({ page, browser }) => {
   await expect(other.getByText(/12[\s\u202f]000,00/)).toHaveCount(0);
 
   await page.goto("/reglages");
-  await page.getByLabel("E-mail du membre").fill(teamEmail);
-  await page.getByRole("button", { name: "Inviter dans l'équipe" }).click();
-  const teamStatus = await page.getByRole("status").innerText();
+  const teamForm = page.locator("form").filter({ has: page.getByRole("button", { name: "Inviter dans l'équipe" }) });
+  await teamForm.getByLabel("E-mail du membre").fill(teamEmail);
+  await teamForm.getByRole("button", { name: "Inviter dans l'équipe" }).click();
+  const teamStatus = await teamForm.getByRole("status").innerText();
   const teamUrl = teamStatus.match(/https?:\/\/\S+/)?.[0] ?? "";
   expect(teamUrl).toContain("/equipe/");
 

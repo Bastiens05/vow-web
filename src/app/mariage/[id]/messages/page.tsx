@@ -41,9 +41,14 @@ export default async function MessagesPage({
         {vendors.map((person) => {
           const trade = person.category && isVendorCategory(person.category) ? categoryLabel(person.category) : "Prestataire";
           return (
-            <Link key={person.user_id} href={`/mariage/${id}/messages?avec=${person.user_id}`} className="block rounded-2xl border border-line bg-paper px-4 py-4 transition active:scale-[0.99]">
-              <p className="font-medium">{person.business_name || person.full_name}</p>
-              <p className="text-sm text-muted">{trade}</p>
+            <Link key={person.user_id} href={`/mariage/${id}/messages?avec=${person.user_id}`} className="flex items-center gap-4 rounded-[28px] border border-line bg-paper px-4 py-4 transition active:scale-[0.99]">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-accent text-base font-medium text-ink">
+                {initials(person.business_name || person.full_name || trade)}
+              </span>
+              <span>
+                <span className="block text-base font-medium text-ink">{person.business_name || person.full_name}</span>
+                <span className="block text-sm text-ink">{trade}</span>
+              </span>
             </Link>
           );
         })}
@@ -64,7 +69,7 @@ export default async function MessagesPage({
         ) : (
           <span />
         )}
-        <h2 className="font-semibold tracking-tight text-2xl">{couple ? title : "Le couple"}</h2>
+        <h2 className="font-semibold tracking-tight text-3xl text-ink">{couple ? title : "Le couple"}</h2>
       </div>
       {vendorUserId ? (
         <MessageThread weddingId={id} vendorUserId={vendorUserId} messages={messages} />
@@ -73,4 +78,9 @@ export default async function MessagesPage({
       )}
     </Card>
   );
+}
+
+function initials(name: string) {
+  const parts = name.split(/\s+/).filter(Boolean).slice(0, 2);
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("") || "V";
 }

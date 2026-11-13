@@ -108,8 +108,8 @@ export async function createInvitation(_prev: ActionState, formData: FormData): 
   return {
     success:
       url === fallback
-        ? `Invitation créée. Copiez le lien ci-dessous. L'e-mail part si l'envoi est configuré. ${url}`
-        : `Invitation envoyée. Le lien magique ouvre le mariage. Il reste aussi affiché ci-dessous. ${url}`,
+        ? `Invitation créée pour ${email}. Copiez le lien ci-dessous. L'e-mail part si l'envoi est configuré. ${url}`
+        : `Invitation envoyée à ${email}. Le lien magique ouvre le mariage. Il reste aussi affiché ci-dessous. ${url}`,
   };
 }
 

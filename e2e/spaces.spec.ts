@@ -63,8 +63,8 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   await couplePage.getByLabel("Groupe").fill(groupTitle);
   await couplePage.getByRole("button", { name: "Ajouter le groupe" }).click();
   await expect(couplePage.getByText(groupTitle)).toBeVisible();
-  await couplePage.getByRole("textbox", { name: "Nom" }).fill(guestName);
-  await couplePage.getByRole("textbox", { name: "Régime" }).fill("Sans gluten");
+  await couplePage.getByRole("textbox", { name: "Nom", exact: true }).fill(guestName);
+  await couplePage.getByRole("textbox", { name: "Régime", exact: true }).fill("Sans gluten");
   await couplePage.getByRole("button", { name: "Ajouter l'invité" }).click();
   await expect(couplePage.getByText(guestName)).toBeVisible();
 
@@ -85,8 +85,18 @@ test("le jour J et les fiches restent séparés par rôle et par métier", async
   await catererPage.goto(catererUrl);
   await catererPage.getByRole("link", { name: "Créer un compte" }).click();
   await catererPage.waitForURL("**/inscription**");
-  await signUp(catererPage, { name: "Nina Costa", email: catererEmail, role: "Prestataire", emailLocked: true });
-  await catererPage.waitForURL("**/invitation/**");
+  await signUp(catererPage, { name: "Nina Costa", email: catererEmail, role: "Prestataire", emailLocked: true, trade: "Traiteur" });
+  await catererPage.goto("/bienvenue");
+  if (await catererPage.getByRole("button", { name: "Traiteur", exact: true }).isVisible().catch(() => false)) {
+    await catererPage.getByRole("button", { name: "Traiteur", exact: true }).click();
+    await catererPage.getByLabel("Nom de l'activité").fill(`Table ${stamp}`);
+    await catererPage.getByLabel("Ville").fill("Bordeaux");
+    await catererPage.getByRole("button", { name: "Continuer" }).click();
+  }
+  if (await catererPage.getByRole("heading", { name: "Votre logo" }).isVisible().catch(() => false)) {
+    await catererPage.getByRole("link", { name: "Continuer" }).click();
+  }
+  await catererPage.goto(catererUrl);
   await catererPage.getByRole("button", { name: "Rejoindre le mariage" }).click();
   await expect(catererPage.getByRole("heading", { name: "Marie & Marc" })).toBeVisible();
 
@@ -157,12 +167,12 @@ async function invitePath(page: Page, email: string) {
 
 async function signUp(
   page: Page,
-  input: { name: string; email: string; role: "Prestataire" | "Couple"; emailLocked?: boolean },
+  input: { name: string; email: string; role: "Prestataire" | "Couple"; emailLocked?: boolean; trade?: string },
 ) {
   if (!page.url().includes("/inscription")) {
     await page.goto("/inscription");
   }
-  await revealPasswordSignup(page, input.role);
+  await revealPasswordSignup(page, input.role, input.trade);
   await page.getByLabel("Nom complet").fill(input.name);
   if (!input.emailLocked) await page.getByLabel("E-mail").fill(input.email);
   await page.getByLabel(/^Mot de passe/).fill(password);

@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Logo } from "@/components/brand/logo";
-import { Archive, Briefcase, CalendarRange, FolderOpen, MessageCircle, Share2, Sparkles, Users, WifiOff, type LucideIcon } from "lucide-react";
+import { Archive, Briefcase, CalendarRange, FolderOpen, MessageCircle, PenLine, Share2, Sparkles, Users, WifiOff, type LucideIcon } from "lucide-react";
 
 type Audience = "couples" | "vendors";
 type Feature = { title: string; text: string; icon: LucideIcon };
@@ -69,33 +68,37 @@ export function Landing() {
   return (
     <div>
       <section
-        className="relative flex min-h-[70vh] items-end bg-[#121110] text-[#f7f3ec]"
+        className="relative flex min-h-[760px] items-end bg-[#121110] text-[#f7f3ec] lg:min-h-[820px]"
         style={{
           backgroundImage:
-            "linear-gradient(to top, rgba(18,17,16,0.82), rgba(18,17,16,0.25)), url(/hero/lieu.jpg)",
+            "linear-gradient(to top, rgba(18,17,16,0.88) 0%, rgba(18,17,16,0.35) 42%, rgba(18,17,16,0.28) 100%), url(/hero/venue.jpg)",
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}
       >
-        <div className="mx-auto w-full max-w-6xl px-5 py-16 lg:py-24">
-          <Logo variant="white" />
-          <h1 className="mt-6 max-w-xl font-serif text-5xl font-normal tracking-tight text-[#f7f3ec] sm:text-6xl lg:text-7xl">
+        <div className="mx-auto w-full max-w-6xl px-6 pb-28 pt-24 lg:pb-36 lg:pt-28">
+          <h1 className="max-w-4xl font-serif text-6xl font-normal leading-[0.95] tracking-tight text-[#f7f3ec] sm:text-7xl lg:text-8xl">
             Le mariage, orchestré.
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#f7f3ec]/80">L&apos;espace commun des prestataires et des mariés.</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/inscription?role=vendor" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#1c1b19] px-5 text-sm font-medium text-[#f7f3ec]">
+          <p className="mt-6 max-w-xl text-xl leading-8 text-[#f7f3ec]">L&apos;espace commun des prestataires et des mariés.</p>
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <Link href="/inscription?role=vendor" className="inline-flex min-h-14 items-center justify-center rounded-full bg-[#1c1b19] px-7 text-base font-medium text-[#f7f3ec]">
               Je suis prestataire
             </Link>
-            <Link href="/inscription?role=couple" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#fbf8f3] px-5 text-sm font-medium text-[#1c1b19]">
+            <Link href="/inscription?role=couple" className="inline-flex min-h-14 items-center justify-center rounded-full bg-[#fbf8f3] px-7 text-base font-medium text-[#1c1b19]">
               Nous nous marions
             </Link>
           </div>
-          <Link href="/connexion" className="mt-6 inline-flex min-h-11 items-center text-sm text-[#f7f3ec]/80">
+          <Link href="/connexion" className="mt-6 inline-flex min-h-12 items-center text-base text-[#f7f3ec]">
             J&apos;ai déjà un compte
           </Link>
         </div>
       </section>
+      <div className="relative z-10 mx-auto -mt-24 grid max-w-6xl gap-4 px-5 sm:px-6 md:grid-cols-3 lg:-mt-28">
+        <HeroCard icon={CalendarRange} title="Jour J partagé" text="Le programme du jour, visible par chaque métier, au même endroit." />
+        <HeroCard icon={PenLine} title="Documents & signatures" text="Contrats, pièces et signatures, sans les chercher dans les messages." />
+        <HeroCard icon={MessageCircle} title="Messages" text="Un fil clair entre les mariés et chaque prestataire." />
+      </div>
       <section id="ce-qui-compte" className="mx-auto max-w-6xl px-5 py-16 lg:py-24">
         <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
           Ce qui compte, du premier contact au jour J.
@@ -115,6 +118,18 @@ export function Landing() {
         <p className="mt-10 text-sm text-muted">Imaginé près de Bordeaux, pour tous les métiers du mariage.</p>
       </section>
     </div>
+  );
+}
+
+function HeroCard({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
+  return (
+    <article className="rounded-[28px] border border-line bg-paper px-6 py-8 text-center shadow-[var(--vow-shadow)]">
+      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-accent text-accent">
+        <Icon className="h-6 w-6" strokeWidth={1.5} aria-hidden />
+      </span>
+      <h2 className="mt-5 text-xl font-semibold tracking-tight text-ink">{title}</h2>
+      <p className="mt-2 text-base leading-7 text-ink">{text}</p>
+    </article>
   );
 }
 
@@ -167,7 +182,7 @@ function FeatureColumn({
             </span>
             <div className="min-w-0">
               <p className="font-semibold tracking-tight">{item.title}</p>
-              <p className="mt-1 text-sm leading-6 text-muted">{item.text}</p>
+              <p className="mt-1 text-base leading-7 text-ink">{item.text}</p>
             </div>
           </li>
         ))}

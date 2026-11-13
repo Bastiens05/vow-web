@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Bell, CalendarRange, Wallet, type LucideIcon } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/ui/page-header";
@@ -108,29 +109,15 @@ export default async function DashboardPage() {
       )}
       {isVendor && (newLeads ?? 0) > 0 ? (
         <Link href="/demandes" className="mb-8 block">
-          <Card className="transition active:scale-[0.99]">
-            <p className="text-sm font-medium">Nouvelles demandes de contact</p>
-            <p className="mt-1 text-2xl font-semibold">{newLeads}</p>
-            <p className="mt-1 text-xs text-muted">{newLeads === 1 ? "1 demande à lire" : `${newLeads} demandes à lire`}</p>
-          </Card>
+          <SignalCard icon={Bell} label="Nouvelles demandes de contact" value={String(newLeads)} detail={newLeads === 1 ? "1 demande à lire" : `${newLeads} demandes à lire`} />
         </Link>
       ) : null}
       {ledger ? (
-        <section className="mb-8 grid gap-3 sm:grid-cols-3">
-          <Card>
-            <p className="text-xs text-muted">Encaissé cette année</p>
-            <p className="mt-1 text-2xl font-semibold">{formatEuros(ledger.revenueCents)}</p>
-          </Card>
-          <Card>
-            <p className="text-xs text-muted">Mariages à venir</p>
-            <p className="mt-1 text-2xl font-semibold">{upcoming.filter((wedding) => !wedding.isDemo).length}</p>
-          </Card>
+        <section className="mb-8 grid gap-4 sm:grid-cols-3">
+          <SignalCard icon={Wallet} label="Encaissé cette année" value={formatEuros(ledger.revenueCents)} detail="Paiements enregistrés" />
+          <SignalCard icon={CalendarRange} label="Mariages à venir" value={String(upcoming.filter((wedding) => !wedding.isDemo).length || "À ajouter")} detail="Hors mariages de démonstration" />
           {ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews > 0 ? (
-            <Card>
-              <p className="text-xs text-muted">À traiter</p>
-              <p className="mt-1 text-2xl font-semibold">{ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews}</p>
-              <p className="mt-1 text-xs text-muted">devis, acomptes, avis</p>
-            </Card>
+            <SignalCard icon={Bell} label="À traiter" value={String(ledger.openQuotes + ledger.pendingDeposits + ledger.pendingReviews)} detail="devis, acomptes, avis" />
           ) : null}
         </section>
       ) : null}
@@ -171,10 +158,10 @@ export default async function DashboardPage() {
             {firstRun.map((step, index) => (
               <li key={step.id}>
                 <a href={step.href} className="flex min-h-14 items-center gap-3 rounded-2xl bg-paper px-4">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ivory text-xs font-semibold">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-accent text-base font-medium text-ink">
                     {step.done ? "✓" : index + 1}
                   </span>
-                  <span className="text-sm font-medium">{step.label}</span>
+                  <span className="text-base font-medium text-ink">{step.label}</span>
                 </a>
               </li>
             ))}
@@ -190,10 +177,10 @@ export default async function DashboardPage() {
                   href={step.href}
                   className="flex min-h-14 items-center gap-3 rounded-2xl bg-paper px-4 active:scale-[0.99]"
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ivory text-xs font-semibold">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full border border-accent text-base font-medium text-ink">
                     {index + 1}
                   </span>
-                  <span className="text-sm font-medium">{step.label}</span>
+                  <span className="text-base font-medium text-ink">{step.label}</span>
                 </a>
               </li>
             ))}
@@ -211,6 +198,19 @@ export default async function DashboardPage() {
       ) : null}
       {isVendor ? <WeddingDirectory weddings={weddings} upcomingTitle="Prochains mariages" /> : null}
     </div>
+  );
+}
+
+function SignalCard({ icon: Icon, label, value, detail }: { icon: LucideIcon; label: string; value: string; detail: string }) {
+  return (
+    <Card className="text-center">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent text-accent">
+        <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+      </span>
+      <p className="mt-4 text-base font-medium text-ink">{label}</p>
+      <p className="mt-2 font-serif text-4xl font-normal leading-none text-ink">{value}</p>
+      <p className="mt-2 text-sm text-ink">{detail}</p>
+    </Card>
   );
 }
 

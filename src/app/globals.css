@@ -4,7 +4,7 @@
   --vow-bg: #f7f3ec;
   --vow-paper: #fbf8f3;
   --vow-ink: #1c1b19;
-  --vow-muted: #746d62;
+  --vow-muted: #3e3933;
   --vow-line: color-mix(in srgb, #8a7350 18%, transparent);
   --vow-accent: #c8a46a;
   --vow-accent-soft: #f4ead6;
@@ -120,7 +120,7 @@ a {
   gap: 1.5rem;
   background-image:
     linear-gradient(to top, rgba(18, 17, 16, 0.72), rgba(18, 17, 16, 0.28)),
-    url(/hero/lieu.jpg);
+    url(/hero/venue.jpg);
   background-size: cover;
   background-position: center;
   color: #f7f3ec;
@@ -217,7 +217,7 @@ a {
     justify-content: space-between;
     background-image:
       linear-gradient(to top, rgba(18, 17, 16, 0.72), rgba(18, 17, 16, 0.28)),
-      url(/hero/lieu.jpg);
+      url(/hero/venue.jpg);
     background-size: cover;
     background-position: center;
     color: #f7f3ec;

@@ -23,7 +23,7 @@ test("le couple alimente chaque métier, et seulement le sien", async ({ browser
   const couplePage = await freshPage(browser);
   await login(couplePage, "lea@demo.vow.test");
   await couplePage.goto(`/mariage/${weddingId}/pratique`);
-  await couplePage.getByLabel("Musique").fill(music);
+  await couplePage.locator("textarea[name='music_notes']").fill(music);
   await couplePage.getByRole("button", { name: "Enregistrer la musique" }).click();
   await expect(couplePage.getByText("Musique enregistrée.")).toBeVisible();
   await couplePage.goto(`/mariage/${weddingId}/jour`);
@@ -45,11 +45,11 @@ test("le couple alimente chaque métier, et seulement le sien", async ({ browser
     await page.goto(`/mariage/${weddingId}/pratique`);
     await expect(page.getByRole("heading", { name: trade.heading }).first()).toBeVisible();
     if (trade.heading === "Musique" || trade.heading === "Infos pratiques") {
-      await expect(page.getByLabel("Musique")).toHaveValue(new RegExp(music.slice(0, 12)));
+      await expect(page.getByLabel("Musique", { exact: true })).toHaveValue(new RegExp(music.slice(0, 12)));
     }
     if (trade.heading === "Infos du lieu") {
       await expect(page.getByLabel("Adresse de la cérémonie")).toHaveValue(/Léognan/);
-      await expect(page.getByLabel("Musique")).toHaveCount(0);
+      await expect(page.getByLabel("Musique", { exact: true })).toHaveCount(0);
     }
     if (trade.sees && trade.heading !== "Musique" && trade.heading !== "Infos pratiques" && trade.heading !== "Infos du lieu") {
       await expect(page.getByText(trade.sees).first()).toBeVisible();
