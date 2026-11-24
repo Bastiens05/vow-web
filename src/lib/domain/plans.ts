@@ -21,7 +21,7 @@ const MINIMUM: Record<FeatureKey, VendorPlan | "couple"> = {
   core: "essentiel",
   guest_live: "couple",
   speech_subtitles: "pro",
-  cashflow: "pro",
+  cashflow: "essentiel",
   tech_sheet: "essentiel",
   crew: "studio",
   delivery: "essentiel",
@@ -131,7 +131,7 @@ export const FEATURE_SUMMARIES: Record<Exclude<FeatureKey, "core" | "guest_live"
 
 export const PLAN_SUMMARIES: Record<VendorPlan, string> = {
   essentiel: "La vitrine, le couple, le déroulé, et les outils du jour.",
-  pro: "Comprend Essentiel, plus la saison et le suivi des couples.",
+  pro: "Comprend Essentiel, plus le suivi des couples.",
   studio: "Comprend Pro, plus l'équipe volante.",
 };
 

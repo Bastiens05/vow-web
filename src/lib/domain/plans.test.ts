@@ -12,20 +12,22 @@ describe("plans", () => {
     expect(planIncludes("studio", "essentiel")).toBe(true);
     expect(planIncludes("pro", "essentiel")).toBe(true);
     expect(planIncludes("essentiel", "pro")).toBe(false);
-    expect(hasFeature({ role: "vendor", plan: "essentiel" }, "cashflow")).toBe(false);
+    expect(hasFeature({ role: "vendor", plan: "essentiel" }, "cashflow")).toBe(true);
+    expect(hasFeature({ role: "vendor", plan: null }, "cashflow")).toBe(true);
+    expect(hasFeature({ role: "vendor" }, "cashflow")).toBe(true);
     expect(hasFeature({ role: "vendor", plan: "pro" }, "cashflow")).toBe(true);
     expect(hasFeature({ role: "vendor", plan: "pro" }, "crew")).toBe(false);
     expect(hasFeature({ role: "vendor", plan: "studio" }, "crew")).toBe(true);
     expect(hasFeature({ role: "vendor", plan: "studio" }, "speech_subtitles")).toBe(true);
     expect(hasFeature({ role: "couple" }, "guest_live")).toBe(true);
     expect(hasFeature({ role: "vendor", plan: "studio" }, "guest_live")).toBe(false);
-    expect(featurePlanLabel("cashflow")).toBe("Pro");
+    expect(featurePlanLabel("cashflow")).toBeNull();
     expect(featurePlanLabel("crew")).toBe("Studio");
   });
 
   it("lists inclusions from the shared source of truth", () => {
     const essentiel = featuresIntroducedIn("essentiel").map((item) => item.key);
-    expect(essentiel).toEqual(["tech_sheet", "delivery", "admin_docs"]);
+    expect(essentiel).toEqual(["tech_sheet", "delivery", "admin_docs", "cashflow"]);
     expect(featuresIntroducedIn("studio").map((item) => item.key)).toEqual(["crew"]);
     const studio = featuresIncludedIn("studio").map((item) => item.key);
     expect(studio).toContain("tech_sheet");

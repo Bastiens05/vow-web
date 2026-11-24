@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
-import { PlanLock } from "@/components/billing/plan-lock";
+import { redirect } from "next/navigation";
 import { bucketInstallments, hourlyRate, thinMonths, travelMinutes } from "@/lib/domain/cashflow";
-import { featureEnabled } from "@/lib/domain/plans";
 import { FINANCE_FIGURES } from "@/lib/domain/finance";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
-import { hasFeature } from "@/server/features";
 import { loadVendorFinance } from "@/server/finance";
 import { requireSession } from "@/server/session";
 
 export const metadata: Metadata = { title: "Trésorerie" };
 
 export default async function CashPage() {
-  if (!featureEnabled("cashflow")) notFound();
   const session = await requireSession();
   if (session.profile.role !== "vendor" || !session.vendor) redirect("/espace");
-  const account = { role: "vendor" as const, plan: session.billing?.plan ?? "essentiel" };
-  if (!hasFeature(account, "cashflow")) return <PlanLock feature="cashflow" />;
   const supabase = await createClient();
   const [{ data: quotes }, { data: settings }, { data: times }] = await Promise.all([
     supabase.from("quotes").select("id, title, amount_cents, status, wedding_id").eq("vendor_id", session.vendor.id),
