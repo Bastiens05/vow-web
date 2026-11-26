@@ -109,10 +109,10 @@ export async function createCoupleWedding(_prev: ActionState, formData: FormData
 }
 
 export async function deleteAccount(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireSession();
   if (String(formData.get("confirm") ?? "").trim() !== "SUPPRIMER") {
     return { error: "Écrivez SUPPRIMER pour confirmer." };
   }
+  const session = await requireSession();
   const supabase = await createClient();
   const listed = await supabase.rpc("my_account_files");
   if (listed.error) {
@@ -122,7 +122,8 @@ export async function deleteAccount(_prev: ActionState, formData: FormData): Pro
     }
     return { error: messageFromError(listed.error) };
   }
-  const removed = await removeAccountFiles(supabase, listed.data ?? []);
+  const ownFolders = await listOwnStorageFolders(supabase, session.userId);
+  const removed = await removeAccountFiles(supabase, [...(listed.data ?? []), ...ownFolders]);
   if (removed) return { error: removed };
   const { error } = await supabase.rpc("delete_my_account");
   if (error) {
@@ -134,6 +135,31 @@ export async function deleteAccount(_prev: ActionState, formData: FormData): Pro
   }
   await supabase.auth.signOut();
   redirect("/");
+}
+
+async function listOwnStorageFolders(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+): Promise<{ bucket: string; path: string }[]> {
+  const { data: memberships } = await supabase.from("wedding_members").select("wedding_id").eq("user_id", userId);
+  const prefixes: { bucket: string; prefix: string }[] = [
+    { bucket: "vendor-media", prefix: userId },
+    { bucket: "wedding-documents", prefix: `coffre/${userId}` },
+  ];
+  for (const membership of memberships ?? []) {
+    prefixes.push({ bucket: "wedding-documents", prefix: `${membership.wedding_id}/${userId}` });
+    prefixes.push({ bucket: "wedding-gallery", prefix: `${membership.wedding_id}/${userId}` });
+  }
+  const files: { bucket: string; path: string }[] = [];
+  for (const item of prefixes) {
+    const { data, error } = await supabase.storage.from(item.bucket).list(item.prefix, { limit: 1000 });
+    if (error || !data) continue;
+    for (const entry of data) {
+      if (!entry.id || !entry.name) continue;
+      files.push({ bucket: item.bucket, path: `${item.prefix}/${entry.name}` });
+    }
+  }
+  return files;
 }
 
 async function removeAccountFiles(
