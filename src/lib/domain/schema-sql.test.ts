@@ -149,6 +149,7 @@ describe("migration", () => {
     expect(sql).toContain("raise exception 'Facture déjà émise'");
     expect(sql).toContain("function public.relocate_wedding_storage(p_keep uuid, p_drop uuid)");
     expect(sql).toContain("function public.delete_my_account()");
+    expect(sql).toContain("function public.my_account_files()");
     expect(sql).toContain("on delete set null");
     expect(sql).toContain("function public.issue_invoice_from_quote(p_quote uuid)");
     expect(sql).toContain("policy invoice_payments_select");

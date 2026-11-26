@@ -1,4 +1,4 @@
--- Follow-up to 20261126160000_session_fixes.sql. Do not edit that file.
+-- Follow-up to 20261126213739_session_fixes.sql. Do not edit that file.
 -- Same RPC signatures. Safe for the application already in production:
 -- preview_invitation gains one extra JSON key, accept_invitation(text) still returns a uuid.
 -- An issued invoice keeps its text. During a merge only, its wedding key may move.
