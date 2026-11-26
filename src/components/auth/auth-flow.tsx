@@ -125,7 +125,7 @@ export function AuthFlow({
           ) : null}
 
           {mode === "signup" && step === "vendor" ? (
-            <form action={action} className="mt-8 grid gap-4">
+            <form action={action} noValidate className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               {inviteToken ? <input type="hidden" name="invite" value={inviteToken} /> : null}
               <input type="hidden" name="plan" value={initialPlan && isVendorPlan(initialPlan) ? initialPlan : ""} />
@@ -176,7 +176,7 @@ export function AuthFlow({
               <FieldLike label="Instagram" name="instagram" value={instagram} onChange={setInstagram} autoComplete="off" optional />
               <FieldLike label="Site web" name="website" value={website} onChange={setWebsite} autoComplete="url" optional />
               <NameField defaultValue={initialFullName ?? ""} />
-              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
+              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
               <button
@@ -190,7 +190,7 @@ export function AuthFlow({
           ) : null}
 
           {mode === "signup" && step === "couple" ? (
-            <form action={action} className="mt-8 grid gap-4">
+            <form action={action} noValidate className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               <RoleChoice selected="couple" />
               <p className="text-sm font-medium">Partenaire 1</p>
@@ -210,6 +210,8 @@ export function AuthFlow({
                   required
                   pattern="\d{2}/\d{2}/\d{4}"
                   title="jj/mm/aaaa"
+                  onInvalid={(event) => event.currentTarget.setCustomValidity("Indiquez la date au format jj/mm/aaaa.")}
+                  onInput={(event) => event.currentTarget.setCustomValidity("")}
                   value={weddingDate}
                   onChange={(event) => setWeddingDate(event.target.value)}
                   className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
@@ -220,7 +222,7 @@ export function AuthFlow({
                 <span className="sr-only">facultatif</span>
                 <AddressInput name="city" mode="city" value={city} onValueChange={setCity} className="auth-field min-h-14 rounded-2xl px-4 text-lg" />
               </label>
-              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
+              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
               <button
@@ -244,11 +246,11 @@ export function AuthFlow({
           ) : null}
 
           {mode === "signup" && step === "invite" ? (
-            <form action={action} className="mt-8 grid gap-4">
+            <form action={action} noValidate className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               <RoleChoice selected={lockedRole ?? "couple"} locked={Boolean(lockedRole)} />
               <NameField defaultValue={initialFullName ?? ""} />
-              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
+              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
               <button type="submit" className="auth-primary" disabled={pending || !isValidEmail(email) || password.length < 8}>
@@ -264,6 +266,10 @@ export function AuthFlow({
             {" · "}
             <Link href="/confidentialite" className="underline">
               Confidentialité
+            </Link>
+            {" · "}
+            <Link href="/mentions-legales" className="underline">
+              Mentions légales
             </Link>
           </p>
         </div>
@@ -304,12 +310,17 @@ function SecretField({
           minLength={8}
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onInvalid={(event) => event.currentTarget.setCustomValidity("Le mot de passe doit contenir au moins 8 caractères.")}
+          onInput={(event) => event.currentTarget.setCustomValidity("")}
           className="auth-field min-h-14 w-full rounded-2xl border border-line bg-paper px-4 pr-24 text-lg text-ink outline-none focus:border-ink"
         />
         <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted" onClick={onToggle} aria-pressed={shown}>
           {shown ? "Masquer" : "Afficher"}
         </button>
-      </span>
+        </span>
+      {value.length > 0 && value.length < 8 ? (
+        <span className="text-sm text-danger">Le mot de passe doit contenir au moins 8 caractères.</span>
+      ) : null}
     </label>
   );
 }
@@ -357,6 +368,7 @@ function FieldLike({
   readOnly = false,
   uncontrolled = false,
   defaultValue,
+  error = null,
 }: {
   label: string;
   name: string;
@@ -368,6 +380,7 @@ function FieldLike({
   readOnly?: boolean;
   uncontrolled?: boolean;
   defaultValue?: string;
+  error?: string | null;
 }) {
   return (
     <label className="grid gap-2 text-sm">
@@ -379,9 +392,15 @@ function FieldLike({
         autoComplete={autoComplete}
         required={!optional}
         readOnly={readOnly}
+        onInvalid={(event) => {
+          const input = event.currentTarget;
+          input.setCustomValidity(input.type === "email" ? "Indiquez un e-mail valide." : "Ce champ est obligatoire.");
+        }}
+        onInput={(event) => event.currentTarget.setCustomValidity("")}
         {...(uncontrolled ? { defaultValue: defaultValue ?? value } : { value, onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value) })}
         className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink read-only:text-muted"
       />
+      {error ? <span className="text-sm text-danger">{error}</span> : null}
     </label>
   );
 }

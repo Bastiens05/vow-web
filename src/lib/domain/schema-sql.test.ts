@@ -147,6 +147,9 @@ describe("migration", () => {
     expect(sql).toContain("last_number = public.vendor_invoice_counters.last_number + 1");
     expect(sql).toContain("function public.lock_issued_invoice()");
     expect(sql).toContain("raise exception 'Facture déjà émise'");
+    expect(sql).toContain("function public.relocate_wedding_storage(p_keep uuid, p_drop uuid)");
+    expect(sql).toContain("function public.delete_my_account()");
+    expect(sql).toContain("on delete set null");
     expect(sql).toContain("function public.issue_invoice_from_quote(p_quote uuid)");
     expect(sql).toContain("policy invoice_payments_select");
     expect(sql).toContain("public.owns_vendor(vendor_id) or public.is_wedding_couple(wedding_id)");

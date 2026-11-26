@@ -16,6 +16,17 @@ export function monthKey(iso: string): string {
   return iso.slice(0, 7);
 }
 
+export function formatMonthLabel(month: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) return month;
+  const label = new Intl.DateTimeFormat("fr-FR", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1)));
+  return label.replace(/\s+/g, " ");
+}
+
 export function buildMonths(start: string, count: number): string[] {
   const [year, month] = start.split("-").map(Number);
   return Array.from({ length: count }, (_, index) => {

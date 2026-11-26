@@ -400,7 +400,7 @@ export const latestUnreadAlert = cache(async (userId: string) => {
       );
     const seenIds = new Set((seenSignups ?? []).map((row) => row.notice_id));
     const freshSignup = signups.find((notice) => !seenIds.has(notice.id));
-    if (freshSignup) return { id: freshSignup.id, body: freshSignup.body, author_id: "", href: freshSignup.href };
+    if (freshSignup) return { id: freshSignup.id, body: freshSignup.body, href: freshSignup.href, source: "admin" as const };
   }
   const { data: offers } = await supabase
     .from("grant_notices")
@@ -410,7 +410,7 @@ export const latestUnreadAlert = cache(async (userId: string) => {
     .order("created_at", { ascending: false })
     .limit(1);
   const offer = offers?.[0];
-  if (offer) return { id: offer.id, body: offer.body, author_id: "", href: "/nouveautes" };
+  if (offer) return { id: offer.id, body: offer.body, href: "/nouveautes", source: "grant" as const };
   const { data: notes } = await supabase
     .from("wedding_notifications")
     .select("id, body, author_id")
@@ -422,7 +422,7 @@ export const latestUnreadAlert = cache(async (userId: string) => {
   const { data: reads } = await supabase.from("notification_reads").select("notification_id").in("notification_id", ids);
   const seen = new Set((reads ?? []).map((row) => row.notification_id));
   const note = others.find((item) => !seen.has(item.id));
-  return note ? { ...note, href: null } : null;
+  return note ? { id: note.id, body: note.body, href: null, source: "wedding" as const } : null;
 });
 
 export async function getPublicVendor(slug: string) {

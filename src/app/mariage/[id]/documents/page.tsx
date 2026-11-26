@@ -19,13 +19,17 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   const couple = space.role === "couple" || space.actingAsCouple;
   const supabase = await createClient();
   if (couple) {
-    const [{ data }, { data: quotes }] = await Promise.all([
+    const [{ data }, { data: quotes }, documents, { data: requests }, { data: vaultItems }] = await Promise.all([
       supabase.rpc("wedding_directory", { p_wedding_id: id }),
       supabase.from("quote_intakes").select("id, email, business_name, file_name, storage_path, status").eq("wedding_id", id).eq("status", "sent"),
+      listDocuments(id),
+      supabase.from("signature_requests").select("*").eq("wedding_id", id),
+      supabase.from("vault_items").select("id, label, file_name").eq("wedding_id", id),
     ]);
     const vendors = (data ?? []).filter((person) => person.member_role === "vendor");
     const photo = vendors.some((person) => person.category === "photographer" || person.category === "videographer" || person.category === "planner");
     const guests = vendors.some((person) => person.category === "caterer" || person.category === "venue" || person.category === "planner");
+    const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
     return (
       <div className="grid min-w-0 gap-4">
         <HashScroll />
@@ -40,6 +44,28 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
             <AddVendorInvite weddingId={id} />
           </Card>
         ) : null}
+        <Card className="min-w-0">
+          <h3 className="text-lg font-semibold tracking-tight">Documents du mariage</h3>
+          <p className="mt-1 text-sm leading-6 text-muted">Les fichiers déposés par le couple et les prestataires.</p>
+          <div className="mt-4">
+            <DocumentManager
+              weddingId={id}
+              userId={space.session.userId}
+              documents={documents}
+              names={names}
+              requests={requests ?? []}
+              canRequest={false}
+              canSign
+              manage={false}
+            />
+          </div>
+          {(vaultItems ?? []).length > 0 ? (
+            <p className="mt-4 text-sm text-muted">
+              Coffre : {(vaultItems ?? []).map((item) => item.file_name || item.label).join(", ")}.{" "}
+              <a href={`/mariage/${id}/coffre`} className="underline">Ouvrir le coffre</a>
+            </p>
+          ) : null}
+        </Card>
         {(quotes ?? []).length > 0 ? (
           <Card>
             <h3 className="text-lg font-semibold">Devis déposés</h3>

@@ -8,7 +8,7 @@ import { MarkThreadRead } from "@/components/wedding/mark-thread-read";
 import { MessageThread } from "@/components/wedding/message-thread";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
-import { todayIso } from "@/lib/domain/format";
+import { formatParisClock, todayIso } from "@/lib/domain/format";
 import { threadHasUnread } from "@/lib/domain/message-reads";
 import { publicObjectUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
@@ -212,11 +212,5 @@ function excerptOf(body: string) {
 }
 
 function threadTime(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  const now = new Date();
-  if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  }
-  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  return formatParisClock(iso);
 }

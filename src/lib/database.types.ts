@@ -1558,6 +1558,7 @@ export type Database = {
       mark_grant_notices_seen: { Args: Record<string, never>; Returns: undefined };
       decline_invitation: { Args: { p_token: string }; Returns: undefined };
       merge_weddings: { Args: { p_keep: string; p_drop: string }; Returns: string };
+      delete_my_account: { Args: Record<string, never>; Returns: undefined };
       my_pending_invitations: {
         Args: Record<string, never>;
         Returns: { token: string; invited_role: string; title: string }[];

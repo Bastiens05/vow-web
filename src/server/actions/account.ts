@@ -106,3 +106,21 @@ export async function createCoupleWedding(_prev: ActionState, formData: FormData
   revalidatePath("/espace");
   redirect(`/mariage/${data}`);
 }
+
+export async function deleteAccount(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireSession();
+  if (String(formData.get("confirm") ?? "").trim() !== "SUPPRIMER") {
+    return { error: "Écrivez SUPPRIMER pour confirmer." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("could not find") || message.includes("delete_my_account")) {
+      return { error: "La suppression de compte n'est pas encore ouverte." };
+    }
+    return { error: messageFromError(error) };
+  }
+  await supabase.auth.signOut();
+  redirect("/");
+}

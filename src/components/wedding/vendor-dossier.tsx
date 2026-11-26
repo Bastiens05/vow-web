@@ -44,7 +44,7 @@ export async function VendorDossier({
     : { data: [] };
   const { data: signatures } = await supabase.from("signature_requests").select("*").eq("wedding_id", weddingId).eq("requested_by", vendorId);
   return (
-    <section id={vendorId} className="grid gap-4">
+    <section id={vendorId} className="grid min-w-0 gap-4">
       <header>
         <p className="text-xs uppercase tracking-[0.16em] text-muted">{trade}</p>
         <h2 className="mt-1 break-words text-3xl font-semibold tracking-tight">

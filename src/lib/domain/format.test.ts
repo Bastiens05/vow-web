@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coupleFullNames, formatLongDate, formatSlotTime, sortTimelineSlots, weddingTitle } from "./format";
+import { coupleFullNames, formatDateTime, formatLongDate, formatParisClock, formatSlotTime, sortTimelineSlots, weddingTitle } from "./format";
 
 describe("format", () => {
   it("formats a date in french without shifting the day", () => {
@@ -8,6 +8,12 @@ describe("format", () => {
 
   it("shortens a postgres time", () => {
     expect(formatSlotTime("16:30:00")).toBe("16:30");
+  });
+
+  it("shows message times in Europe/Paris on the server and the client", () => {
+    const stamp = "2026-11-14T15:04:00.000Z";
+    expect(formatDateTime(stamp)).toMatch(/16:04/);
+    expect(formatParisClock(stamp, new Date("2026-11-14T18:00:00.000Z"))).toMatch(/16:04/);
   });
 
   it("joins the couple names", () => {

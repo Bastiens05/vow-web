@@ -37,12 +37,12 @@ function StatusMark({ status }: { status: string }) {
   const tone = /complét|payé|prêt/i.test(status) ? "ok" : "muted";
   const dotOnly = /^(à compléter|complétée|complété)$/i.test(status.trim());
   return (
-    <span className="inline-flex shrink-0 items-center gap-2">
+    <span className="inline-flex min-w-0 max-w-[46%] items-center justify-end gap-2 text-right">
       <span
         className={`h-2 w-2 rounded-full ${tone === "ok" ? "bg-ok" : "bg-muted"}`}
         aria-hidden
       />
-      <span className={dotOnly ? "sr-only" : "text-sm text-muted"}>{status}</span>
+      <span className={dotOnly ? "sr-only" : "truncate text-sm text-muted"}>{status}</span>
     </span>
   );
 }

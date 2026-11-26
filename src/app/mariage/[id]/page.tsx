@@ -92,7 +92,7 @@ export default async function WeddingOverviewPage({
     },
   });
   return (
-    <div className="grid gap-6">
+    <div className="grid min-w-0 gap-6">
       <div className="relative z-10 -mt-20 grid grid-cols-2 gap-3 max-[430px]:-mt-6 sm:gap-4 lg:grid-cols-4">
         <SummaryCard href={`/mariage/${id}/equipe`} icon={Users} title="Prestataires" {...vendorStat} />
         <SummaryCard href={`/mariage/${id}/documents`} icon={FolderOpen} title="Documents" {...documentStat} />
@@ -113,9 +113,9 @@ export default async function WeddingOverviewPage({
             const coupleRow = (space.role === "couple" || space.actingAsCouple) && member.role === "vendor";
             const body = (
               <>
-                <div>
-                  <p className="font-medium">{profile?.business_name || member.fullName}</p>
-                  <p className="text-sm text-muted">{coupleRow ? trade || "Métier à préciser" : member.email}</p>
+                <div className="min-w-0">
+                  <p className="break-words font-medium">{profile?.business_name || member.fullName}</p>
+                  <p className="break-all text-sm text-muted">{coupleRow ? trade || "Métier à préciser" : member.email}</p>
                 </div>
                 {coupleRow ? null : (
                   <Badge>
@@ -135,7 +135,7 @@ export default async function WeddingOverviewPage({
                     {body}
                   </Link>
                 ) : (
-                  <div className="flex items-center justify-between gap-3">{body}</div>
+                  <div className="flex min-w-0 items-center justify-between gap-3">{body}</div>
                 )}
               </li>
             );
@@ -429,7 +429,7 @@ function stepStatCard({
     const when = new Date(appointment.starts_at);
     const detail = Number.isNaN(when.getTime())
       ? appointment.starts_at
-      : new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(when);
+      : new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(when);
     return { href: hrefs.rdv, value: appointment.note.trim() || appointment.full_name || "Rendez-vous", detail, progress: null };
   }
   if (request?.due_on) {

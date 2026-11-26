@@ -136,6 +136,21 @@ export async function sendDayAlert(weddingId: string, _prev: ActionState, formDa
   return { success: "Les prestataires sont prévenus." };
 }
 
+export async function dismissNotice(id: string, source: "wedding" | "grant" | "admin") {
+  const session = await requireSession();
+  if (!id) return;
+  const supabase = await createClient();
+  if (source === "wedding") {
+    await supabase.from("notification_reads").upsert(
+      { notification_id: id, user_id: session.userId },
+      { onConflict: "notification_id,user_id", ignoreDuplicates: true },
+    );
+    return;
+  }
+  if (source === "grant") await supabase.rpc("mark_grant_notices_seen");
+  if (source === "admin") await supabase.rpc("mark_admin_notices_seen");
+}
+
 export async function markAlertsRead() {
   const session = await requireSession();
   const supabase = await createClient();

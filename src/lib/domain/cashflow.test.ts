@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bucketInstallments, distanceKm, hourlyRate, thinMonths, travelMinutes } from "./cashflow";
+import { bucketInstallments, distanceKm, formatMonthLabel, hourlyRate, thinMonths, travelMinutes } from "./cashflow";
 
 describe("cashflow", () => {
   it("splits collected, scheduled and unsigned, and skips unsigned by default", () => {
@@ -29,5 +29,6 @@ describe("cashflow", () => {
     expect(km).toBeGreaterThan(5);
     expect(travelMinutes(50)).toBe(60);
     expect(hourlyRate(12000, 120)).toBe(6000);
+    expect(formatMonthLabel("2026-11")).toMatch(/nov\.\s?2026/);
   });
 });

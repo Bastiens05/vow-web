@@ -7,6 +7,7 @@ import { ChevronRight, MessageCircle } from "lucide-react";
 import { HeroPhoto } from "@/components/brand/hero-photo";
 import { RealtimeRefresh } from "@/components/live/realtime-refresh";
 import { WeddingSwitcher } from "@/components/wedding/wedding-switcher";
+import { backTarget } from "@/lib/domain/chrome";
 import { weddingHeaderMode, weddingHomeLink } from "@/lib/domain/wedding-header";
 
 export function WeddingChrome({
@@ -37,10 +38,11 @@ export function WeddingChrome({
   const path = usePathname() ?? "";
   const mode = weddingHeaderMode(path, id);
   const home = weddingHomeLink(path, id);
+  const shellAlreadyBack = Boolean(backTarget(path, coupleView ? "couple" : "vendor", coupleView));
   const homeLink = home ? (
     <Link
       href={home}
-      className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-sm font-medium transition hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98]"
+      className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-sm font-medium transition hover:bg-ink/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98] ${shellAlreadyBack ? "max-md:hidden" : ""}`}
     >
       ‹ Retour au mariage
     </Link>
@@ -56,7 +58,7 @@ export function WeddingChrome({
       />
       {coupleView ? (
         homeLink ? (
-          <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-paper/80 px-2 py-1 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-1">
+          <div className={`sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-paper/80 px-2 py-1 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-1 ${shellAlreadyBack ? "max-md:hidden" : ""}`}>
             {homeLink}
           </div>
         ) : null
@@ -76,7 +78,7 @@ export function WeddingChrome({
               {dateLabel} · {place}
             </p>
             <p className="mt-8 font-serif text-8xl font-normal leading-none tracking-tight text-[#f7f3ec] max-[430px]:mt-4 max-[430px]:text-7xl sm:text-9xl">{figure}</p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 max-[430px]:mt-6 max-[430px]:w-full max-[430px]:flex-nowrap max-[430px]:gap-2">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 max-[430px]:mt-6 max-[430px]:w-full max-[430px]:gap-2">
               <Link href={`/mariage/${id}/jour`} className="inline-flex min-h-14 items-center gap-2 whitespace-nowrap rounded-full bg-[#1c1b19] px-7 text-base font-medium text-[#f7f3ec] max-[430px]:min-h-11 max-[430px]:gap-1 max-[430px]:px-3 max-[430px]:text-[13px]">
                 Ouvrir le Jour J
                 <ChevronRight className="h-5 w-5 max-[430px]:h-4 max-[430px]:w-4" aria-hidden />
