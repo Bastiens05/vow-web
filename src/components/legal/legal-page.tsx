@@ -5,7 +5,6 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
   return (
     <article className="mx-auto max-w-2xl px-5 py-12 text-base leading-7">
       <h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-4 text-sm text-muted">Brouillon à compléter. Les passages entre crochets restent à fournir.</p>
       <div className="mt-8 space-y-4">{children}</div>
       <p className="mt-10 text-sm">
         <Link href="/cgu" className="underline">CGU</Link>

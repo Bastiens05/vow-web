@@ -8,9 +8,9 @@ export default function TermsPage() {
     <LegalPage title="Conditions d'utilisation">
       <p>
         Les présentes conditions régissent l&apos;accès au service VOW, un espace en ligne qui relie un prestataire de mariage
-        et les mariés autour d&apos;un même mariage : messages, documents, devis et factures. Elles sont proposées par [dénomination sociale],
-        [forme juridique] au capital de [capital social] euros, dont le siège est [adresse du siège], immatriculée sous le SIRET [SIRET]
-        (RCS [ville du RCS]).
+        et les mariés autour d&apos;un même mariage : messages, documents, devis et factures. Elles sont proposées par Bastien Sellier,
+        entrepreneur individuel (micro-entrepreneur), 45 Route de Cagnac, 33460 Arcins, France, SIRET 934 683 624 00019.
+        TVA non applicable, article 293 B du CGI.
       </p>
       <h2 className="pt-4 text-xl font-semibold">Compte</h2>
       <p>
@@ -22,19 +22,21 @@ export default function TermsPage() {
       <p>
         Chacun reste responsable des informations qu&apos;il dépose. Une facture émise est figée : son numéro, son montant,
         l&apos;identité du vendeur et le nom du client ne sont plus modifiés. VOW conserve ces factures le temps exigé par la loi,
-        même après la suppression du compte. Le paiement en ligne, lorsqu&apos;il est ouvert, passe par Stripe. VOW ne prélève pas de commission
-        sur les prestations convenues entre le prestataire et les mariés.
+        même après la suppression du compte. Le paiement de l&apos;abonnement, lorsqu&apos;il est ouvert, est traité par Stripe Payments Europe, Limited.
+        VOW ne prélève pas de commission sur les prestations convenues entre le prestataire et les mariés.
       </p>
       <h2 className="pt-4 text-xl font-semibold">Suppression et fin</h2>
       <p>
         Le compte se supprime depuis Réglages. La suppression retire les données du compte, sauf les factures déjà émises et les paiements
-        qui y sont attachés. [nom du prestataire] peut aussi cesser d&apos;utiliser une formule à tout moment. Le service peut être suspendu
+        qui y sont attachés. Le prestataire peut aussi cesser d&apos;utiliser une formule à tout moment. Le service peut être suspendu
         en cas d&apos;usage frauduleux ou d&apos;atteinte aux autres membres.
       </p>
       <h2 className="pt-4 text-xl font-semibold">Droit applicable</h2>
       <p>
-        Les conditions sont soumises au droit français. À défaut d&apos;accord amiable, les tribunaux du ressort de [ville du tribunal compétent] sont compétents,
-        sous réserve des règles protectrices du consommateur. Contact : [adresse e-mail de contact].
+        Les conditions sont soumises au droit français. À défaut d&apos;accord amiable, les tribunaux compétents sont déterminés selon les règles légales,
+        sous réserve des règles protectrices du consommateur. Pour un litige de consommation non résolu, le médiateur est Médiation Professionnelle - Médiateur de la Consommation - Alteritae,
+        5 rue Salvaing, 12000 Rodez (<a className="underline" href="https://alteritae.com">alteritae.com</a>).
+        Contact : <a className="underline" href="mailto:contact@bastiensellier.com">contact@bastiensellier.com</a>, 06 89 11 80 12.
       </p>
     </LegalPage>
   );
