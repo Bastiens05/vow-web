@@ -10,6 +10,7 @@ import { isValidEmail } from "@/lib/domain/auth-routing";
 import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
 import { WEDDING_VOLUMES, type WeddingVolume } from "@/lib/domain/volume";
+import { signupMissing, type SignupIntent } from "@/lib/domain/signup-intent";
 import { signUp, type ActionState } from "@/server/actions/auth";
 
 type Step = "choose" | "vendor" | "couple" | "invite";
@@ -36,16 +37,19 @@ export function AuthFlow({
   notice?: ReactNode;
 }) {
   const invite = nextPath.startsWith("/invitation/") || nextPath.startsWith("/equipe/");
+  const vendorInvite = invite && lockedRole === "vendor";
   const [step, setStep] = useState<Step>(
     mode === "login"
       ? "invite"
-      : invite
-        ? "invite"
-        : lockedRole === "vendor"
-          ? "vendor"
-          : lockedRole === "couple"
-            ? "couple"
-            : "choose",
+      : vendorInvite
+        ? "vendor"
+        : invite
+          ? "invite"
+          : lockedRole === "vendor"
+            ? "vendor"
+            : lockedRole === "couple"
+              ? "couple"
+              : "choose",
   );
   const [email, setEmail] = useState(initialEmail);
   const [category, setCategory] = useState<VendorCategory | null>(initialCategory ?? null);
@@ -146,9 +150,10 @@ export function AuthFlow({
               <FieldLike label="Nom de l'activité" name="business_name" value={businessName} onChange={setBusinessName} autoComplete="organization" />
               <label className="grid gap-2 text-sm">
                 Ville
+                {vendorInvite ? <span className="text-xs text-muted">Facultatif pour une invitation.</span> : null}
                 <AddressInput
                   name="city"
-                  required
+                  required={!vendorInvite}
                   mode="city"
                   value={city}
                   onValueChange={setCity}
@@ -179,10 +184,25 @@ export function AuthFlow({
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
+              <MissingFields
+                items={signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: vendorInvite ? "invite-vendor" : "vendor",
+                  intent: blankIntent({ role: "vendor", businessName, category, city }),
+                })}
+              />
               <button
                 type="submit"
                 className="auth-primary"
-                disabled={pending || !isValidEmail(email) || password.length < 8 || !category || businessName.trim().length < 2 || city.trim().length < 2}
+                disabled={pending || signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: vendorInvite ? "invite-vendor" : "vendor",
+                  intent: blankIntent({ role: "vendor", businessName, category, city }),
+                }).length > 0}
               >
                 {pending ? "Création…" : "Créer mon compte"}
               </button>
@@ -225,18 +245,41 @@ export function AuthFlow({
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
+              <MissingFields
+                items={signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: "couple",
+                  intent: blankIntent({
+                    role: "couple",
+                    partnerOne,
+                    partnerOneLast,
+                    partnerTwo,
+                    partnerTwoLast,
+                    weddingDate,
+                  }),
+                })}
+              />
               <button
                 type="submit"
                 className="auth-primary"
                 disabled={
                   pending ||
-                  !isValidEmail(email) ||
-                  password.length < 8 ||
-                  partnerOne.trim().length < 2 ||
-                  partnerOneLast.trim().length < 2 ||
-                  partnerTwo.trim().length < 2 ||
-                  partnerTwoLast.trim().length < 2 ||
-                  !weddingDate
+                  signupMissing({
+                    email,
+                    password,
+                    emailValid: isValidEmail(email),
+                    kind: "couple",
+                    intent: blankIntent({
+                      role: "couple",
+                      partnerOne,
+                      partnerOneLast,
+                      partnerTwo,
+                      partnerTwoLast,
+                      weddingDate,
+                    }),
+                  }).length > 0
                 }
               >
                 {pending ? "Création…" : "Créer mon compte"}
@@ -253,6 +296,15 @@ export function AuthFlow({
               <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
+              <MissingFields
+                items={signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: "account",
+                  intent: blankIntent({ role: lockedRole ?? "couple" }),
+                })}
+              />
               <button type="submit" className="auth-primary" disabled={pending || !isValidEmail(email) || password.length < 8}>
                 {pending ? "Création…" : "Créer mon compte"}
               </button>
@@ -280,6 +332,31 @@ export function AuthFlow({
   function pick(value: "vendor" | "couple") {
     setStep(value);
   }
+}
+
+function blankIntent(partial: Partial<SignupIntent> & { role: SignupIntent["role"] }): SignupIntent {
+  return {
+    role: partial.role,
+    fullName: partial.fullName ?? "",
+    businessName: partial.businessName ?? "",
+    category: partial.category ?? null,
+    city: partial.city ?? "",
+    phone: "",
+    website: "",
+    instagram: "",
+    weddingsPerYear: "",
+    partnerOne: partial.partnerOne ?? "",
+    partnerOneLast: partial.partnerOneLast ?? "",
+    partnerTwo: partial.partnerTwo ?? "",
+    partnerTwoLast: partial.partnerTwoLast ?? "",
+    weddingDate: partial.weddingDate ?? "",
+    plan: null,
+  };
+}
+
+function MissingFields({ items }: { items: string[] }) {
+  if (items.length === 0) return null;
+  return <p className="text-sm text-danger">Il manque {items.join(", ")}.</p>;
 }
 
 function NameField({ defaultValue = "" }: { defaultValue?: string }) {

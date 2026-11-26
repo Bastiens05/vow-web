@@ -55,8 +55,40 @@ export function vendorIntentReady(intent: SignupIntent): boolean {
   return Boolean(intent.category && intent.businessName.length >= 2 && intent.city.length >= 2);
 }
 
+/** An invited vendor can open the trial without a city. The trade and the business name are enough. */
+export function vendorInviteReady(intent: SignupIntent): boolean {
+  return Boolean(intent.category && intent.businessName.length >= 2);
+}
+
 export function coupleProfileName(intent: Pick<SignupIntent, "partnerOne" | "partnerOneLast">): string {
   return [intent.partnerOne, intent.partnerOneLast].map((part) => part.trim()).filter(Boolean).join(" ").slice(0, 120);
+}
+
+export function signupMissing(input: {
+  email: string;
+  password: string;
+  intent: SignupIntent;
+  kind: "vendor" | "couple" | "invite-vendor" | "account";
+  emailValid: boolean;
+}): string[] {
+  const missing: string[] = [];
+  if (!input.emailValid) missing.push("un e-mail valide");
+  if (input.password.length < 8) missing.push("un mot de passe d'au moins 8 caractères");
+  if (input.kind === "vendor" || input.kind === "invite-vendor") {
+    if (!input.intent.category) missing.push("le métier");
+    if (input.intent.businessName.trim().length < 2) missing.push("le nom de l'activité");
+    if (input.kind === "vendor" && input.intent.city.trim().length < 2) missing.push("la ville");
+  }
+  if (input.kind === "couple") {
+    if (input.intent.partnerOne.trim().length < 2) missing.push("le prénom du premier partenaire");
+    if (input.intent.partnerOneLast.trim().length < 2) missing.push("le nom du premier partenaire");
+    if (input.intent.partnerTwo.trim().length < 2) missing.push("le prénom du second partenaire");
+    if (input.intent.partnerTwoLast.trim().length < 2) missing.push("le nom du second partenaire");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.intent.weddingDate) && !/^\d{2}\/\d{2}\/\d{4}$/.test(input.intent.weddingDate)) {
+      missing.push("la date du mariage");
+    }
+  }
+  return missing;
 }
 
 export function coupleIntentReady(intent: SignupIntent): boolean {

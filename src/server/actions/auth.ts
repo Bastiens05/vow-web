@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { isVendorCategory } from "@/lib/domain/categories";
 import { isValidEmail } from "@/lib/domain/auth-routing";
 import { safeNextPath } from "@/lib/domain/paths";
-import { coupleIntentReady, coupleProfileName, intentMetadata, readSignupIntent, vendorIntentReady } from "@/lib/domain/signup-intent";
+import { coupleIntentReady, coupleProfileName, intentMetadata, readSignupIntent, vendorIntentReady, vendorInviteReady } from "@/lib/domain/signup-intent";
 import { slugify } from "@/lib/domain/slug";
 import { normalizeEmail } from "@/lib/domain/validation";
 import { otpCodeEnabled } from "@/lib/auth-providers";
@@ -50,6 +50,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     ? coupleName
     : intent.fullName || intent.businessName || coupleName;
   const requested = safeNextPath(formData.get("next"), "");
+  const invited = requested.startsWith("/invitation/") || requested.startsWith("/equipe/");
 
   if (fullName.length < 2) return { error: "Indiquez votre nom." };
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
@@ -57,14 +58,17 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   }
   if (password.length < 8) return { error: "Le mot de passe doit contenir au moins 8 caractères." };
   if (!role) return { error: "Choisissez un type de compte : prestataire ou couple." };
-  if (role === "vendor" && (intent.businessName || intent.category) && !vendorIntentReady(intent)) {
+  if (role === "vendor" && invited && !vendorInviteReady(intent)) {
+    return { error: "Indiquez le métier et le nom de l'activité." };
+  }
+  if (role === "vendor" && !invited && (intent.businessName || intent.category) && !vendorIntentReady(intent)) {
     return { error: "Indiquez le métier, le nom de l'activité et la ville." };
   }
   if (role === "couple" && (intent.partnerOne || intent.partnerTwo || intent.weddingDate) && !coupleIntentReady(intent)) {
     return { error: "Indiquez le prénom, le nom et la date du mariage." };
   }
 
-  const destination = requested.startsWith("/invitation/") || requested.startsWith("/equipe/") ? requested : "/espace";
+  const destination = invited ? requested : "/espace";
 
   const supabase = await createClient();
   await rememberAuthNext(destination);
@@ -83,9 +87,6 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     };
   }
   await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
-  if (destination.startsWith("/invitation/") || destination.startsWith("/equipe/")) {
-    redirect(destination);
-  }
   redirect(await landingPath(supabase, destination, true));
 }
 

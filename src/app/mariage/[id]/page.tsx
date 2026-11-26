@@ -35,10 +35,11 @@ export default async function WeddingOverviewPage({
   const vendorIds = space.members.filter((member) => member.role === "vendor").map((member) => member.userId);
   const showGallery = canDeliver(space.actingAsCouple ? "couple" : space.role, space.session.vendor?.category ?? null);
   const showInvite = space.host;
-  const [vendors, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites, vendorInvites, budgetLines, weddingBudget, requests, slots, vaultItems, appointments] = await Promise.all([
+  const [vendors, directory, reminders, questions, items, practical, stops, quotes, invoices, documents, deliveries, invites, vendorInvites, budgetLines, weddingBudget, requests, slots, vaultItems, appointments] = await Promise.all([
     vendorIds.length
       ? supabase.from("vendor_profiles").select("id, business_name, user_id, category").in("user_id", vendorIds)
       : Promise.resolve({ data: [] as { id: string; business_name: string; user_id: string; category: string }[] }),
+    supabase.rpc("wedding_directory", { p_wedding_id: id }),
     supabase.from("reminders").select("id, milestone, kind").eq("wedding_id", id).order("created_at", { ascending: false }),
     supabase.from("questionnaires").select("id").eq("wedding_id", id),
     supabase.from("questionnaire_items").select("answer, questionnaire_id"),
@@ -108,13 +109,16 @@ export default async function WeddingOverviewPage({
         <h2 className="text-lg font-semibold tracking-tight">{space.role === "couple" || space.actingAsCouple ? "Prestataires" : "Membres"}</h2>
         <ul className="mt-4 space-y-2">
           {(space.role === "couple" || space.actingAsCouple ? space.members.filter((member) => member.role === "vendor") : space.members).map((member) => {
+            const listed = (directory.data ?? []).find((person) => person.user_id === member.userId);
             const profile = (vendors.data ?? []).find((vendor) => vendor.user_id === member.userId);
-            const trade = profile?.category && isVendorCategory(profile.category) ? categoryLabel(profile.category) : null;
+            const category = listed?.category || profile?.category || "";
+            const trade = isVendorCategory(category) ? categoryLabel(category) : null;
+            const businessName = listed?.business_name || profile?.business_name || "";
             const coupleRow = (space.role === "couple" || space.actingAsCouple) && member.role === "vendor";
             const body = (
               <>
                 <div className="min-w-0">
-                  <p className="break-words font-medium">{profile?.business_name || member.fullName}</p>
+                  <p className="break-words font-medium">{businessName || member.fullName}</p>
                   <p className="break-all text-sm text-muted">{coupleRow ? trade || "Métier à préciser" : member.email}</p>
                 </div>
                 {coupleRow ? null : (

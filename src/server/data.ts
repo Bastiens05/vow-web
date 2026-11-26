@@ -452,6 +452,7 @@ export type InvitationPreview =
       weddingDate: string;
       venueName: string;
       venueCity: string;
+      trade: string;
     };
 
 export async function previewInvitation(token: string): Promise<InvitationPreview> {
@@ -489,6 +490,7 @@ function parsePreview(value: Json): InvitationPreview {
       weddingDate: typeof value.wedding_date === "string" ? value.wedding_date : "",
       venueName: typeof value.venue_name === "string" ? value.venue_name : "",
       venueCity: typeof value.venue_city === "string" ? value.venue_city : "",
+      trade: typeof value.invitee_trade === "string" ? value.invitee_trade : "",
     };
   }
   return { status: "missing" };

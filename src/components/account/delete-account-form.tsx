@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { deleteAccount } from "@/server/actions/account";
@@ -10,8 +10,20 @@ const initial: ActionState = {};
 
 export function DeleteAccountForm() {
   const [state, action, pending] = useActionState(deleteAccount, initial);
+  const [confirm, setConfirm] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
   return (
-    <form action={action} className="grid gap-3">
+    <form
+      action={action}
+      noValidate
+      className="grid gap-3"
+      onSubmit={(event) => {
+        if (confirm !== "SUPPRIMER") {
+          event.preventDefault();
+          setLocalError("Écrivez SUPPRIMER pour confirmer.");
+        }
+      }}
+    >
       <p className="text-sm leading-6 text-muted">
         Le compte, les messages et les fichiers personnels sont effacés. Les factures déjà émises restent conservées, avec les paiements qui les justifient, pendant le délai légal.
       </p>
@@ -20,10 +32,15 @@ export function DeleteAccountForm() {
         <input
           name="confirm"
           autoComplete="off"
-          required
+          value={confirm}
+          onChange={(event) => {
+            setConfirm(event.target.value);
+            setLocalError(null);
+          }}
           className="min-h-12 rounded-2xl border border-line bg-paper px-4"
         />
       </label>
+      {localError ? <Alert>{localError}</Alert> : null}
       {state.error ? <Alert>{state.error}</Alert> : null}
       <Button type="submit" variant="secondary" disabled={pending}>
         {pending ? "Suppression…" : "Supprimer mon compte"}

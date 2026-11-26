@@ -88,6 +88,7 @@ export type FinanceSnapshot = {
   depositsCollectedCents: number;
   settledInvoicesCents: number;
   collectedThisYearCents: number;
+  unpaidInvoicesCents: number;
 };
 
 export const FINANCE_FIGURES = [
@@ -130,6 +131,11 @@ export function financeSnapshot(input: {
           )
           .map((invoice) => invoice.amountCents),
       ),
+    unpaidInvoicesCents: sum(
+      input.invoices
+        .filter((invoice) => invoice.status === "pending")
+        .map((invoice) => Math.max(0, invoice.amountCents - (invoice.paymentCents ?? 0))),
+    ),
   };
 }
 

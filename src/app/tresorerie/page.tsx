@@ -31,12 +31,15 @@ export default async function CashPage() {
       amountCents: part.amount_cents,
       collected: Boolean(part.collected_on),
       signed: quote.status === "accepted" || quote.status === "invoiced",
+      invoiced: quote.status === "invoiced",
     }];
   });
   const start = new Date().toISOString().slice(0, 7);
   const months = bucketInstallments({ startMonth: start, months: 15, rows, includeUnsigned });
   const finance = await loadVendorFinance(session.vendor.id);
-  const due = rows.filter((row) => !row.collected && row.signed).reduce((sum, row) => sum + row.amountCents, 0);
+  const due = finance.unpaidInvoicesCents + rows
+    .filter((row) => !row.collected && row.signed && !row.invoiced)
+    .reduce((sum, row) => sum + row.amountCents, 0);
   const next3 = months.slice(0, 3).reduce((sum, month) => sum + month.collectedCents + month.scheduledCents, 0);
   const thin = thinMonths(months, settings?.thin_cents ?? 0);
   const byWedding = new Map<string, { price: number; collected: number; minutes: number }>();

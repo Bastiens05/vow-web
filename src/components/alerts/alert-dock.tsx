@@ -53,10 +53,22 @@ export function AlertDock({
     setToastId(id);
     setToastSource(source);
     timer.current = window.setTimeout(() => {
+      if (id && source) {
+        sessionStorage.setItem("vow-dismissed", id);
+        void dismissNotice(id, source);
+      }
       setToast(null);
       setToastHref(null);
+      setToastId(null);
+      setToastSource(null);
     }, 8000);
   }
+
+  useEffect(() => {
+    if (!initialToastId || !initialToastSource) return;
+    sessionStorage.setItem("vow-dismissed", initialToastId);
+    void dismissNotice(initialToastId, initialToastSource);
+  }, [initialToastId, initialToastSource]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -242,7 +254,7 @@ export function AlertDock({
       {toast ? (
         <div
           role="status"
-          className="fixed inset-x-4 top-16 z-40 max-h-40 max-w-sm overflow-auto rounded-3xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:left-auto md:right-6"
+          className="relative z-10 mx-4 mt-3 max-w-sm rounded-3xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:ml-auto md:mr-6"
         >
           {toastHref ? (
             <Link href={toastHref} className="block text-ivory">

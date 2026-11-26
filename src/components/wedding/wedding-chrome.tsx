@@ -63,7 +63,7 @@ export function WeddingChrome({
           </div>
         ) : null
       ) : (
-        <div className="sticky top-14 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-2 py-2 backdrop-blur md:top-0 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-1 md:pr-40">
+        <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-2 py-2 md:sticky md:top-0 md:z-20 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-1 md:pr-40 md:backdrop-blur">
           {homeLink}
           <WeddingSwitcher currentId={id} weddings={weddings} />
           <p className="min-w-0 flex-1 truncate text-sm text-muted">{title}</p>

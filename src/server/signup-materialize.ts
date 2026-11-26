@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { slugify } from "@/lib/domain/slug";
-import { coupleIntentReady, vendorIntentReady, type SignupIntent } from "@/lib/domain/signup-intent";
+import { coupleIntentReady, vendorIntentReady, vendorInviteReady, type SignupIntent } from "@/lib/domain/signup-intent";
 
 type Client = SupabaseClient<Database>;
 
 export async function materializeSignup(supabase: Client, userId: string, intent: SignupIntent): Promise<void> {
-  if (intent.role === "vendor" && vendorIntentReady(intent) && intent.category) {
+  if (intent.role === "vendor" && intent.category && (vendorIntentReady(intent) || vendorInviteReady(intent))) {
     const { data: existing } = await supabase.from("vendor_profiles").select("id").eq("user_id", userId).maybeSingle();
     if (!existing) {
       const slug = `${slugify(intent.businessName)}-${userId.slice(0, 4)}`;

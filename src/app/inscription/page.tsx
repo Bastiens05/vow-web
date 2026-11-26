@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Inscription" };
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; email?: string; role?: string; plan?: string; invite?: string }>;
+  searchParams: Promise<{ next?: string; email?: string; role?: string; plan?: string; invite?: string; trade?: string }>;
 }) {
   const params = await searchParams;
   const nextPath = safeNextPath(params.next, "");
@@ -20,7 +20,8 @@ export default async function SignupPage({
   const lockedRole = params.role === "vendor" || params.role === "couple" ? params.role : invite ? "vendor" : undefined;
   if (params.role === "login") redirect(`/connexion?next=${encodeURIComponent(nextPath || "/espace")}`);
   const fullName = [invite?.first_name, invite?.last_name].filter(Boolean).join(" ").trim();
-  const category = invite?.trade && isVendorCategory(invite.trade) ? invite.trade : undefined;
+  const category = (params.trade && isVendorCategory(params.trade) ? params.trade : undefined)
+    ?? (invite?.trade && isVendorCategory(invite.trade) ? invite.trade : undefined);
   return (
     <AuthFlow
       mode="signup"
