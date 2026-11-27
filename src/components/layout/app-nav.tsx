@@ -163,54 +163,6 @@ export async function MobileChrome() {
   );
 }
 
-export function PublicHeader({
-  accounts = true,
-  overlay = false,
-  pinned = false,
-}: {
-  accounts?: boolean;
-  overlay?: boolean;
-  pinned?: boolean;
-}) {
-  return (
-    <header
-      className={`z-30 flex items-center justify-between gap-2 px-4 sm:gap-3 sm:px-5 ${
-        overlay
-          ? "fixed inset-x-0 top-0 h-16 border-0 bg-transparent text-[#f7f3ec]"
-          : pinned
-            ? "auth-pinned-header fixed inset-x-0 top-0 border-b border-line bg-paper"
-            : "sticky top-0 h-16 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
-      }`}
-    >
-      <Link href="/" aria-label="VOW" className="shrink-0">
-        <Logo variant={overlay ? "white" : "ink"} />
-      </Link>
-      <nav className="flex items-center gap-1 text-base sm:gap-3">
-        <Link href="/#ce-qui-compte" className="hidden min-h-12 items-center px-3 sm:inline-flex">
-          Fonctionnalités
-        </Link>
-        <Link href="/#tarifs" className="hidden min-h-12 items-center px-3 sm:inline-flex">
-          Tarifs
-        </Link>
-        {accounts ? (
-          <>
-            <Link href="/connexion" className="inline-flex min-h-12 items-center px-2 font-medium sm:px-3">
-              Connexion
-            </Link>
-            <Link
-              href="/inscription"
-              className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium sm:min-h-12 sm:px-4 sm:text-base ${overlay ? "bg-[#f7f3ec] text-[#1c1b19]" : "bg-ink text-ivory"}`}
-            >
-              <span className="sm:hidden">Compte</span>
-              <span className="hidden sm:inline">Créer un compte</span>
-            </Link>
-          </>
-        ) : null}
-      </nav>
-    </header>
-  );
-}
-
 async function navContext(session: SessionProfile | null) {
   const path = (await headers()).get("x-vow-path") ?? "";
   const quiet = isPublicPath(path);

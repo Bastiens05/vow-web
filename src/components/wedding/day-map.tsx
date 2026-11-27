@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AddressSuggestion } from "@/lib/domain/address";
+import { separateLabels } from "@/lib/domain/map-labels";
 import { appleDirectionsTo, appleDirectionsUrl, googleDirectionsTo, googleDirectionsUrl } from "@/lib/domain/maps";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -74,14 +75,32 @@ export function DayMap({ places }: { places: MapPlace[] }) {
         zoom: 13,
       });
       const bounds = new maplibre.LngLatBounds();
-      for (const point of points) {
+      const markers = points.map((point) => {
         const label = document.createElement("div");
         label.textContent = point.label;
-        label.className = "rounded-full bg-ink px-2 py-1 text-xs font-medium text-ivory shadow";
-        new maplibre.Marker({ element: label }).setLngLat([point.longitude, point.latitude]).addTo(created);
+        label.className = "rounded-full bg-ink px-2 py-1 text-xs font-medium text-ivory shadow whitespace-nowrap";
+        const marker = new maplibre.Marker({ element: label, anchor: "center" }).setLngLat([point.longitude, point.latitude]).addTo(created);
         bounds.extend([point.longitude, point.latitude]);
-      }
-      if (points.length > 1) created.fitBounds(bounds, { padding: 48, maxZoom: 15 });
+        return marker;
+      });
+      const spread = () => {
+        const boxes = markers.map((marker, index) => {
+          const point = points[index];
+          const projected = point ? created.project([point.longitude, point.latitude]) : { x: 0, y: 0 };
+          const element = marker.getElement();
+          const width = element.offsetWidth || Math.max(48, (point?.label.length ?? 4) * 7 + 16);
+          const height = element.offsetHeight || 24;
+          return { x: projected.x, y: projected.y, w: width, h: height };
+        });
+        const offsets = separateLabels(boxes);
+        markers.forEach((marker, index) => {
+          const offset = offsets[index] ?? { x: 0, y: 0 };
+          marker.setOffset([offset.x, offset.y]);
+        });
+      };
+      if (points.length > 1) created.fitBounds(bounds, { padding: 72, maxZoom: 15 });
+      created.on("moveend", spread);
+      created.once("idle", spread);
       map = created;
     });
     return () => {

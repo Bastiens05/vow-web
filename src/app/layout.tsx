@@ -6,7 +6,8 @@ import { AlertDock } from "@/components/alerts/alert-dock";
 import { AssistantDock } from "@/components/assistant/assistant-dock";
 import { preferredCoupleWedding } from "@/lib/domain/access";
 import { assistantEnabled } from "@/lib/domain/assistant";
-import { DesktopNav, MobileChrome, PublicHeader } from "@/components/layout/app-nav";
+import { DesktopNav, MobileChrome } from "@/components/layout/app-nav";
+import { PublicHeader } from "@/components/layout/public-header";
 import { BillingGate } from "@/components/layout/billing-gate";
 import { ChromeFrame } from "@/components/layout/chrome-frame";
 import { RealtimeRefresh } from "@/components/live/realtime-refresh";
@@ -33,18 +34,11 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const path = (await headers()).get("x-vow-path") ?? "";
   return (
     <html lang="fr" className={`${inter.variable} ${instrument.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
         <ChromeFrame
-          publicHeader={
-            <PublicHeader
-              accounts={!path.startsWith("/invitation/")}
-              overlay={path === "/"}
-              pinned={path === "/connexion" || path === "/inscription" || path === "/mot-de-passe-oublie" || path === "/mot-de-passe" || path === "/bienvenue"}
-            />
-          }
+          publicHeader={<PublicHeader />}
           mobile={
             <Suspense fallback={<MobileBarFallback />}>
               <MobileChrome />
