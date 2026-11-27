@@ -118,6 +118,13 @@ a {
   color: var(--vow-ink);
 }
 
+/* Auth header is fixed, so the photo must start below it, including the iPhone status inset. */
+.auth-pinned-header {
+  height: calc(4rem + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  background-color: var(--vow-paper);
+}
+
 .auth-aside {
   position: relative;
   display: flex;
@@ -129,6 +136,12 @@ a {
   background: #121110;
   color: #f7f3ec;
   padding: 1.5rem;
+}
+
+@media (max-width: 1023px) {
+  .auth-aside {
+    padding-top: calc(4rem + 1.5rem + env(safe-area-inset-top, 0px));
+  }
 }
 
 .auth-step {

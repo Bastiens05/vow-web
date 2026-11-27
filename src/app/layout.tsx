@@ -38,7 +38,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="fr" className={`${inter.variable} ${instrument.variable} h-full antialiased`}>
       <body className="min-h-dvh bg-ivory text-ink">
         <ChromeFrame
-          publicHeader={<PublicHeader accounts={!path.startsWith("/invitation/")} overlay={path === "/"} />}
+          publicHeader={
+            <PublicHeader
+              accounts={!path.startsWith("/invitation/")}
+              overlay={path === "/"}
+              pinned={path === "/connexion" || path === "/inscription" || path === "/mot-de-passe-oublie" || path === "/mot-de-passe" || path === "/bienvenue"}
+            />
+          }
           mobile={
             <Suspense fallback={<MobileBarFallback />}>
               <MobileChrome />

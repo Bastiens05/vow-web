@@ -163,13 +163,23 @@ export async function MobileChrome() {
   );
 }
 
-export function PublicHeader({ accounts = true, overlay = false }: { accounts?: boolean; overlay?: boolean }) {
+export function PublicHeader({
+  accounts = true,
+  overlay = false,
+  pinned = false,
+}: {
+  accounts?: boolean;
+  overlay?: boolean;
+  pinned?: boolean;
+}) {
   return (
     <header
-      className={`z-30 flex h-16 items-center justify-between gap-2 px-4 sm:gap-3 sm:px-5 ${
+      className={`z-30 flex items-center justify-between gap-2 px-4 sm:gap-3 sm:px-5 ${
         overlay
-          ? "fixed inset-x-0 top-0 border-0 bg-transparent text-[#f7f3ec]"
-          : "sticky top-0 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
+          ? "fixed inset-x-0 top-0 h-16 border-0 bg-transparent text-[#f7f3ec]"
+          : pinned
+            ? "auth-pinned-header fixed inset-x-0 top-0 border-b border-line bg-paper"
+            : "sticky top-0 h-16 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
       }`}
     >
       <Link href="/" aria-label="VOW" className="shrink-0">
