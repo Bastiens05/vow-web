@@ -51,6 +51,15 @@ const SUGGESTIONS: Record<VendorCategory, DocumentTemplate[]> = {
   other: [
     { title: "Informations utiles pour le jour J", note: "", required: false, offsetDays: -14 },
   ],
+  cake: [{ title: "Nombre d'invités", note: "Pour la taille du gâteau.", required: true, offsetDays: -21 }],
+  wine: [{ title: "Nombre d'invités", note: "Adultes qui boivent.", required: true, offsetDays: -21 }],
+  animation: [{ title: "Déroulé de la journée", note: "Le moment où l'animation a lieu.", required: true, offsetDays: -21 }],
+  decor: [{ title: "Plan du lieu", note: "Pour placer la décoration.", required: false, offsetDays: -21 }],
+  hair: [{ title: "Horaires de préparation", note: "Lieu et heure à laquelle commencer.", required: true, offsetDays: -14 }],
+  makeup: [{ title: "Horaires de préparation", note: "Lieu et heure à laquelle commencer.", required: true, offsetDays: -14 }],
+  attire: [{ title: "Date d'essayage", note: "", required: false, offsetDays: -45 }],
+  stationery: [{ title: "Textes du faire-part", note: "Noms, date et lieu.", required: true, offsetDays: -90 }],
+  transport: [{ title: "Adresses du jour", note: "Cérémonie et réception.", required: true, offsetDays: -14 }],
 };
 
 /** Ideas for a trade. Nothing here is saved until the vendor adds it. */

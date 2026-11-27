@@ -12,7 +12,16 @@ export type VendorCategory =
   | "planner"
   | "beauty"
   | "officiant"
-  | "other";
+  | "other"
+  | "cake"
+  | "wine"
+  | "animation"
+  | "decor"
+  | "hair"
+  | "makeup"
+  | "attire"
+  | "stationery"
+  | "transport";
 
 type Table<Row, Insert, Update> = {
   Row: Row;
@@ -82,6 +91,7 @@ export type Database = {
           share_phone: boolean;
           share_email: boolean;
           discoverable?: boolean;
+          music_kind?: string | null;
           stripe_account_id: string | null;
           created_at: string;
           updated_at: string;
@@ -112,6 +122,7 @@ export type Database = {
           share_phone?: boolean;
           share_email?: boolean;
           discoverable?: boolean;
+          music_kind?: string | null;
           stripe_account_id?: string | null;
           city?: string;
           zone?: string;

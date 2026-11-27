@@ -5,7 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AddressInput } from "@/components/ui/address-input";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/field";
-import { VENDOR_CATEGORIES, categoryLabel } from "@/lib/domain/categories";
+import { MUSIC_KINDS, VENDOR_CATEGORIES, categoryLabel, isMusicKind, musicKindLabel } from "@/lib/domain/categories";
 import type { Tables } from "@/lib/database.types";
 import type { ActionState } from "@/server/actions/auth";
 import { saveVendorProfile } from "@/server/actions/vendor";
@@ -29,9 +29,20 @@ export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | nu
         <Field label="Catégorie">
           <SelectInput name="category" defaultValue={vendor?.category ?? ""} required>
             <option value="">Choisir un métier</option>
+            {vendor?.category === "beauty" ? <option value="beauty">{categoryLabel("beauty")}</option> : null}
             {VENDOR_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {categoryLabel(category)}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Type de musique" hint="DJ, groupe, orchestre ou chorale.">
+          <SelectInput name="music_kind" defaultValue={vendor?.music_kind && isMusicKind(vendor.music_kind) ? vendor.music_kind : ""}>
+            <option value="">À préciser</option>
+            {MUSIC_KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {musicKindLabel(kind)}
               </option>
             ))}
           </SelectInput>

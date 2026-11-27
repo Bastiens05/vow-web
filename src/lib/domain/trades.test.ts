@@ -36,7 +36,7 @@ describe("sheetsFor", () => {
 
 describe("offer examples", () => {
   it("follows the trade and never invents a price", () => {
-    expect(offerExample("dj")).toBe("Animation soirée");
+    expect(offerExample("dj")).toBe("Soirée dansante");
     expect(offerExample("caterer")).toBe("Repas");
     expect(offerExample(null)).toBe("Prestation");
     expect(offerExample("florist")).not.toBe("Reportage journée");

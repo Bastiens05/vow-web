@@ -47,7 +47,17 @@ export async function saveVendorProfile(_prev: ActionState, formData: FormData):
     ? await supabase.from("vendor_profiles").update(payload).eq("id", session.vendor.id)
     : await supabase.from("vendor_profiles").insert({ ...payload, user_id: session.userId });
 
-  if (error) return { error: messageFromError(error) };
+  if (error) {
+    const message = messageFromError(error);
+    if (/invalid input value for enum|vendor_category/i.test(message)) {
+      return { error: "Ce métier s'ouvrira après la mise à jour de la base." };
+    }
+    return { error: message };
+  }
+  const musicKind = String(formData.get("music_kind") ?? "").trim();
+  if (parsed.value.category === "dj" && session.vendor && ["dj", "band", "orchestra", "choir"].includes(musicKind)) {
+    await supabase.from("vendor_profiles").update({ music_kind: musicKind }).eq("id", session.vendor.id);
+  }
   revalidatePath("/espace/profil");
   revalidatePath("/espace");
   revalidatePath(`/p/${parsed.value.slug}`);
