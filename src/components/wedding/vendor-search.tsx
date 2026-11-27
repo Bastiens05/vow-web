@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { VENDOR_CATEGORIES, categoryLabel } from "@/lib/domain/categories";
@@ -17,12 +17,21 @@ export function VendorSearch({ weddingId, memberIds }: { weddingId: string; memb
   const [problem, setProblem] = useState("");
   const [sent, setSent] = useState<Record<string, true>>({});
   const members = new Set(memberIds);
+  const request = useRef(0);
+  const timer = useRef<number | null>(null);
 
-  async function look(nextQuery: string, nextTrade: string) {
+  function look(nextQuery: string, nextTrade: string) {
     setAsked(true);
-    const result = await searchDiscoverableVendors(nextQuery, nextTrade);
-    setVendors(result.vendors);
-    setUnavailable(result.unavailable);
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      const id = request.current + 1;
+      request.current = id;
+      void searchDiscoverableVendors(nextQuery, nextTrade).then((result) => {
+        if (id !== request.current) return;
+        setVendors(result.vendors);
+        setUnavailable(result.unavailable);
+      });
+    }, 200);
   }
 
   return (
