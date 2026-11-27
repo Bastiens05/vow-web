@@ -11,6 +11,7 @@ export type BudgetRow = {
   trade: string;
   euros: number;
   paid: boolean;
+  paidCents?: number;
   vendorUserId: string | null;
 };
 
@@ -44,7 +45,7 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
 
   const cents = Math.round((Number(total.replace(",", ".")) || 0) * 100);
   const engaged = lines.reduce((sum, line) => sum + Math.round(line.euros * 100), 0);
-  const paid = lines.filter((line) => line.paid).reduce((sum, line) => sum + Math.round(line.euros * 100), 0);
+  const paid = lines.reduce((sum, line) => sum + (line.paidCents ?? (line.paid ? Math.round(line.euros * 100) : 0)), 0);
   const ratio = cents > 0 ? Math.min(1, engaged / cents) : 0;
 
   const labels = useMemo(() => new Set(lines.map((line) => line.label)), [lines]);

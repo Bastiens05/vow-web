@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes 
 import { cn } from "@/lib/cn";
 
 export const fieldClass =
-  "w-full rounded-2xl border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/30";
+  "w-full min-w-0 max-w-full rounded-2xl border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/30";
 
 export function Field({
   label,
@@ -14,7 +14,7 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0 max-w-full">
       <span className="mb-1.5 block text-sm text-ink">{label}</span>
       {children}
       {hint ? <span className="mt-1.5 block text-xs leading-5 text-muted">{hint}</span> : null}

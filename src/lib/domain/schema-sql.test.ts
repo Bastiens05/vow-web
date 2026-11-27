@@ -112,6 +112,7 @@ describe("migration", () => {
       "vendor_billing_identity",
       "vendor_invoice_counters",
       "invoice_payments",
+      "storage_relocations",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);
@@ -147,6 +148,12 @@ describe("migration", () => {
     expect(sql).toContain("last_number = public.vendor_invoice_counters.last_number + 1");
     expect(sql).toContain("function public.lock_issued_invoice()");
     expect(sql).toContain("raise exception 'Facture déjà émise'");
+    expect(sql).toContain("function public.relocate_wedding_storage(p_keep uuid, p_drop uuid)");
+    expect(sql).toContain("function public.delete_my_account()");
+    expect(sql).toContain("function public.my_account_files()");
+    expect(sql).toContain("function public.wedding_invoice_vendors(p_wedding uuid)");
+    expect(sql).toContain("public.is_wedding_couple(p_wedding)");
+    expect(sql).toContain("on delete set null");
     expect(sql).toContain("function public.issue_invoice_from_quote(p_quote uuid)");
     expect(sql).toContain("policy invoice_payments_select");
     expect(sql).toContain("public.owns_vendor(vendor_id) or public.is_wedding_couple(wedding_id)");

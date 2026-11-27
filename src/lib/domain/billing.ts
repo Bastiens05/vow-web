@@ -55,6 +55,7 @@ const OPEN = [
   "/bienvenue",
   "/cgu",
   "/confidentialite",
+  "/mentions-legales",
 ];
 
 export function subscriptionGate(pathname: string): boolean {

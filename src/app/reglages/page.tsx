@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AccountNav } from "@/components/layout/account-nav";
+import { DeleteAccountForm } from "@/components/account/delete-account-form";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ShareForm } from "@/components/account/share-form";
 import { PhoneFactorForm } from "@/components/account/phone-factor";
@@ -114,7 +115,7 @@ export default async function SettingsPage() {
         </Card>
       ) : null}
       {owner && session.vendor ? (
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <VendorVaultBoard
             userId={session.userId}
             today={new Date().toISOString().slice(0, 10)}
@@ -264,6 +265,17 @@ export default async function SettingsPage() {
       <Card>
         <h2 className="mb-3 text-lg font-semibold tracking-tight">Sortie</h2>
         <SignOutButton />
+      </Card>
+      <Card className="space-y-3">
+        <h2 className="text-lg font-semibold tracking-tight">Supprimer le compte</h2>
+        <DeleteAccountForm />
+        <p className="text-sm">
+          <a href="/mentions-legales" className="underline">Mentions légales</a>
+          {" · "}
+          <a href="/cgu" className="underline">CGU</a>
+          {" · "}
+          <a href="/confidentialite" className="underline">Confidentialité</a>
+        </p>
       </Card>
     </div>
   );

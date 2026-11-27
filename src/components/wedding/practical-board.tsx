@@ -221,8 +221,26 @@ function Guests({
           <p className="mt-1 mb-4 text-sm text-muted">Table et régime, pour le traiteur et le plan de salle.</p>
         </>
       ) : null}
-      <div className="overflow-x-auto rounded-2xl border border-line">
-        <table className="w-full min-w-[32rem] text-left text-sm">
+      <ul className="grid gap-2 md:hidden">
+        {guests.map((guest) => (
+          <li key={guest.id} className="rounded-2xl border border-line px-3 py-3 text-sm">
+            <p className="break-words font-medium">{guest.full_name}</p>
+            <p className="mt-1 break-words text-muted">Table {guest.table_label || "—"} · {guest.dietary || "Régime non précisé"}</p>
+            {guest.notes ? <p className="mt-1 break-words text-xs text-muted">{guest.notes}</p> : null}
+            {canEdit ? (
+              <form action={deleteGuest} className="mt-2">
+                <input type="hidden" name="id" value={guest.id} />
+                <input type="hidden" name="wedding_id" value={weddingId} />
+                <button type="submit" className="text-xs text-muted underline">
+                  Retirer
+                </button>
+              </form>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <div className="hidden overflow-x-auto rounded-2xl border border-line md:block">
+        <table className="w-full min-w-0 text-left text-sm">
           <thead className="text-xs text-muted">
             <tr>
               <th className="px-3 py-2 font-medium">Nom</th>

@@ -8,6 +8,7 @@ export function isPublicPath(pathname: string): boolean {
     pathname === "/bienvenue" ||
     pathname === "/cgu" ||
     pathname === "/confidentialite" ||
+    pathname === "/mentions-legales" ||
     pathname.startsWith("/demande/") ||
     pathname.startsWith("/p/") ||
     pathname.startsWith("/invitation/") ||
@@ -38,11 +39,11 @@ export function backTarget(
     const couple = actingAsCouple || role === "couple";
     if (couple) {
       if (section === "bulle") return { label: "Documents", href: `/mariage/${id}/bulles` };
-      if (["jour", "pratique", "equipe", "documents", "budget", "messages", "bulles", "coffre"].includes(section)) return null;
       if (!section) return { label: "Accueil", href: "/espace" };
       return { label: "Mariage", href: `/mariage/${id}` };
     }
-    return { label: "Mariages", href: "/mariages" };
+    if (!section) return { label: "Mariages", href: "/mariages" };
+    return { label: "Mariage", href: `/mariage/${id}` };
   }
   if (pathname.startsWith("/espace/mariages")) return { label: "Mariages", href: "/mariages" };
   if (pathname.startsWith("/espace/")) return { label: "Accueil", href: "/espace" };

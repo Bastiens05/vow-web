@@ -79,6 +79,19 @@ describe("finance totals", () => {
     expect(snapshot.depositsCollectedCents).toBe(50000);
     expect(snapshot.settledInvoicesCents).toBe(240000);
     expect(snapshot.collectedThisYearCents).toBe(240000);
+    expect(snapshot.unpaidInvoicesCents).toBe(90000);
+  });
+
+  it("counts an issued invoice that has no payment and no installment", () => {
+    const snapshot = financeSnapshot({
+      year: "2026",
+      quotes: [{ status: "invoiced", amountCents: 250000 }],
+      invoices: [{ status: "pending", amountCents: 250000, paymentCents: 0 }],
+      payments: [],
+    });
+    expect(snapshot.pendingQuotesCents).toBe(0);
+    expect(snapshot.settledInvoicesCents).toBe(0);
+    expect(snapshot.unpaidInvoicesCents).toBe(250000);
   });
 
   it("keeps an already paid invoice in this year until a payment is recorded", () => {

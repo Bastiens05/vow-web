@@ -96,7 +96,7 @@ export default async function DashboardPage() {
           <p className="text-sm font-medium text-accent">
             {`Espace prestataire${session.vendor ? ` · ${categoryLabel(session.vendor.category)}` : ""}`}
           </p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{name || "Votre espace"}</h1>
+          <h1 className="mt-2 font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">{name || "Votre espace"}</h1>
           <p className="mt-3 text-base leading-7 text-ink">Vos mariages et votre vitrine. Le jour J, le couple tient les horaires.</p>
         </header>
       ) : primary ? (
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
         />
       ) : (
         <header className="mb-8">
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Votre mariage</h1>
+          <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Votre mariage</h1>
           <p className="mt-3 max-w-xl text-base text-muted">Créez votre espace, puis invitez vos prestataires.</p>
         </header>
       )}

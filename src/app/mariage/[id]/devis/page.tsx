@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { coupleFullNames, formatLongDate } from "@/lib/domain/format";
+import { formatLongDate } from "@/lib/domain/format";
 import {
   invoiceSettled,
   paymentKindLabel,
@@ -55,12 +55,7 @@ export default async function QuotesPage({
   return (
     <div className="grid gap-4">
       <Card>
-        <h2 className="text-3xl font-semibold tracking-tight">Devis et factures</h2>
-        {coupleFullNames(space.wedding.partner_one_name, space.wedding.partner_one_last_name, space.wedding.partner_two_name, space.wedding.partner_two_last_name) ? (
-          <p className="mt-1 text-sm text-muted">
-            {coupleFullNames(space.wedding.partner_one_name, space.wedding.partner_one_last_name, space.wedding.partner_two_name, space.wedding.partner_two_last_name)}
-          </p>
-        ) : null}
+        <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Devis et factures</h1>
         <p className="mt-1 text-sm text-muted">Un numéro par prestataire. Le couple voit les montants, pas ceux des autres métiers.</p>
         {query.facture === "erreur" ? (
           <div className="mt-4">

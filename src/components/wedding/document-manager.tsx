@@ -22,6 +22,7 @@ export function DocumentManager({
   requests,
   canRequest,
   canSign,
+  manage = true,
 }: {
   weddingId: string;
   userId: string;
@@ -30,6 +31,7 @@ export function DocumentManager({
   requests: Tables<"signature_requests">[];
   canRequest: boolean;
   canSign: boolean;
+  manage?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export function DocumentManager({
     router.refresh();
   }
 
-  const showDrop = adding || pending;
+  const showDrop = manage && (adding || pending);
 
   return (
     <div className="min-w-0 space-y-4">
@@ -132,6 +134,7 @@ export function DocumentManager({
                     </Button>
                   </form>
                 ) : null}
+                {manage ? (
                 <form action={deleteDocument}>
                   <input type="hidden" name="id" value={document.id} />
                   <input type="hidden" name="wedding_id" value={weddingId} />
@@ -139,6 +142,7 @@ export function DocumentManager({
                     Retirer
                   </Button>
                 </form>
+                ) : null}
               </div>
             </div>
             {canSign && request?.status === "pending" ? (
@@ -155,7 +159,7 @@ export function DocumentManager({
         })}
       </ul>
       ) : null}
-      {showDrop ? (
+      {manage && showDrop ? (
         <FileDrop
           accept=".pdf,.txt,.doc,.docx,.jpg,.jpeg,.png,.webp,application/pdf,text/plain,image/jpeg,image/png,image/webp"
           multiple
@@ -166,11 +170,12 @@ export function DocumentManager({
           progress={progress}
           onFiles={(files) => void onFiles(files)}
         />
-      ) : (
+      ) : null}
+      {manage && !showDrop ? (
         <Button type="button" variant="secondary" onClick={() => setAdding(true)}>
           Ajouter un document
         </Button>
-      )}
+      ) : null}
       {error ? <Alert>{error}</Alert> : null}
     </div>
   );

@@ -80,34 +80,34 @@ async function AlertSlot() {
   const showCoupleVault = Boolean(vault && (session.profile.role === "couple" || vault.onCouplePage));
   const showVendorVault = session.profile.role === "vendor" && Boolean(session.vendor) && !showCoupleVault;
   return (
-    <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
-      <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
-        {showCoupleVault && vault ? (
-          <VaultButton href={`/mariage/${vault.weddingId}/coffre`} missing={vault.missing}>
-            <VaultBoard weddingId={vault.weddingId} userId={session.userId} checklist={VAULT_CHECKLIST} stored={vault.stored} />
-          </VaultButton>
-        ) : null}
-        {showVendorVault ? <VaultLink href="/coffre-fort" label="Coffre-fort" /> : null}
-        {assistantEnabled() ? (
-          <AssistantDock role={session.profile.role} defaultWeddingId={await defaultAssistantWedding(session.userId, session.profile.role)} />
-        ) : null}
-        <RealtimeRefresh
-          channel="message-badges"
-          subscriptions={[
-            { table: "messages", event: "INSERT" },
-            { table: "message_reads", event: "INSERT" },
-            { table: "notification_reads", event: "INSERT" },
-          ]}
-        />
-        <AlertDock
-          calm
-          inApp={session.profile.notify_in_app}
-          initialToast={session.profile.notify_in_app ? (latest?.body ?? null) : null}
-          initialToastHref={session.profile.notify_in_app ? (latest?.href ?? null) : null}
-          initialUnread={latest ? 1 : 0}
-        />
-      </div>
-    </div>
+    <AlertDock
+      calm
+      inApp={session.profile.notify_in_app}
+      initialToast={session.profile.notify_in_app ? (latest?.body ?? null) : null}
+      initialToastHref={session.profile.notify_in_app ? (latest?.href ?? null) : null}
+      initialToastId={session.profile.notify_in_app ? (latest?.id ?? null) : null}
+      initialToastSource={session.profile.notify_in_app ? (latest?.source ?? null) : null}
+      initialUnread={latest ? 1 : 0}
+      viewerRole={session.profile.role}
+    >
+      {showCoupleVault && vault ? (
+        <VaultButton href={`/mariage/${vault.weddingId}/coffre`} missing={vault.missing}>
+          <VaultBoard weddingId={vault.weddingId} userId={session.userId} checklist={VAULT_CHECKLIST} stored={vault.stored} />
+        </VaultButton>
+      ) : null}
+      {showVendorVault ? <VaultLink href="/coffre-fort" label="Coffre-fort" /> : null}
+      {assistantEnabled() ? (
+        <AssistantDock role={session.profile.role} defaultWeddingId={await defaultAssistantWedding(session.userId, session.profile.role)} />
+      ) : null}
+      <RealtimeRefresh
+        channel="message-badges"
+        subscriptions={[
+          { table: "messages", event: "INSERT" },
+          { table: "message_reads", event: "INSERT" },
+          { table: "notification_reads", event: "INSERT" },
+        ]}
+      />
+    </AlertDock>
   );
 }
 

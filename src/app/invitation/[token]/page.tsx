@@ -91,7 +91,7 @@ export default async function InvitationPage({
                   J&apos;ai déjà un compte
                 </ButtonLink>
                 <ButtonLink
-                  href={`/inscription?next=${encodeURIComponent(next)}&email=${encodeURIComponent(preview.email)}&role=${preview.role}`}
+                  href={`/inscription?next=${encodeURIComponent(next)}&email=${encodeURIComponent(preview.email)}&role=${preview.role}${preview.trade ? `&trade=${encodeURIComponent(preview.trade)}` : ""}${preview.inviteeName ? `&business=${encodeURIComponent(preview.inviteeName)}` : ""}`}
                   variant="secondary"
                 >
                   Créer un compte

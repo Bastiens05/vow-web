@@ -8,6 +8,7 @@ import { navigationItems } from "@/components/layout/navigation-items";
 import { SpaceSwitcher } from "@/components/layout/space-switcher";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { partitionWeddings, preferredCoupleWedding } from "@/lib/domain/access";
+import { vendorAccess } from "@/lib/domain/billing";
 import { backTarget, isPublicPath } from "@/lib/domain/chrome";
 import { coupleHeroTitle, todayIso } from "@/lib/domain/format";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
@@ -115,17 +116,36 @@ export async function MobileChrome() {
   const context = await navContext(session);
   const name = session?.vendor?.business_name || session?.profile.full_name || "";
   const unread = session ? (await countUnreadMessages(session.userId)) > 0 : false;
+  const path = (await headers()).get("x-vow-path") ?? "";
+  const access = session?.profile.role === "vendor"
+    ? vendorAccess({
+        role: "vendor",
+        isAdmin: Boolean(session.isAdmin),
+        status: session.billing?.status ?? null,
+        trialEndsAt: session.billing?.trial_ends_at ?? null,
+        testerUntil: session.billing?.tester_until ?? null,
+      })
+    : null;
+  const trialDays = access?.reason === "trial" && access.daysLeft !== null && path !== "/abonnement" ? access.daysLeft : null;
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border-b border-line bg-[var(--vow-glass)] px-4 pr-36 backdrop-blur-md md:hidden">
-        {context.back ? (
-          <BackControl fallback={context.back.href} label={context.back.label} />
-        ) : (
-          <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
-            <Logo className="h-[38px] w-auto" />
-          </Link>
-        )}
-        <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
+      <header className={`sticky top-0 z-30 border-b border-line px-4 pr-36 md:hidden ${context.back ? "bg-paper" : "bg-[var(--vow-glass)] backdrop-blur-md"}`}>
+        <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+          {context.back ? (
+            <BackControl fallback={context.back.href} label={context.back.label} />
+          ) : (
+            <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
+              <Logo className="h-[38px] w-auto" />
+            </Link>
+          )}
+          <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
+        </div>
+        {trialDays !== null ? (
+          <p className="truncate pb-2 text-center text-xs text-muted">
+            Essai · {trialDays} jour{trialDays > 1 ? "s" : ""} ·{" "}
+            <Link href="/abonnement" className="text-ink underline">Voir l&apos;offre</Link>
+          </p>
+        ) : null}
       </header>
       {context.quiet ? null : (
       <NavMenu

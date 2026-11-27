@@ -129,7 +129,7 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
           );
         })}
       </ul>
-      <form onSubmit={(event) => void uploadNew(event)} className="grid gap-3 border-t border-line pt-4">
+      <form onSubmit={(event) => void uploadNew(event)} className="grid min-w-0 max-w-full gap-3 overflow-hidden border-t border-line pt-4">
         <h3 className="text-sm font-medium">Ajouter un document</h3>
         <Field label="Intitulé">
           <TextInput name="title" required />
@@ -154,7 +154,7 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
           Partager automatiquement avec chaque nouveau mariage
         </label>
         <Field label="Fichier">
-          <input name="file" type="file" required className="text-sm" />
+          <input name="file" type="file" required className="block w-full min-w-0 max-w-full text-sm" />
         </Field>
         {error ? <Alert>{error}</Alert> : null}
         <Button type="submit" disabled={uploading}>

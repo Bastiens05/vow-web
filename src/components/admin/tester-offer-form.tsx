@@ -19,7 +19,7 @@ export function TesterOfferForm({
   const [state, action, pending] = useActionState(createInvite, initial);
   const [kind, setKind] = useState("tester");
   const trade = prefill?.trade && isVendorCategory(prefill.trade) ? prefill.trade : "photographer";
-  const plan = prefill?.plan && isVendorPlan(prefill.plan) ? prefill.plan : "studio";
+  const plan = prefill?.plan && isVendorPlan(prefill.plan) ? prefill.plan : "essentiel";
   return (
     <form action={action} className="grid gap-4">
       <fieldset className="grid gap-3">

@@ -18,6 +18,9 @@ describe("en-tête du mariage", () => {
   });
 
   it("laisse Messages sans l'en-tête de l'accueil", () => {
+    expect(weddingHeaderMode(`/mariage/${id}/documents`, id)).toBe("quiet");
+    expect(weddingHeaderMode(`/mariage/${id}/budget`, id)).toBe("quiet");
+    expect(weddingHeaderMode(`/mariage/${id}/devis`, id)).toBe("quiet");
     expect(weddingHeaderMode(`/mariage/${id}/messages`, id)).toBe("thread");
     expect(weddingHeaderMode(`/mariage/${id}/messages?avec=1`, id)).toBe("thread");
   });

@@ -10,6 +10,7 @@ import { isValidEmail } from "@/lib/domain/auth-routing";
 import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
 import { WEDDING_VOLUMES, type WeddingVolume } from "@/lib/domain/volume";
+import { signupMissing, type SignupIntent } from "@/lib/domain/signup-intent";
 import { signUp, type ActionState } from "@/server/actions/auth";
 
 type Step = "choose" | "vendor" | "couple" | "invite";
@@ -23,6 +24,7 @@ export function AuthFlow({
   initialCategory,
   initialFullName,
   initialPlan,
+  initialBusinessName = "",
   notice,
 }: {
   mode: "login" | "signup";
@@ -33,23 +35,27 @@ export function AuthFlow({
   initialCategory?: VendorCategory;
   initialFullName?: string;
   initialPlan?: VendorPlan;
+  initialBusinessName?: string;
   notice?: ReactNode;
 }) {
   const invite = nextPath.startsWith("/invitation/") || nextPath.startsWith("/equipe/");
+  const vendorInvite = invite && lockedRole === "vendor";
   const [step, setStep] = useState<Step>(
     mode === "login"
       ? "invite"
-      : invite
-        ? "invite"
-        : lockedRole === "vendor"
-          ? "vendor"
-          : lockedRole === "couple"
-            ? "couple"
-            : "choose",
+      : vendorInvite
+        ? "vendor"
+        : invite
+          ? "invite"
+          : lockedRole === "vendor"
+            ? "vendor"
+            : lockedRole === "couple"
+              ? "couple"
+              : "choose",
   );
   const [email, setEmail] = useState(initialEmail);
   const [category, setCategory] = useState<VendorCategory | null>(initialCategory ?? null);
-  const [businessName, setBusinessName] = useState("");
+  const [businessName, setBusinessName] = useState(initialBusinessName);
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -125,7 +131,7 @@ export function AuthFlow({
           ) : null}
 
           {mode === "signup" && step === "vendor" ? (
-            <form action={action} className="mt-8 grid gap-4">
+            <form action={action} noValidate className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               {inviteToken ? <input type="hidden" name="invite" value={inviteToken} /> : null}
               <input type="hidden" name="plan" value={initialPlan && isVendorPlan(initialPlan) ? initialPlan : ""} />
@@ -146,9 +152,10 @@ export function AuthFlow({
               <FieldLike label="Nom de l'activité" name="business_name" value={businessName} onChange={setBusinessName} autoComplete="organization" />
               <label className="grid gap-2 text-sm">
                 Ville
+                {vendorInvite ? <span className="text-xs text-muted">Facultatif pour une invitation.</span> : null}
                 <AddressInput
                   name="city"
-                  required
+                  required={!vendorInvite}
                   mode="city"
                   value={city}
                   onValueChange={setCity}
@@ -176,13 +183,28 @@ export function AuthFlow({
               <FieldLike label="Instagram" name="instagram" value={instagram} onChange={setInstagram} autoComplete="off" optional />
               <FieldLike label="Site web" name="website" value={website} onChange={setWebsite} autoComplete="url" optional />
               <NameField defaultValue={initialFullName ?? ""} />
-              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
+              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
+              <MissingFields
+                items={signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: vendorInvite ? "invite-vendor" : "vendor",
+                  intent: blankIntent({ role: "vendor", businessName, category, city }),
+                }).filter((item) => !(vendorInvite && item === "un e-mail valide"))}
+              />
               <button
                 type="submit"
                 className="auth-primary"
-                disabled={pending || !isValidEmail(email) || password.length < 8 || !category || businessName.trim().length < 2 || city.trim().length < 2}
+                disabled={pending || signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: vendorInvite ? "invite-vendor" : "vendor",
+                  intent: blankIntent({ role: "vendor", businessName, category, city }),
+                }).length > 0}
               >
                 {pending ? "Création…" : "Créer mon compte"}
               </button>
@@ -190,7 +212,7 @@ export function AuthFlow({
           ) : null}
 
           {mode === "signup" && step === "couple" ? (
-            <form action={action} className="mt-8 grid gap-4">
+            <form action={action} noValidate className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               <RoleChoice selected="couple" />
               <p className="text-sm font-medium">Partenaire 1</p>
@@ -210,6 +232,8 @@ export function AuthFlow({
                   required
                   pattern="\d{2}/\d{2}/\d{4}"
                   title="jj/mm/aaaa"
+                  onInvalid={(event) => event.currentTarget.setCustomValidity("Indiquez la date au format jj/mm/aaaa.")}
+                  onInput={(event) => event.currentTarget.setCustomValidity("")}
                   value={weddingDate}
                   onChange={(event) => setWeddingDate(event.target.value)}
                   className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink"
@@ -220,21 +244,44 @@ export function AuthFlow({
                 <span className="sr-only">facultatif</span>
                 <AddressInput name="city" mode="city" value={city} onValueChange={setCity} className="auth-field min-h-14 rounded-2xl px-4 text-lg" />
               </label>
-              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
+              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
+              <MissingFields
+                items={signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: "couple",
+                  intent: blankIntent({
+                    role: "couple",
+                    partnerOne,
+                    partnerOneLast,
+                    partnerTwo,
+                    partnerTwoLast,
+                    weddingDate,
+                  }),
+                })}
+              />
               <button
                 type="submit"
                 className="auth-primary"
                 disabled={
                   pending ||
-                  !isValidEmail(email) ||
-                  password.length < 8 ||
-                  partnerOne.trim().length < 2 ||
-                  partnerOneLast.trim().length < 2 ||
-                  partnerTwo.trim().length < 2 ||
-                  partnerTwoLast.trim().length < 2 ||
-                  !weddingDate
+                  signupMissing({
+                    email,
+                    password,
+                    emailValid: isValidEmail(email),
+                    kind: "couple",
+                    intent: blankIntent({
+                      role: "couple",
+                      partnerOne,
+                      partnerOneLast,
+                      partnerTwo,
+                      partnerTwoLast,
+                      weddingDate,
+                    }),
+                  }).length > 0
                 }
               >
                 {pending ? "Création…" : "Créer mon compte"}
@@ -244,13 +291,22 @@ export function AuthFlow({
           ) : null}
 
           {mode === "signup" && step === "invite" ? (
-            <form action={action} className="mt-8 grid gap-4">
+            <form action={action} noValidate className="mt-8 grid gap-4">
               <input type="hidden" name="next" value={nextPath || "/espace"} />
               <RoleChoice selected={lockedRole ?? "couple"} locked={Boolean(lockedRole)} />
               <NameField defaultValue={initialFullName ?? ""} />
-              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} />
+              <FieldLike label="E-mail" name="email" value={email} onChange={setEmail} type="email" autoComplete="email" readOnly={Boolean(initialEmail)} error={email.length > 0 && !isValidEmail(email) ? "Indiquez un e-mail valide." : null} />
               <SecretField value={password} onChange={setPassword} shown={shown} onToggle={() => setShown((value) => !value)} />
               {state.error ? <Alert>{state.error}</Alert> : null}
+              <MissingFields
+                items={signupMissing({
+                  email,
+                  password,
+                  emailValid: isValidEmail(email),
+                  kind: "account",
+                  intent: blankIntent({ role: lockedRole ?? "couple" }),
+                }).filter((item) => item !== "un e-mail valide")}
+              />
               <button type="submit" className="auth-primary" disabled={pending || !isValidEmail(email) || password.length < 8}>
                 {pending ? "Création…" : "Créer mon compte"}
               </button>
@@ -265,6 +321,10 @@ export function AuthFlow({
             <Link href="/confidentialite" className="underline">
               Confidentialité
             </Link>
+            {" · "}
+            <Link href="/mentions-legales" className="underline">
+              Mentions légales
+            </Link>
           </p>
         </div>
       </div>
@@ -274,6 +334,31 @@ export function AuthFlow({
   function pick(value: "vendor" | "couple") {
     setStep(value);
   }
+}
+
+function blankIntent(partial: Partial<SignupIntent> & { role: SignupIntent["role"] }): SignupIntent {
+  return {
+    role: partial.role,
+    fullName: partial.fullName ?? "",
+    businessName: partial.businessName ?? "",
+    category: partial.category ?? null,
+    city: partial.city ?? "",
+    phone: "",
+    website: "",
+    instagram: "",
+    weddingsPerYear: "",
+    partnerOne: partial.partnerOne ?? "",
+    partnerOneLast: partial.partnerOneLast ?? "",
+    partnerTwo: partial.partnerTwo ?? "",
+    partnerTwoLast: partial.partnerTwoLast ?? "",
+    weddingDate: partial.weddingDate ?? "",
+    plan: null,
+  };
+}
+
+function MissingFields({ items }: { items: string[] }) {
+  if (items.length === 0) return null;
+  return <p className="text-sm text-danger">Il manque {items.join(", ")}.</p>;
 }
 
 function NameField({ defaultValue = "" }: { defaultValue?: string }) {
@@ -304,12 +389,17 @@ function SecretField({
           minLength={8}
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onInvalid={(event) => event.currentTarget.setCustomValidity("Le mot de passe doit contenir au moins 8 caractères.")}
+          onInput={(event) => event.currentTarget.setCustomValidity("")}
           className="auth-field min-h-14 w-full rounded-2xl border border-line bg-paper px-4 pr-24 text-lg text-ink outline-none focus:border-ink"
         />
         <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted" onClick={onToggle} aria-pressed={shown}>
           {shown ? "Masquer" : "Afficher"}
         </button>
-      </span>
+        </span>
+      {value.length > 0 && value.length < 8 ? (
+        <span className="text-sm text-danger">Le mot de passe doit contenir au moins 8 caractères.</span>
+      ) : null}
     </label>
   );
 }
@@ -357,6 +447,7 @@ function FieldLike({
   readOnly = false,
   uncontrolled = false,
   defaultValue,
+  error = null,
 }: {
   label: string;
   name: string;
@@ -368,6 +459,7 @@ function FieldLike({
   readOnly?: boolean;
   uncontrolled?: boolean;
   defaultValue?: string;
+  error?: string | null;
 }) {
   return (
     <label className="grid gap-2 text-sm">
@@ -379,9 +471,15 @@ function FieldLike({
         autoComplete={autoComplete}
         required={!optional}
         readOnly={readOnly}
+        onInvalid={(event) => {
+          const input = event.currentTarget;
+          input.setCustomValidity(input.type === "email" ? "Indiquez un e-mail valide." : "Ce champ est obligatoire.");
+        }}
+        onInput={(event) => event.currentTarget.setCustomValidity("")}
         {...(uncontrolled ? { defaultValue: defaultValue ?? value } : { value, onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value) })}
         className="auth-field min-h-14 rounded-2xl border border-line bg-paper px-4 text-lg text-ink outline-none focus:border-ink read-only:text-muted"
       />
+      {error ? <span className="text-sm text-danger">{error}</span> : null}
     </label>
   );
 }

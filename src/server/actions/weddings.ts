@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
 import { magicInvitationUrl, sendInvitationEmail } from "@/server/product-mail";
 import { requireSession } from "@/server/session";
+import { applyStorageRelocations } from "@/server/storage-relocate";
 
 function readRole(value: FormDataEntryValue | null): "vendor" | "couple" | null {
   if (value === "vendor" || value === "couple") return value;
@@ -142,6 +143,7 @@ export async function acceptInvitation(formData: FormData) {
   if (error || !data) {
     redirect(`/invitation/${token}?error=${encodeURIComponent(messageFromError(error))}`);
   }
+  await applyStorageRelocations(supabase);
   revalidatePath("/nouveautes");
   redirect(`/mariage/${data}`);
 }

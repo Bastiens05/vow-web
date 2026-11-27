@@ -34,6 +34,7 @@ export function ChromeFrame({
       <div className="md:grid md:min-h-dvh md:grid-cols-[auto_minmax(0,1fr)]">
         {desktop}
         <div className="min-w-0">
+          <div id="vow-notice" />
           {alerts}
           <main className="vow-tab-clearance min-w-0 md:pb-10">{children}</main>
         </div>

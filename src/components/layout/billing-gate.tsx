@@ -21,7 +21,7 @@ export async function BillingGate({ children }: { children: React.ReactNode }) {
 
   const notice =
     access.reason === "trial" && access.daysLeft !== null && path !== "/abonnement" ? (
-      <p className="border-b border-line bg-paper px-5 py-2 text-center text-sm text-muted">
+      <p className="hidden border-b border-line bg-paper px-5 py-2 text-center text-sm text-muted md:block">
         Essai en cours · {access.daysLeft} jour{access.daysLeft > 1 ? "s" : ""} restant{access.daysLeft > 1 ? "s" : ""}.{" "}
         <Link href="/abonnement" className="text-ink underline">
           Voir l&apos;offre

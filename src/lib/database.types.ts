@@ -1558,6 +1558,18 @@ export type Database = {
       mark_grant_notices_seen: { Args: Record<string, never>; Returns: undefined };
       decline_invitation: { Args: { p_token: string }; Returns: undefined };
       merge_weddings: { Args: { p_keep: string; p_drop: string }; Returns: string };
+      delete_my_account: { Args: Record<string, never>; Returns: undefined };
+      account_deletion_ready: { Args: Record<string, never>; Returns: undefined };
+      my_account_files: { Args: Record<string, never>; Returns: { bucket: string; path: string }[] };
+      wedding_invoice_vendors: {
+        Args: { p_wedding: string };
+        Returns: { vendor_id: string; user_id: string }[];
+      };
+      pending_storage_relocations: {
+        Args: Record<string, never>;
+        Returns: { id: string; bucket_id: string; from_path: string; to_path: string }[];
+      };
+      finish_storage_relocation: { Args: { p_id: string; p_missing: boolean }; Returns: undefined };
       my_pending_invitations: {
         Args: Record<string, never>;
         Returns: { token: string; invited_role: string; title: string }[];

@@ -40,8 +40,30 @@ export default async function AdminPage({
       <p className="text-xs font-medium text-gold-deep">Administration</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight">Prestataires</h1>
       <p className="mt-2 text-sm text-muted">Essais, abonnements et invitations.</p>
-      <div className="mt-8 overflow-x-auto rounded-3xl border border-line bg-paper">
-        <table className="w-full min-w-[40rem] text-left text-sm">
+      <ul className="mt-8 grid gap-3 md:hidden">
+        {(vendors ?? []).map((vendor) => {
+          const bill = billByVendor.get(vendor.id);
+          const person = profileById.get(vendor.user_id);
+          const access = vendorAccess({
+            role: "vendor",
+            isAdmin: false,
+            status: bill?.status ?? null,
+            trialEndsAt: bill?.trial_ends_at ?? null,
+            testerUntil: bill?.tester_until ?? null,
+          });
+          return (
+            <li key={vendor.id} className="rounded-3xl border border-line bg-paper p-4 text-sm">
+              <p className="font-medium">{vendor.business_name}</p>
+              <p className="mt-1 break-all text-muted">{person?.email}</p>
+              <p className="mt-2">{categoryLabel(vendor.category as VendorCategory)} · {vendor.city}</p>
+              <p className="mt-1 text-muted">Mariages / an · {vendor.weddings_per_year || "—"}</p>
+              <p className="mt-1">{accessLabel(access.reason, access.daysLeft, bill?.tester_until ?? null)}</p>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="mt-8 hidden overflow-x-auto rounded-3xl border border-line bg-paper md:block">
+        <table className="w-full text-left text-sm">
           <thead className="text-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Activité</th>
@@ -81,10 +103,31 @@ export default async function AdminPage({
       <section className="mt-8">
         <h2 className="text-lg font-semibold tracking-tight">Inscriptions récentes</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
-          Chaque nouveau compte apparaît ici et dans la cloche. Inviter ouvre le formulaire avec l&apos;e-mail déjà rempli.
+          Chaque nouveau compte apparaît ici et dans la cloche. Inviter, réservé aux prestataires, ouvre le formulaire avec l&apos;e-mail déjà rempli. La formule proposée est Essentiel, sauf si une autre est déjà en place.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-3xl border border-line bg-paper">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+        <ul className="mt-4 grid gap-3 md:hidden">
+          {recent.map((person) => {
+            const vendor = vendorByUser.get(person.id);
+            const bill = vendor ? billByVendor.get(vendor.id) : null;
+            const plan = bill?.plan && isVendorPlan(bill.plan) ? effectiveVendorPlan(bill.plan) : null;
+            const trade = vendor?.category ?? "";
+            const href = `/admin?email=${encodeURIComponent(person.email)}${trade ? `&trade=${encodeURIComponent(trade)}` : ""}${plan ? `&plan=${plan}` : ""}#inviter`;
+            return (
+              <li key={person.id} className="rounded-3xl border border-line bg-paper p-4 text-sm">
+                <p className="break-all font-medium">{person.email}</p>
+                <p className="mt-1 text-muted">{person.role === "vendor" ? "Prestataire" : "Mariés"} · {vendor ? categoryLabel(vendor.category as VendorCategory) : "—"}</p>
+                <p className="mt-1 text-muted">{new Date(person.created_at).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })} · {plan ? planLabel(plan, Boolean(bill?.comped)) : "—"}</p>
+                {person.role === "vendor" ? (
+                  <ButtonLink href={href} variant="secondary" className="mt-3">
+                    Inviter
+                  </ButtonLink>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+        <div className="mt-4 hidden overflow-x-auto rounded-3xl border border-line bg-paper md:block">
+          <table className="w-full text-left text-sm">
             <thead className="text-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">E-mail</th>
@@ -114,12 +157,14 @@ export default async function AdminPage({
                     <td className="px-4 py-3">{person.email}</td>
                     <td className="px-4 py-3">{person.role === "vendor" ? "Prestataire" : "Mariés"}</td>
                     <td className="px-4 py-3">{vendor ? categoryLabel(vendor.category as VendorCategory) : "—"}</td>
-                    <td className="px-4 py-3">{new Date(person.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-4 py-3">{new Date(person.created_at).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" })}</td>
                     <td className="px-4 py-3">{plan ? planLabel(plan, Boolean(bill?.comped)) : "—"}</td>
                     <td className="px-4 py-3 text-right">
-                      <ButtonLink href={href} variant="secondary">
-                        Inviter
-                      </ButtonLink>
+                      {person.role === "vendor" ? (
+                        <ButtonLink href={href} variant="secondary">
+                          Inviter
+                        </ButtonLink>
+                      ) : null}
                     </td>
                   </tr>
                 );

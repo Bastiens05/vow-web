@@ -1,22 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { InviteDecisionCard } from "@/components/alerts/invite-decision-card";
 import { createClient } from "@/lib/supabase/client";
+import { joinNoticeVisible, type NoticeViewerRole } from "@/lib/domain/notices";
+import { dismissNotice } from "@/server/actions/day";
 
 export function AlertDock({
   initialToast = null,
   initialToastHref = null,
+  initialToastId = null,
+  initialToastSource = null,
   initialUnread = 0,
   inApp = true,
   calm = false,
+  viewerRole = "vendor",
+  children,
 }: {
   initialToast?: string | null;
   initialToastHref?: string | null;
+  initialToastId?: string | null;
+  initialToastSource?: "wedding" | "grant" | "admin" | null;
   initialUnread?: number;
   inApp?: boolean;
   calm?: boolean;
+  viewerRole?: NoticeViewerRole;
+  children?: ReactNode;
 }) {
   const me = useRef<string | null>(null);
   const timer = useRef<number | null>(null);
@@ -24,18 +34,46 @@ export function AlertDock({
   const [unread, setUnread] = useState(initialUnread);
   const [toast, setToast] = useState<string | null>(inApp ? initialToast : null);
   const [toastHref, setToastHref] = useState<string | null>(inApp ? initialToastHref : null);
+  const [toastId, setToastId] = useState<string | null>(inApp ? initialToastId : null);
+  const [toastSource, setToastSource] = useState<"wedding" | "grant" | "admin" | null>(inApp ? initialToastSource : null);
   const [open, setOpen] = useState(false);
   const [invites, setInvites] = useState<{ token: string; invited_role: string; title: string }[]>([]);
 
-  function showToast(body: string, href: string | null) {
+  function hideToast() {
+    if (timer.current) window.clearTimeout(timer.current);
+    if (toastId && toastSource) {
+      sessionStorage.setItem("vow-dismissed", toastId);
+      void dismissNotice(toastId, toastSource);
+    }
+    setToast(null);
+    setToastHref(null);
+    setToastId(null);
+    setToastSource(null);
+  }
+
+  function showToast(body: string, href: string | null, id: string | null = null, source: "wedding" | "grant" | "admin" | null = null) {
     if (timer.current) window.clearTimeout(timer.current);
     setToast(body);
     setToastHref(href);
+    setToastId(id);
+    setToastSource(source);
     timer.current = window.setTimeout(() => {
+      if (id && source) {
+        sessionStorage.setItem("vow-dismissed", id);
+        void dismissNotice(id, source);
+      }
       setToast(null);
       setToastHref(null);
+      setToastId(null);
+      setToastSource(null);
     }, 8000);
   }
+
+  useEffect(() => {
+    if (!initialToastId || !initialToastSource) return;
+    sessionStorage.setItem("vow-dismissed", initialToastId);
+    void dismissNotice(initialToastId, initialToastSource);
+  }, [initialToastId, initialToastSource]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -67,7 +105,18 @@ export function AlertDock({
         : { data: [] };
       const seenSignupIds = new Set((seenSignups ?? []).map((row) => row.notice_id));
       const freshSignups = (signups ?? []).filter((notice) => !seenSignupIds.has(notice.id));
-      const others = (notes ?? []).filter((note) => note.author_id !== currentUserId);
+      const { data: memberships } = await supabase.from("wedding_members").select("wedding_id, created_at").eq("user_id", currentUserId);
+      const joinedAt = new Map((memberships ?? []).map((row) => [row.wedding_id, row.created_at]));
+      const others = (notes ?? []).filter((note) =>
+        joinNoticeVisible({
+          body: note.body,
+          authorId: note.author_id,
+          viewerId: currentUserId,
+          viewerRole,
+          noticeAt: note.created_at,
+          membershipAt: joinedAt.get(note.wedding_id) ?? null,
+        }),
+      );
       const ids = others.map((note) => note.id);
       const { data: reads } = ids.length
         ? await supabase.from("notification_reads").select("notification_id").in("notification_id", ids)
@@ -88,7 +137,8 @@ export function AlertDock({
           : latestNote && !latestSignup && !latestOffer && latestNote.kind === "message"
             ? `/mariage/${latestNote.wedding_id}/messages?avec=${latestNote.author_id}`
             : null;
-        showToast(latest.body, href);
+        const source = latestSignup ? "admin" : latestOffer ? "grant" : "wedding";
+        showToast(latest.body, href, latest.id, source);
       }
     }
 
@@ -111,9 +161,16 @@ export function AlertDock({
           { event: "INSERT", schema: "public", table: "wedding_notifications" },
           (payload) => {
             const row = payload.new as { body?: string; author_id?: string; wedding_id?: string; kind?: string };
-            if (!inApp || !row.body || row.author_id === me.current) return;
+            if (!inApp || !row.body || !joinNoticeVisible({
+              body: row.body,
+              authorId: row.author_id ?? "",
+              viewerId: me.current ?? "",
+              viewerRole,
+              noticeAt: new Date().toISOString(),
+              membershipAt: null,
+            })) return;
             const href = row.kind === "message" && row.wedding_id ? `/mariage/${row.wedding_id}/messages?avec=${row.author_id ?? ""}` : null;
-            showToast(row.body, href);
+            showToast(row.body, href, typeof payload.new === "object" && payload.new && "id" in payload.new ? String((payload.new as { id?: string }).id ?? "") : null, "wedding");
             setUnread((count) => count + 1);
           },
         )
@@ -123,7 +180,7 @@ export function AlertDock({
           (payload) => {
             const row = payload.new as { body?: string; href?: string };
             if (!inApp || !row.body) return;
-            showToast(row.body, row.href || "/admin");
+            showToast(row.body, row.href || "/admin", typeof payload.new === "object" && payload.new && "id" in payload.new ? String((payload.new as { id?: string }).id ?? "") : null, "admin");
             setUnread((count) => count + 1);
           },
         )
@@ -134,7 +191,7 @@ export function AlertDock({
             const row = payload.new as { body?: string; user_id?: string };
             if (row.user_id && row.user_id !== me.current) return;
             if (!inApp || !row.body) return;
-            showToast(row.body, "/nouveautes");
+            showToast(row.body, "/nouveautes", typeof payload.new === "object" && payload.new && "id" in payload.new ? String((payload.new as { id?: string }).id ?? "") : null, "grant");
             setUnread((count) => count + 1);
           },
         )
@@ -169,13 +226,24 @@ export function AlertDock({
       active = false;
       void supabase.removeChannel(channel);
     };
-  }, [inApp]);
+  }, [inApp, viewerRole]);
 
-  if (!userId && !toast) return null;
+  if (!userId && !toast) {
+    return (
+      <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
+        <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="relative">
+      <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
+        <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
+          {children}
+          <div className="relative">
         <button
           type="button"
           className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition active:scale-95 hover:bg-ink/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
@@ -216,28 +284,13 @@ export function AlertDock({
             </Link>
           </div>
         ) : null}
+          </div>
+        </div>
       </div>
       {toast ? (
-        <div
-          role="status"
-          className="fixed inset-x-4 bottom-24 z-50 rounded-3xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-16 md:max-w-sm"
-        >
-          {toastHref ? (
-            <Link href={toastHref} className="block text-ivory">
-              {toast}
-            </Link>
-          ) : (
-            <p>{toast}</p>
-          )}
-          <button
-            type="button"
-            className="mt-2 text-xs text-ivory/80"
-            onClick={() => {
-              if (timer.current) window.clearTimeout(timer.current);
-              setToast(null);
-              setToastHref(null);
-            }}
-          >
+        <div role="status" className="mx-4 mb-2 mt-3 max-w-sm rounded-3xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:mx-auto md:mt-20 md:max-w-6xl">
+          {toastHref ? <Link href={toastHref} className="block text-ivory">{toast}</Link> : <p>{toast}</p>}
+          <button type="button" className="mt-2 text-xs text-ivory/80" onClick={hideToast}>
             Fermer
           </button>
         </div>

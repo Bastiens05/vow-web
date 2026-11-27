@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { bucketInstallments, hourlyRate, thinMonths, travelMinutes } from "@/lib/domain/cashflow";
+import { bucketInstallments, formatMonthLabel, hourlyRate, thinMonths, travelMinutes } from "@/lib/domain/cashflow";
 import { FINANCE_FIGURES } from "@/lib/domain/finance";
 import { formatEuros } from "@/lib/domain/money";
 import { createClient } from "@/lib/supabase/server";
 import { loadVendorFinance } from "@/server/finance";
 import { requireSession } from "@/server/session";
 
-export const metadata: Metadata = { title: "Trésorerie" };
+export const metadata: Metadata = { title: "Paiements" };
 
 export default async function CashPage() {
   const session = await requireSession();
@@ -31,12 +31,15 @@ export default async function CashPage() {
       amountCents: part.amount_cents,
       collected: Boolean(part.collected_on),
       signed: quote.status === "accepted" || quote.status === "invoiced",
+      invoiced: quote.status === "invoiced",
     }];
   });
   const start = new Date().toISOString().slice(0, 7);
   const months = bucketInstallments({ startMonth: start, months: 15, rows, includeUnsigned });
   const finance = await loadVendorFinance(session.vendor.id);
-  const due = rows.filter((row) => !row.collected && row.signed).reduce((sum, row) => sum + row.amountCents, 0);
+  const due = finance.unpaidInvoicesCents + rows
+    .filter((row) => !row.collected && row.signed && !row.invoiced)
+    .reduce((sum, row) => sum + row.amountCents, 0);
   const next3 = months.slice(0, 3).reduce((sum, month) => sum + month.collectedCents + month.scheduledCents, 0);
   const thin = thinMonths(months, settings?.thin_cents ?? 0);
   const byWedding = new Map<string, { price: number; collected: number; minutes: number }>();
@@ -59,8 +62,8 @@ export default async function CashPage() {
     byWedding.set(entry.wedding_id, current);
   }
   return (
-    <div className="mx-auto max-w-3xl px-5 py-8">
-      <h1 className="text-4xl font-semibold tracking-tight">Trésorerie</h1>
+    <div className="mx-auto min-w-0 max-w-3xl px-5 py-8">
+      <h1 className="text-4xl font-semibold tracking-tight">Paiements</h1>
       <p className="mt-2 text-sm text-muted">Les quatre montants viennent des devis et des paiements enregistrés, les mêmes que sur l&apos;accueil. L&apos;échéancier dessous reste une prévision.</p>
       <ul className="mt-6 grid gap-3 sm:grid-cols-2">
         {FINANCE_FIGURES.map((figure) => (
@@ -77,16 +80,28 @@ export default async function CashPage() {
       </ul>
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Quinze mois</h2>
-        <ul className="mt-3 grid gap-2">
-          {months.map((month) => (
-            <li key={month.month} className="grid grid-cols-4 gap-2 text-sm">
-              <span>{month.month}</span>
-              <span>{formatEuros(month.collectedCents)}</span>
-              <span className="text-muted">{formatEuros(month.scheduledCents)}</span>
-              <span className="text-muted">{formatEuros(month.unscheduledCents)}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-3 min-w-0 overflow-x-auto">
+          <table className="w-full table-fixed text-left text-sm">
+            <thead className="text-xs text-muted">
+              <tr>
+                <th className="py-2 pr-2 font-medium">Mois</th>
+                <th className="py-2 pr-2 font-medium">Encaissé</th>
+                <th className="py-2 pr-2 font-medium">Prévu</th>
+                <th className="py-2 font-medium">Non planifié</th>
+              </tr>
+            </thead>
+            <tbody>
+              {months.map((month) => (
+                <tr key={month.month} className="border-t border-line">
+                  <th scope="row" className="py-2 pr-2 text-left font-medium">{formatMonthLabel(month.month)}</th>
+                  <td className="py-2 pr-2">{formatEuros(month.collectedCents)}</td>
+                  <td className="py-2 pr-2 text-muted">{formatEuros(month.scheduledCents)}</td>
+                  <td className="py-2 text-muted">{formatEuros(month.unscheduledCents)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
       {thin.length > 0 ? (
         <section className="mt-6 rounded-3xl border border-line p-4">

@@ -22,6 +22,8 @@ export function formatSlotTime(value: string): string {
   return `${match[1]}:${match[2]}`;
 }
 
+const PARIS = "Europe/Paris";
+
 export function formatDateTime(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
@@ -30,6 +32,31 @@ export function formatDateTime(iso: string): string {
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: PARIS,
+  }).format(date);
+}
+
+export function formatParisClock(iso: string, now = new Date()): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PARIS,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  if (day.format(date) === day.format(now)) {
+    return new Intl.DateTimeFormat("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      timeZone: PARIS,
+    }).format(date);
+  }
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    timeZone: PARIS,
   }).format(date);
 }
 

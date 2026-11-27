@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { joinNoticeVisible, type NoticeViewerRole } from "@/lib/domain/notices";
 import { notFound } from "next/navigation";
 import type { AppRole, Json, Tables } from "@/lib/database.types";
 import { sortTimelineSlots, weddingTitle } from "@/lib/domain/format";
@@ -400,7 +401,7 @@ export const latestUnreadAlert = cache(async (userId: string) => {
       );
     const seenIds = new Set((seenSignups ?? []).map((row) => row.notice_id));
     const freshSignup = signups.find((notice) => !seenIds.has(notice.id));
-    if (freshSignup) return { id: freshSignup.id, body: freshSignup.body, author_id: "", href: freshSignup.href };
+    if (freshSignup) return { id: freshSignup.id, body: freshSignup.body, href: freshSignup.href, source: "admin" as const };
   }
   const { data: offers } = await supabase
     .from("grant_notices")
@@ -410,19 +411,30 @@ export const latestUnreadAlert = cache(async (userId: string) => {
     .order("created_at", { ascending: false })
     .limit(1);
   const offer = offers?.[0];
-  if (offer) return { id: offer.id, body: offer.body, author_id: "", href: "/nouveautes" };
-  const { data: notes } = await supabase
-    .from("wedding_notifications")
-    .select("id, body, author_id")
-    .order("created_at", { ascending: false })
-    .limit(20);
-  const others = (notes ?? []).filter((note) => note.author_id !== userId);
+  if (offer) return { id: offer.id, body: offer.body, href: "/nouveautes", source: "grant" as const };
+  const [{ data: profile }, { data: memberships }, { data: notes }] = await Promise.all([
+    supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+    supabase.from("wedding_members").select("wedding_id, created_at").eq("user_id", userId),
+    supabase.from("wedding_notifications").select("id, body, author_id, wedding_id, created_at").order("created_at", { ascending: false }).limit(20),
+  ]);
+  const role: NoticeViewerRole = profile?.role === "couple" ? "couple" : "vendor";
+  const joinedAt = new Map((memberships ?? []).map((row) => [row.wedding_id, row.created_at]));
+  const others = (notes ?? []).filter((note) =>
+    joinNoticeVisible({
+      body: note.body,
+      authorId: note.author_id,
+      viewerId: userId,
+      viewerRole: role,
+      noticeAt: note.created_at,
+      membershipAt: joinedAt.get(note.wedding_id) ?? null,
+    }),
+  );
   if (others.length === 0) return null;
   const ids = others.map((note) => note.id);
   const { data: reads } = await supabase.from("notification_reads").select("notification_id").in("notification_id", ids);
   const seen = new Set((reads ?? []).map((row) => row.notification_id));
   const note = others.find((item) => !seen.has(item.id));
-  return note ? { ...note, href: null } : null;
+  return note ? { id: note.id, body: note.body, href: null, source: "wedding" as const } : null;
 });
 
 export async function getPublicVendor(slug: string) {
@@ -452,6 +464,8 @@ export type InvitationPreview =
       weddingDate: string;
       venueName: string;
       venueCity: string;
+      trade: string;
+      inviteeName: string;
     };
 
 export async function previewInvitation(token: string): Promise<InvitationPreview> {
@@ -489,6 +503,8 @@ function parsePreview(value: Json): InvitationPreview {
       weddingDate: typeof value.wedding_date === "string" ? value.wedding_date : "",
       venueName: typeof value.venue_name === "string" ? value.venue_name : "",
       venueCity: typeof value.venue_city === "string" ? value.venue_city : "",
+      trade: typeof value.invitee_trade === "string" ? value.invitee_trade : "",
+      inviteeName: typeof value.invitee_name === "string" ? value.invitee_name : "",
     };
   }
   return { status: "missing" };

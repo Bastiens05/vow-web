@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { WeddingChrome } from "@/components/wedding/wedding-chrome";
 import { categoryLabel } from "@/lib/domain/categories";
-import { coupleFullNames, formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
+import { formatLongDate, todayIso, weddingTitle } from "@/lib/domain/format";
 import { daysUntil, heroCountdown } from "@/lib/domain/next-actions";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace, listMyWeddings } from "@/server/data";
@@ -31,12 +31,6 @@ export default async function WeddingLayout({
   const weddings = await listMyWeddings(space.session.userId);
   const vendor = space.session.profile.role === "vendor";
   const coupleView = space.role === "couple" || space.actingAsCouple;
-  const fullNames = coupleFullNames(
-    space.wedding.partner_one_name,
-    space.wedding.partner_one_last_name,
-    space.wedding.partner_two_name,
-    space.wedding.partner_two_last_name,
-  );
   const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(" · ") || "Lieu à préciser";
   const place = space.wedding.venue_name.trim() || space.wedding.venue_city.trim() || "Lieu à préciser";
   const roleLine = coupleView
@@ -59,7 +53,6 @@ export default async function WeddingLayout({
       dateLabel={formatLongDate(space.wedding.wedding_date)}
       place={place}
       venue={venue}
-      fullNames={fullNames}
       roleLine={roleLine}
       figure={figure}
     >

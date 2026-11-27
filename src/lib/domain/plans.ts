@@ -104,7 +104,7 @@ export const FEATURE_SUMMARIES: Record<Exclude<FeatureKey, "core" | "guest_live"
     text: "Le dossier pro reste privé, partagé seulement si vous l'ouvrez.",
   },
   cashflow: {
-    title: "Trésorerie de saison",
+    title: "Paiements",
     text: "Encaissements et charges de la saison, au même endroit.",
   },
   references: {

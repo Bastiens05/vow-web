@@ -106,3 +106,4 @@ export async function createCoupleWedding(_prev: ActionState, formData: FormData
   revalidatePath("/espace");
   redirect(`/mariage/${data}`);
 }
+
