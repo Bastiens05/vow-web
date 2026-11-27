@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DayMap } from "@/components/wedding/day-map";
 import { GuidedSetup } from "@/components/wedding/guided-setup";
 import { PracticalBoard } from "@/components/wedding/practical-board";
 import { ProfileForm, ProfileSlice } from "@/components/wedding/profile-form";
@@ -56,8 +57,17 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         <h2 className="text-3xl font-semibold tracking-tight">Le mariage, une seule fois</h2>
         <p className="mt-2 mb-6 text-sm text-muted">Chaque information est saisie ici. Le photographe, le traiteur et les autres n&apos;en reçoivent que la part qui les concerne.</p>
         <ProfileForm weddingId={id} facts={facts} />
-        <h2 className="mt-10 text-3xl font-semibold tracking-tight">Infos du lieu</h2>
-        <p className="mt-2 mb-6 text-sm text-muted">Les photos de groupe et les invités se remplissent dans Documents, chez le photographe ou le traiteur.</p>
+        <h2 className="mt-10 font-serif text-4xl font-normal tracking-tight text-ink">Infos du lieu</h2>
+        <p className="mt-2 mb-6 text-[13px] leading-5 text-ink">Les photos de groupe et les invités se remplissent dans Documents, chez le photographe ou le traiteur.</p>
+        <div className="mb-8">
+          <DayMap
+            places={[
+              { label: "Cérémonie", address: sheet.practical?.ceremony_address || venue },
+              { label: "Réception", address: sheet.practical?.reception_address || "" },
+              { label: "Adresse postale", address: sheet.practical?.postal_address || "" },
+            ].filter((place) => place.address.trim().length > 2)}
+          />
+        </div>
         <PracticalBoard
           weddingId={id}
           practical={sheet.practical}

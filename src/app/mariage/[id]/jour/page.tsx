@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DayBoard } from "@/components/wedding/day-board";
 import { PhotoQueue } from "@/components/wedding/photo-queue";
+import { PhotoTools } from "@/components/wedding/photo-tools";
 import { JourCache } from "@/components/wedding/jour-cache";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { parisClockMinutes } from "@/lib/domain/day";
@@ -9,7 +10,10 @@ import { featureEnabled } from "@/lib/domain/plans";
 import { todayIso } from "@/lib/domain/format";
 import { parseTemplateSlots } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/server";
+import { coupleSessionSlot, photoGroupsFromGuests } from "@/lib/domain/photo-plan";
+import { goldenHour } from "@/lib/domain/solar";
 import { getWeddingSpace, listTimeline, type SlotView } from "@/server/data";
+import { geocodeAddress } from "@/server/geocode";
 
 export const metadata: Metadata = { title: "Jour J" };
 
@@ -40,6 +44,19 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
     ready: false,
   }));
   const couple = space.role === "couple" || space.actingAsCouple;
+  const photographer = space.session.vendor?.category === "photographer";
+  const [{ data: guests }, { data: weather }, { data: practical }] = await Promise.all([
+    supabase.from("guests").select("full_name, table_label").eq("wedding_id", id).order("sort_order"),
+    supabase.from("weather_settings").select("latitude, longitude").eq("wedding_id", id).maybeSingle(),
+    supabase.from("wedding_practical").select("ceremony_address").eq("wedding_id", id).maybeSingle(),
+  ]);
+  const storedPoint =
+    weather?.latitude != null && weather?.longitude != null
+      ? { latitude: weather.latitude, longitude: weather.longitude }
+      : null;
+  const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(", ");
+  const point = storedPoint ?? (await geocodeAddress(practical?.ceremony_address || venue));
+  const light = point ? goldenHour(space.wedding.wedding_date, point.latitude, point.longitude) : null;
   const vendorSlots = rain?.active && rainSlots.length > 0 ? rainSlots : slots;
   const suggestion = suggestions?.[0];
   const vendors = (directory ?? [])
@@ -84,6 +101,15 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
               : null
           }
         />
+        {photographer ? (
+          <PhotoTools
+            weddingId={id}
+            groups={photoGroupsFromGuests((guests ?? []).map((guest) => ({ fullName: guest.full_name, tableLabel: guest.table_label })))}
+            session={coupleSessionSlot(slots.map((slot) => ({ title: slot.title, startsAt: slot.startsAt })))}
+            light={light}
+            canEdit
+          />
+        ) : null}
         <PhotoQueue
           weddingId={id}
           canCall={couple || ["photographer", "videographer", "planner"].includes(space.session.vendor?.category && isVendorCategory(space.session.vendor.category) ? space.session.vendor.category : "")}

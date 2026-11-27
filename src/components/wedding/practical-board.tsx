@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AddressInput } from "@/components/ui/address-input";
@@ -89,31 +89,36 @@ function DetailsForm({
 }) {
   const action = savePractical.bind(null, weddingId);
   const [state, formAction, pending] = useActionState(action, {});
+  const [step, setStep] = useState(0);
+  const steps = ["Téléphones", "Adresses", "Contacts", "Notes"];
   const fields = (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Field label="Téléphone, premier partenaire">
-        <TextInput name="partner_one_phone" defaultValue={practical?.partner_one_phone ?? ""} disabled={!canEdit} />
-      </Field>
-      <Field label="Téléphone, second partenaire">
-        <TextInput name="partner_two_phone" defaultValue={practical?.partner_two_phone ?? ""} disabled={!canEdit} />
-      </Field>
-      <div className="sm:col-span-2">
+    <div className="grid gap-4">
+      {canEdit ? <p className="text-[13px] text-ink">Étape {step + 1} sur {steps.length} · {steps[step]}</p> : null}
+      <div className={step === 0 || !canEdit ? "grid gap-4 sm:grid-cols-2" : "hidden"}>
+        <Field label="Téléphone, premier partenaire">
+          <TextInput name="partner_one_phone" defaultValue={practical?.partner_one_phone ?? ""} disabled={!canEdit} />
+        </Field>
+        <Field label="Téléphone, second partenaire">
+          <TextInput name="partner_two_phone" defaultValue={practical?.partner_two_phone ?? ""} disabled={!canEdit} />
+        </Field>
+      </div>
+      <div className={step === 1 || !canEdit ? "grid gap-4" : "hidden"}>
         <Field label="Adresse postale">
           <AddressInput name="postal_address" defaultValue={practical?.postal_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
         </Field>
+        <Field label="Adresse de la cérémonie">
+          <AddressInput name="ceremony_address" defaultValue={practical?.ceremony_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
+        </Field>
+        <Field label="Adresse de la réception">
+          <AddressInput name="reception_address" defaultValue={practical?.reception_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
+        </Field>
       </div>
-      <Field label="Adresse de la cérémonie">
-        <AddressInput name="ceremony_address" defaultValue={practical?.ceremony_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
-      </Field>
-      <Field label="Adresse de la réception">
-        <AddressInput name="reception_address" defaultValue={practical?.reception_address ?? ""} disabled={!canEdit} weddingId={weddingId} />
-      </Field>
-      <div className="sm:col-span-2">
+      <div className={step === 2 || !canEdit ? "" : "hidden"}>
         <Field label="Contacts utiles" hint="Témoins, parents, régisseur. Un par ligne.">
           <TextArea name="key_contacts" defaultValue={practical?.key_contacts ?? ""} disabled={!canEdit} />
         </Field>
       </div>
-      <div className="sm:col-span-2">
+      <div className={step === 3 || !canEdit ? "" : "hidden"}>
         <Field label="Notes">
           <TextArea name="notes" defaultValue={practical?.notes ?? ""} disabled={!canEdit} className="min-h-20" />
         </Field>
@@ -126,9 +131,22 @@ function DetailsForm({
       {fields}
       {state.error ? <Alert>{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
-      <Button type="submit" disabled={pending} aria-busy={pending}>
-        {pending ? "Enregistrement…" : "Enregistrer les infos"}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        {step > 0 ? (
+          <Button type="button" variant="secondary" onClick={() => setStep((value) => value - 1)}>
+            Étape précédente
+          </Button>
+        ) : null}
+        {step < 3 ? (
+          <Button type="button" onClick={() => setStep((value) => value + 1)}>
+            Continuer
+          </Button>
+        ) : (
+          <Button type="submit" disabled={pending} aria-busy={pending}>
+            {pending ? "Enregistrement…" : "Enregistrer les infos"}
+          </Button>
+        )}
+      </div>
     </form>
   );
 }
