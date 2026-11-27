@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
 import type { GoldenHour } from "@/lib/domain/solar";
-import { acceptCoupleSession, composeNamedGroup, proposeCoupleSession, respondCoupleSession } from "@/server/actions/photo-session";
+import { acceptCoupleSession, answerCoupleCounter, composeNamedGroup, proposeCoupleSession, respondCoupleSession } from "@/server/actions/photo-session";
 
 export function PhotoTools({
   weddingId,
@@ -16,6 +16,7 @@ export function PhotoTools({
   canPropose,
   canAccept,
   suggestedTime,
+  fromCouple,
 }: {
   weddingId: string;
   names: string[];
@@ -26,11 +27,14 @@ export function PhotoTools({
   canPropose: boolean;
   canAccept: boolean;
   suggestedTime: string;
+  fromCouple: boolean;
 }) {
   const propose = proposeCoupleSession.bind(null, weddingId);
   const accept = acceptCoupleSession.bind(null, weddingId);
   const [proposalState, proposeAction, proposing] = useActionState(propose, {});
   const [acceptState, acceptAction, accepting] = useActionState(accept, {});
+  const answer = answerCoupleCounter.bind(null, weddingId);
+  const [answerState, answerAction, answering] = useActionState(answer, {});
   const respond = respondCoupleSession.bind(null, weddingId);
   const [respondState, respondAction, responding] = useActionState(respond, {});
   const compose = composeNamedGroup.bind(null, weddingId);
@@ -54,7 +58,24 @@ export function PhotoTools({
           <p className="mt-1 text-sm text-muted">
             {session.title} · {session.startsAt.slice(0, 5)}
           </p>
-        ) : proposal && canAccept ? (
+        ) : proposal && fromCouple && canPropose ? (
+          <form action={answerAction} className="mt-2 grid gap-3">
+            <input type="hidden" name="suggestion_id" value={proposal.id} />
+            <p className="text-sm text-muted">
+              Le couple propose {proposal.startsAt.slice(0, 5)} · {proposal.place}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" name="choice" value="accept" disabled={answering}>
+                Accepter
+              </Button>
+              <Button type="submit" name="choice" value="refuse" variant="ghost" disabled={answering}>
+                Refuser
+              </Button>
+            </div>
+            {answerState.error ? <p className="text-sm text-danger">{answerState.error}</p> : null}
+            {answerState.success ? <p className="text-sm text-muted">{answerState.success}</p> : null}
+          </form>
+        ) : proposal && canAccept && !fromCouple ? (
           <form action={acceptAction} className="mt-2 grid gap-3">
             <input type="hidden" name="suggestion_id" value={proposal.id} />
             <p className="text-sm text-muted">
@@ -66,7 +87,11 @@ export function PhotoTools({
             {acceptState.error ? <p className="text-sm text-danger">{acceptState.error}</p> : null}
           </form>
         ) : null}
-        {session ? null : proposal && canAccept ? (
+        {session ? null : proposal && fromCouple && canAccept ? (
+          <p className="mt-1 text-sm text-muted">
+            Autre heure envoyée au photographe · {proposal.startsAt.slice(0, 5)} · {proposal.place}
+          </p>
+        ) : proposal && fromCouple ? null : proposal && canAccept ? (
           <form action={respondAction} className="mt-3 grid gap-3">
             <input type="hidden" name="suggestion_id" value={proposal.id} />
             <input type="hidden" name="place" value={proposal.place} />

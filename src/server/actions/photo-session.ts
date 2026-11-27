@@ -43,6 +43,34 @@ export async function proposeCoupleSession(
   return { success: "Proposition envoyée au couple." };
 }
 
+export async function answerCoupleCounter(
+  weddingId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireSession();
+  if (session.vendor?.category !== "photographer" || session.vendor.user_id !== session.userId) {
+    return { error: "Réservé au photographe de ce mariage." };
+  }
+  await getWeddingSpace(weddingId);
+  const choice = String(formData.get("choice") ?? "");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("answer_couple_counter", {
+    p_suggestion: String(formData.get("suggestion_id") ?? ""),
+    p_choice: choice,
+  });
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("could not find") || message.includes("answer_couple_counter")) {
+      return { error: "La réponse du photographe n'est pas encore ouverte." };
+    }
+    return { error: messageFromError(error) };
+  }
+  revalidatePath(`/mariage/${weddingId}/jour`);
+  revalidatePath(`/mariage/${weddingId}/deroulement`);
+  return { success: choice === "accept" ? "Séance ajoutée au planning." : "Autre heure refusée." };
+}
+
 export async function composeNamedGroup(
   weddingId: string,
   _prev: ActionState,

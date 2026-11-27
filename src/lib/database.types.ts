@@ -1582,6 +1582,7 @@ export type Database = {
         Args: { p_wedding: string; p_title: string; p_names: string[] };
         Returns: string;
       };
+      answer_couple_counter: { Args: { p_suggestion: string; p_choice: string }; Returns: undefined };
       pending_storage_relocations: {
         Args: Record<string, never>;
         Returns: { id: string; bucket_id: string; from_path: string; to_path: string }[];

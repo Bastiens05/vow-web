@@ -23,6 +23,7 @@ export type VaultFileRow = {
   expiresOn: string | null;
   alertDays: number;
   autoShare: boolean;
+  shared?: boolean;
 };
 
 export function VendorVaultBoard({ userId, files, today }: { userId: string; files: VaultFileRow[]; today: string }) {
@@ -95,8 +96,17 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
                 <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={`/api/vault/${file.id}`}>
                   Ouvrir
                 </a>
+                <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={`/api/vault/${file.id}?download=1`}>
+                  Télécharger
+                </a>
                 <ReplaceFile userId={userId} fileId={file.id} />
-                <form action={deleteVaultFile}>
+                <form
+                  action={deleteVaultFile}
+                  onSubmit={(event) => {
+                    if (!file.shared) return;
+                    if (!window.confirm("Ce document est partagé. Le retirer l'enlève aussi chez le couple.")) event.preventDefault();
+                  }}
+                >
                   <input type="hidden" name="id" value={file.id} />
                   <Button type="submit" variant="ghost">
                     Retirer

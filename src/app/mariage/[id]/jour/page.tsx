@@ -62,7 +62,9 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
   const namesUnavailable = Boolean(guestNames.error);
   const names = photoNames((guestNames.data ?? []).map((guest) => guest.full_name));
   const proposed = parseTemplateSlots(proposals.data?.[0]?.slots).find((slot) => slot.title === "Séance couple");
-  const proposal = proposals.data?.[0] && proposed ? { id: proposals.data[0].id, startsAt: proposed.startsAt, place: proposed.place } : null;
+  const proposal = proposals.data?.[0] && proposed
+    ? { id: proposals.data[0].id, startsAt: proposed.startsAt, place: proposed.place, fromCouple: proposed.notes === "couple" }
+    : null;
   const storedPoint =
     weather?.latitude != null && weather?.longitude != null
       ? { latitude: weather.latitude, longitude: weather.longitude }
@@ -125,6 +127,7 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
             canPropose={photographer}
             canAccept={couple}
             suggestedTime={light?.eveningStart ?? ""}
+            fromCouple={proposal?.fromCouple ?? false}
           />
         ) : null}
         <PhotoQueue

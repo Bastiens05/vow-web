@@ -200,7 +200,7 @@ export function DayBoard({
       {!canControl && rainActive ? <p className="text-sm text-muted">Version mauvais temps.</p> : null}
       {span ? (
         <p className="text-sm text-muted">
-          {formatSlotTime(span.first).replace(":", "h")} – {formatSlotTime(span.last).replace(":", "h")} · {span.count} étapes · {Math.round(span.minutes / 60)} h
+          {formatSlotTime(span.first).replace(":", "h")} – {formatSlotTime(span.last).replace(":", "h")} · {span.count} {span.count > 1 ? "étapes" : "étape"} · {Math.round(span.minutes / 60)} h
         </p>
       ) : null}
       {version === "sun" && live.length === 0 ? <ProgrammeStart weddingId={weddingId} canApply={canControl} suggestion={suggestion} hasSteps={false} /> : null}
@@ -219,7 +219,7 @@ export function DayBoard({
       {error ? <Alert>{error}</Alert> : null}
       {live.length > 0 ? (
         <p className="text-sm text-muted">
-          {live.filter((slot) => slot.ready).length}/{live.length} étapes prêtes
+          {live.filter((slot) => slot.ready).length}/{live.length} {live.length > 1 ? "étapes prêtes" : "étape prête"}
         </p>
       ) : null}
       {shown.length > 0 ? <ol className="relative">

@@ -44,6 +44,11 @@ export default async function SettingsPage() {
         .eq("vendor_id", session.vendor.id)
         .order("created_at", { ascending: false })
     : { data: [] };
+  const vaultIds = (vaultFiles ?? []).map((file) => file.id);
+  const { data: vaultShares } = vaultIds.length
+    ? await supabase.from("vendor_vault_shares").select("file_id").in("file_id", vaultIds)
+    : { data: [] };
+  const sharedVaultIds = new Set((vaultShares ?? []).map((row) => row.file_id));
   const { data: templates } = owner && session.vendor
     ? await supabase
         .from("vendor_document_templates")
@@ -130,6 +135,7 @@ export default async function SettingsPage() {
                       expiresOn: file.expires_on,
                       alertDays: file.alert_days,
                       autoShare: file.auto_share,
+                      shared: sharedVaultIds.has(file.id),
                     },
                   ]
                 : [],

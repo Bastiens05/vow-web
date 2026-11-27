@@ -6,6 +6,7 @@ import { PracticalJourney } from "@/components/wedding/practical-journey";
 import { ProfileSlice } from "@/components/wedding/profile-form";
 import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
+import { mapPlaces } from "@/lib/domain/map-places";
 import { factsFromJson, fieldsForTrade, filledRatio, visibleFacts } from "@/lib/domain/profile";
 import { isVendorCategory } from "@/lib/domain/categories";
 import { canSeeSheet } from "@/lib/domain/trades";
@@ -65,10 +66,11 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         />
         <div className="my-8">
           <DayMap
-            places={[
-              { label: "Cérémonie", address: facts.ceremony_address || sheet.practical?.ceremony_address || venue },
-              { label: "Réception", address: facts.reception_address || sheet.practical?.reception_address || facts.ceremony_address || sheet.practical?.ceremony_address || venue },
-            ].filter((place, index, list) => place.address.trim().length > 2 && list.findIndex((item) => item.address === place.address && item.label === place.label) === index)}
+            places={mapPlaces({
+              ceremony: facts.ceremony_address || sheet.practical?.ceremony_address || venue,
+              reception: facts.reception_address || "",
+              stops: [],
+            })}
           />
         </div>
         <PracticalBoard

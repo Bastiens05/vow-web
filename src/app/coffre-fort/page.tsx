@@ -18,6 +18,11 @@ export default async function VendorVaultPage() {
     .select("id, title, category, file_name, expires_on, alert_days, auto_share")
     .eq("vendor_id", session.vendor.id)
     .order("created_at", { ascending: false });
+  const fileIds = (vaultFiles ?? []).map((file) => file.id);
+  const { data: shares } = fileIds.length
+    ? await supabase.from("vendor_vault_shares").select("file_id").in("file_id", fileIds)
+    : { data: [] };
+  const sharedIds = new Set((shares ?? []).map((row) => row.file_id));
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-5 py-8 lg:max-w-3xl">
       <PageHeader
@@ -40,6 +45,7 @@ export default async function VendorVaultPage() {
                     expiresOn: file.expires_on,
                     alertDays: file.alert_days,
                     autoShare: file.auto_share,
+                    shared: sharedIds.has(file.id),
                   },
                 ]
               : [],

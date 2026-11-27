@@ -29,9 +29,14 @@ export async function SharedVault({
                   {freshness === "expired" ? " · expiré" : ""}
                 </p>
               </div>
-              <a className="inline-flex min-h-11 items-center text-sm underline" href={`/api/vault/${file.id}`}>
-                Ouvrir
-              </a>
+              <span className="flex shrink-0 gap-3">
+                <a className="inline-flex min-h-11 items-center text-sm underline" href={`/api/vault/${file.id}`}>
+                  Ouvrir
+                </a>
+                <a className="inline-flex min-h-11 items-center text-sm underline" href={`/api/vault/${file.id}?download=1`}>
+                  Télécharger
+                </a>
+              </span>
             </li>
           );
         })}

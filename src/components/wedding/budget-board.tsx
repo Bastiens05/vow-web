@@ -156,8 +156,10 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
             <input
               inputMode="decimal"
               aria-label={`Montant ${line.label}`}
-              value={String(line.euros)}
-              onChange={(event) => update(line.key, { euros: Number(event.target.value.replace(",", ".")) || 0 }, false)}
+              value={formatBudgetEuros(Math.round(line.euros * 100))}
+              onChange={(event) =>
+                update(line.key, { euros: Number(event.target.value.replace(/[^\d,.]/g, "").replace(",", ".")) || 0 }, false)
+              }
               onBlur={() => {
                 const row = lines.find((item) => item.key === line.key);
                 if (row) void persist(row);
@@ -169,7 +171,7 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
               className={`min-h-11 rounded-full px-3 text-xs ${line.paid ? "bg-ok/15 text-ink" : "border border-line text-muted"}`}
               onClick={() => update(line.key, { paid: !line.paid })}
             >
-              {line.paid ? "Payé" : "Reste"}
+              {line.paid ? "Payé" : "Marquer payé"}
             </button>
             {line.id ? (
               <button

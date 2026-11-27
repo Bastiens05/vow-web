@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { DayMap } from "@/components/wedding/day-map";
 import { StopForm } from "@/components/wedding/stop-form";
+import { factsFromJson } from "@/lib/domain/profile";
+import { mapPlaces } from "@/lib/domain/map-places";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace } from "@/server/data";
 
@@ -11,10 +13,11 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const { id } = await params;
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
-  const [{ data }, { data: rain }, { data: practical }] = await Promise.all([
+  const [{ data }, { data: rain }, { data: practical }, { data: slice }] = await Promise.all([
     supabase.from("wedding_stops").select("*").eq("wedding_id", id).order("sort_order").order("starts_at"),
     supabase.from("rain_plans").select("active").eq("wedding_id", id).maybeSingle(),
-    supabase.from("wedding_practical").select("ceremony_address, reception_address").eq("wedding_id", id).maybeSingle(),
+    supabase.from("wedding_practical").select("ceremony_address").eq("wedding_id", id).maybeSingle(),
+    supabase.rpc("my_profile_slice", { p_wedding: id }),
   ]);
   const { data: rainStops } = rain?.active
     ? await supabase.from("rain_stops").select("id, label, address").eq("wedding_id", id).order("sort_order")
@@ -22,11 +25,12 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const stops = rain?.active && (rainStops ?? []).length > 0
     ? (rainStops ?? []).map((stop) => ({ id: stop.id, label: stop.label, address: stop.address, starts_at: null as string | null }))
     : (data ?? []);
-  const places = [
-    { label: "Cérémonie", address: practical?.ceremony_address ?? "" },
-    { label: "Réception", address: practical?.reception_address ?? "" },
-    ...stops.map((stop) => ({ label: stop.label, address: stop.address })),
-  ].filter((place) => place.address.trim().length > 2);
+  const facts = factsFromJson(slice);
+  const places = mapPlaces({
+    ceremony: facts.ceremony_address || practical?.ceremony_address || "",
+    reception: facts.reception_address || "",
+    stops: stops.map((stop) => ({ label: stop.label, address: stop.address })),
+  });
   return (
     <div className="grid gap-4">
       <Card>
