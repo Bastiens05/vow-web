@@ -141,7 +141,7 @@ export async function MobileChrome() {
           <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
         </div>
         {trialDays !== null ? (
-          <p className="truncate pb-2 text-center text-xs text-muted">
+          <p className="truncate pb-2 text-left text-xs text-muted">
             Essai · {trialDays} jour{trialDays > 1 ? "s" : ""} ·{" "}
             <Link href="/abonnement" className="text-ink underline">Voir l&apos;offre</Link>
           </p>

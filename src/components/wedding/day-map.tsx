@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AddressSuggestion } from "@/lib/domain/address";
-import { appleMapsUrl, googleDirectionsUrl, googleMapsUrl } from "@/lib/domain/maps";
+import { appleDirectionsTo, appleDirectionsUrl, googleDirectionsTo, googleDirectionsUrl } from "@/lib/domain/maps";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 export type MapPlace = { label: string; address: string };
@@ -100,8 +100,8 @@ export function DayMap({ places }: { places: MapPlace[] }) {
       <ul className="grid gap-2">
         {places.filter((place) => place.address.trim().length > 2).map((place, index, list) => {
           const previous = list[index - 1];
-          const google = previous ? googleDirectionsUrl(previous.address, place.address) : googleMapsUrl(place.address);
-          const plans = appleMapsUrl(place.address);
+          const google = previous ? googleDirectionsUrl(previous.address, place.address) : googleDirectionsTo(place.address);
+          const plans = previous ? appleDirectionsUrl(previous.address, place.address) : appleDirectionsTo(place.address);
           return (
             <li key={`${place.label}-${place.address}`} className="flex flex-wrap items-center gap-2 text-sm">
               <span className="font-medium">{place.label}</span>

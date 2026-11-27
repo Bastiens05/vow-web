@@ -15,6 +15,12 @@ export function budgetBalance(input: { budgetCents: number; engagedCents: number
   return { label: "Reste à payer", cents: Math.max(0, input.engagedCents - input.paidCents) };
 }
 
+/** Payments already recorded, plus the whole line when the couple has marked it paid. */
+export function shownPaidCents(input: { amountCents: number; paymentCents: number; markedPaid: boolean }): number {
+  if (input.markedPaid) return Math.max(input.paymentCents, input.amountCents);
+  return Math.max(0, input.paymentCents);
+}
+
 export function paidCents(input: { committed: number; invoiceCents: number; paymentCents: number; linePaid: boolean }): number {
   if (input.invoiceCents > 0) return Math.min(input.paymentCents, input.invoiceCents);
   return input.linePaid ? input.committed : 0;

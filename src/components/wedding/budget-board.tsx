@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { removeBudgetLine, saveBudgetLine, saveBudgetTotal } from "@/server/actions/budget";
-import { budgetBalance } from "@/lib/domain/budget-commit";
+import { budgetBalance, shownPaidCents } from "@/lib/domain/budget-commit";
 import { formatBudgetEuros } from "@/lib/domain/money";
 
 export type BudgetRow = {
@@ -48,11 +48,16 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
 
   const cents = Math.round((Number(total.replace(",", ".")) || 0) * 100);
   const engaged = lines.reduce((sum, line) => sum + Math.round(line.euros * 100), 0);
-  const paid = lines.reduce((sum, line) => {
-    const amount = Math.round(line.euros * 100);
-    const recorded = line.paidCents ?? 0;
-    return sum + (line.paid ? Math.max(recorded, amount) : recorded);
-  }, 0);
+  const paid = lines.reduce(
+    (sum, line) =>
+      sum +
+      shownPaidCents({
+        amountCents: Math.round(line.euros * 100),
+        paymentCents: line.paidCents ?? 0,
+        markedPaid: line.paid,
+      }),
+    0,
+  );
   const balance = budgetBalance({ budgetCents: cents, engagedCents: engaged, paidCents: paid });
   const ratio = cents > 0 ? Math.min(1, engaged / cents) : 0;
 

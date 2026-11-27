@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { budgetBalance, committedCents, paidCents } from "./budget-commit";
+import { budgetBalance, committedCents, paidCents, shownPaidCents } from "./budget-commit";
 
 describe("budget commitments", () => {
   it("counts a pending invoice even when the typed line is zero", () => {
@@ -20,6 +20,12 @@ describe("budget commitments", () => {
       label: "Disponible",
       cents: 250_000,
     });
+  });
+
+  it("drops a marked line from Payé as soon as it is unmarked", () => {
+    expect(shownPaidCents({ amountCents: 135_000, paymentCents: 0, markedPaid: true })).toBe(135_000);
+    expect(shownPaidCents({ amountCents: 135_000, paymentCents: 0, markedPaid: false })).toBe(0);
+    expect(shownPaidCents({ amountCents: 135_000, paymentCents: 40_000, markedPaid: false })).toBe(40_000);
   });
 
   it("does not add the quote on top of its invoice", () => {

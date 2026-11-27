@@ -5,6 +5,7 @@ import { isVendorCategory } from "@/lib/domain/categories";
 import { isVendorPlan } from "@/lib/domain/plans";
 import { safeNextPath } from "@/lib/domain/paths";
 import { hasPublicSupabaseEnv } from "@/lib/env";
+import { redirectSignedInHome } from "@/server/signed-in-home";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Inscription" };
@@ -15,6 +16,7 @@ export default async function SignupPage({
   searchParams: Promise<{ next?: string; email?: string; role?: string; plan?: string; invite?: string; trade?: string; business?: string }>;
 }) {
   const params = await searchParams;
+  await redirectSignedInHome();
   const nextPath = safeNextPath(params.next, "");
   const invite = await readInvite(params.invite);
   const lockedRole = params.role === "vendor" || params.role === "couple" ? params.role : invite ? "vendor" : undefined;

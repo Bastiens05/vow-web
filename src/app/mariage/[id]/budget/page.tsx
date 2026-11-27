@@ -79,7 +79,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
         committed: amount,
         invoiceCents: invoiced.get(person.user_id) ?? 0,
         paymentCents: settled.get(person.user_id) ?? 0,
-        linePaid: line?.paid ?? false,
+        linePaid: false,
       }),
       vendorUserId: person.user_id,
     });

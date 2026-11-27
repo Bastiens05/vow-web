@@ -29,6 +29,18 @@ describe("map places", () => {
     ).toEqual(["Cérémonie", "Photos"]);
   });
 
+  it("orders Pratique and the extra places by time", () => {
+    expect(
+      mapPlaces({
+        ceremony: "Mairie de Bordeaux",
+        ceremonyTime: "15:00",
+        reception: "Château de Léognan",
+        receptionTime: "19h00",
+        stops: [{ label: "Préparatifs", address: "12 rue Sainte-Catherine, Bordeaux", time: "10:00" }],
+      }).map((place) => place.label),
+    ).toEqual(["Préparatifs", "Cérémonie", "Réception"]);
+  });
+
   it("hides a manual réception when Pratique already has one, even at another address", () => {
     expect(
       mapPlaces({

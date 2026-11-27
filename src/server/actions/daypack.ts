@@ -7,6 +7,7 @@ import { isVendorCategory } from "@/lib/domain/categories";
 import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
+import { getWeddingSpace } from "@/server/data";
 import { requireSession } from "@/server/session";
 
 export async function applyQuestionTemplate(weddingId: string, formData: FormData): Promise<void> {
@@ -82,6 +83,14 @@ export async function addStop(weddingId: string, _prev: ActionState, formData: F
   if (error) return { error: messageFromError(error) };
   revalidatePath(`/mariage/${weddingId}/carte`);
   return { success: "Lieu ajouté." };
+}
+
+export async function removeStop(weddingId: string, stopId: string): Promise<void> {
+  const space = await getWeddingSpace(weddingId);
+  if (!space.actingAsCouple) return;
+  const supabase = await createClient();
+  await supabase.from("wedding_stops").delete().eq("id", stopId).eq("wedding_id", weddingId);
+  revalidatePath(`/mariage/${weddingId}/carte`);
 }
 
 export async function saveSharePrefs(_prev: ActionState, formData: FormData): Promise<ActionState> {
