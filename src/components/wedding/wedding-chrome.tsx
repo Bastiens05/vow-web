@@ -18,7 +18,6 @@ export function WeddingChrome({
   dateLabel,
   place,
   venue,
-  fullNames,
   roleLine,
   figure,
   children,
@@ -30,7 +29,6 @@ export function WeddingChrome({
   dateLabel: string;
   place: string;
   venue: string;
-  fullNames: string;
   roleLine: string;
   figure: string;
   children: ReactNode;
@@ -58,12 +56,12 @@ export function WeddingChrome({
       />
       {coupleView ? (
         homeLink ? (
-          <div className={`sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-paper/80 px-2 py-1 backdrop-blur md:top-0 md:mx-0 md:rounded-2xl md:border md:px-1 ${shellAlreadyBack ? "max-md:hidden" : ""}`}>
+          <div className={`sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-paper px-2 py-1 md:top-0 md:mx-0 md:rounded-2xl md:border md:px-1 ${shellAlreadyBack ? "max-md:hidden" : ""}`}>
             {homeLink}
           </div>
         ) : null
       ) : (
-        <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper/80 px-2 py-2 md:sticky md:top-0 md:z-20 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-1 md:pr-40 md:backdrop-blur">
+        <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-line bg-paper px-2 py-2 md:sticky md:top-0 md:z-20 md:mx-0 md:min-h-16 md:flex-nowrap md:rounded-2xl md:border md:py-0 md:pl-1 md:pr-40">
           {homeLink}
           <WeddingSwitcher currentId={id} weddings={weddings} />
           <p className="min-w-0 flex-1 truncate text-sm text-muted">{title}</p>
@@ -90,13 +88,12 @@ export function WeddingChrome({
             </div>
           </div>
         </section>
-      ) : mode === "thread" ? null : (
+      ) : mode === "thread" || mode === "quiet" ? null : (
         <header className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-accent">{dateLabel}</p>
-          <h1 className="mt-2 text-5xl tracking-tight text-ink sm:text-6xl">{title}</h1>
-          {fullNames ? <p className="mt-2 text-sm text-muted">{fullNames}</p> : null}
-          <p className="mt-2 text-sm text-muted">{venue}</p>
-          {roleLine ? <p className="mt-3 text-sm font-medium">{roleLine}</p> : null}
+          <p className="text-[13px] font-medium text-ink">{dateLabel}</p>
+          <h1 className="mt-2 font-serif text-5xl font-normal tracking-tight text-ink sm:text-6xl">{title}</h1>
+          <p className="mt-2 text-[13px] text-ink">{venue}</p>
+          {roleLine ? <p className="mt-3 text-[13px] font-medium text-ink">{roleLine}</p> : null}
         </header>
       )}
       {children}

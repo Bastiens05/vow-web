@@ -24,6 +24,7 @@ export function AuthFlow({
   initialCategory,
   initialFullName,
   initialPlan,
+  initialBusinessName = "",
   notice,
 }: {
   mode: "login" | "signup";
@@ -34,6 +35,7 @@ export function AuthFlow({
   initialCategory?: VendorCategory;
   initialFullName?: string;
   initialPlan?: VendorPlan;
+  initialBusinessName?: string;
   notice?: ReactNode;
 }) {
   const invite = nextPath.startsWith("/invitation/") || nextPath.startsWith("/equipe/");
@@ -53,7 +55,7 @@ export function AuthFlow({
   );
   const [email, setEmail] = useState(initialEmail);
   const [category, setCategory] = useState<VendorCategory | null>(initialCategory ?? null);
-  const [businessName, setBusinessName] = useState("");
+  const [businessName, setBusinessName] = useState(initialBusinessName);
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -191,7 +193,7 @@ export function AuthFlow({
                   emailValid: isValidEmail(email),
                   kind: vendorInvite ? "invite-vendor" : "vendor",
                   intent: blankIntent({ role: "vendor", businessName, category, city }),
-                })}
+                }).filter((item) => !(vendorInvite && item === "un e-mail valide"))}
               />
               <button
                 type="submit"
@@ -303,7 +305,7 @@ export function AuthFlow({
                   emailValid: isValidEmail(email),
                   kind: "account",
                   intent: blankIntent({ role: lockedRole ?? "couple" }),
-                })}
+                }).filter((item) => item !== "un e-mail valide")}
               />
               <button type="submit" className="auth-primary" disabled={pending || !isValidEmail(email) || password.length < 8}>
                 {pending ? "Création…" : "Créer mon compte"}

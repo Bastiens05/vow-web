@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Inscription" };
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; email?: string; role?: string; plan?: string; invite?: string; trade?: string }>;
+  searchParams: Promise<{ next?: string; email?: string; role?: string; plan?: string; invite?: string; trade?: string; business?: string }>;
 }) {
   const params = await searchParams;
   const nextPath = safeNextPath(params.next, "");
@@ -31,6 +31,7 @@ export default async function SignupPage({
       inviteToken={params.invite}
       initialCategory={category}
       initialFullName={fullName || undefined}
+      initialBusinessName={params.business?.trim().slice(0, 120) || undefined}
       initialPlan={params.plan && isVendorPlan(params.plan) ? params.plan : invite?.plan && isVendorPlan(invite.plan) ? invite.plan : undefined}
     />
   );

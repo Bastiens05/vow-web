@@ -25,7 +25,7 @@ export default async function VendorVaultPage() {
         title="Coffre-fort"
         description="Les pièces que vous fournissez souvent. Vous les partagez ensuite, mariage par mariage."
       />
-      <Card>
+      <Card className="min-w-0 overflow-hidden">
         <VendorVaultBoard
           userId={session.userId}
           today={new Date().toISOString().slice(0, 10)}

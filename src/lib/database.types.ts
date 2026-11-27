@@ -1561,6 +1561,11 @@ export type Database = {
       delete_my_account: { Args: Record<string, never>; Returns: undefined };
       account_deletion_ready: { Args: Record<string, never>; Returns: undefined };
       my_account_files: { Args: Record<string, never>; Returns: { bucket: string; path: string }[] };
+      pending_storage_relocations: {
+        Args: Record<string, never>;
+        Returns: { id: string; bucket_id: string; from_path: string; to_path: string }[];
+      };
+      finish_storage_relocation: { Args: { p_id: string; p_missing: boolean }; Returns: undefined };
       my_pending_invitations: {
         Args: Record<string, never>;
         Returns: { token: string; invited_role: string; title: string }[];

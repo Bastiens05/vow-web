@@ -96,8 +96,8 @@ export default async function DashboardPage() {
           <p className="text-sm font-medium text-accent">
             {`Espace prestataire${session.vendor ? ` · ${categoryLabel(session.vendor.category)}` : ""}`}
           </p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{name || "Votre espace"}</h1>
-          <p className="mt-3 text-base leading-7 text-ink">Vos mariages et votre vitrine. Le jour J, le couple tient les horaires.</p>
+          <h1 className="mt-2 font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">{name || "Votre espace"}</h1>
+          <p className="mt-3 text-[13px] leading-5 text-ink">Vos mariages et votre vitrine. Le jour J, le couple tient les horaires.</p>
         </header>
       ) : primary ? (
         <CoupleHero
@@ -108,25 +108,30 @@ export default async function DashboardPage() {
         />
       ) : (
         <header className="mb-8">
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Votre mariage</h1>
+          <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Votre mariage</h1>
           <p className="mt-3 max-w-xl text-base text-muted">Créez votre espace, puis invitez vos prestataires.</p>
         </header>
       )}
       {isVendor ? (
-        <div className="mb-8 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <div className="mb-8">
           <ButtonLink href="/espace/mariages/nouveau" className={actionClass}>
             <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             Nouveau mariage
           </ButtonLink>
-          <QuoteShortcut target={devisTarget} />
-          <ButtonLink href="/messages" variant="secondary" className={actionClass}>
-            <MessageCircle className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-            Envoyer un message
-          </ButtonLink>
-          <ButtonLink href="/coffre-fort" variant="secondary" className={actionClass}>
-            <Lock className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-            Partager un document du coffre
-          </ButtonLink>
+          <details className="mt-3 rounded-2xl border border-line bg-paper px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium">Autres actions</summary>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <QuoteShortcut target={devisTarget} />
+              <ButtonLink href="/messages" variant="secondary" className={actionClass}>
+                <MessageCircle className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                Envoyer un message
+              </ButtonLink>
+              <ButtonLink href="/coffre-fort" variant="secondary" className={actionClass}>
+                <Lock className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                Partager un document du coffre
+              </ButtonLink>
+            </div>
+          </details>
         </div>
       ) : null}
       {isVendor ? (

@@ -90,7 +90,11 @@ export function DocumentManager({
 
   return (
     <div className="min-w-0 space-y-4">
-      {documents.length === 0 ? <p className="text-sm leading-6 text-muted">Aucun document pour l&apos;instant.</p> : null}
+      {documents.length === 0 ? (
+        <p className="text-[13px] leading-5 text-ink">
+          Aucun document pour l&apos;instant. {manage ? "Ajoutez le premier fichier." : "Le prochain dépôt apparaîtra ici."}
+        </p>
+      ) : null}
       {documents.length > 0 ? (
       <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line">
         {documents.map((document) => {
@@ -100,7 +104,7 @@ export function DocumentManager({
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="break-words font-medium">{document.file_name}</p>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 text-[13px] leading-5 text-ink">
                   {formatFileSize(document.size_bytes)} · {names[document.uploaded_by] ?? "Membre"} · {formatDateTime(document.created_at)}
                 </p>
                 {request?.status === "signed" ? (

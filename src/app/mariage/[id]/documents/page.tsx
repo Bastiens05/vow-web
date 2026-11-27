@@ -5,7 +5,8 @@ import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
 import { AddVendorInvite } from "@/components/wedding/invite-block";
 import { PracticalBoard } from "@/components/wedding/practical-board";
 import { VendorDossier } from "@/components/wedding/vendor-dossier";
-import { coupleFullNames } from "@/lib/domain/format";
+import { documentAuthorLabel } from "@/lib/domain/document-author";
+import { isVendorCategory } from "@/lib/domain/categories";
 import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
@@ -29,18 +30,17 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
     const vendors = (data ?? []).filter((person) => person.member_role === "vendor");
     const photo = vendors.some((person) => person.category === "photographer" || person.category === "videographer" || person.category === "planner");
     const guests = vendors.some((person) => person.category === "caterer" || person.category === "venue" || person.category === "planner");
-    const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
+    const names = authorNames(space.session.userId, data ?? [], space.members);
     return (
       <div className="grid min-w-0 gap-4">
         <HashScroll />
         <header className="min-w-0">
-          <h2 className="text-3xl font-semibold tracking-tight text-balance">Documents</h2>
-          <FullNames wedding={space.wedding} />
-          <p className="mt-2 max-w-prose text-sm leading-6 text-pretty text-muted">Un espace par prestataire.</p>
+          <h1 className="font-serif text-4xl font-normal tracking-tight text-balance text-ink sm:text-5xl">Documents</h1>
+          <p className="mt-2 max-w-prose text-[13px] leading-5 text-pretty text-ink">Un espace par prestataire.</p>
         </header>
         {vendors.length === 0 ? (
           <Card>
-            <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
+            <p className="text-[13px] text-ink">Aucun prestataire pour l&apos;instant.</p>
             <AddVendorInvite weddingId={id} />
           </Card>
         ) : null}
@@ -110,13 +110,13 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
     : { data: [] };
   const sharedIds = new Set((vaultShares ?? []).map((row) => row.file_id));
   const today = new Date().toISOString().slice(0, 10);
-  const names = Object.fromEntries(space.members.map((member) => [member.userId, member.fullName]));
+  const { data: directory } = await supabase.rpc("wedding_directory", { p_wedding_id: id });
+  const names = authorNames(space.session.userId, directory ?? [], space.members);
   return (
     <div className="mx-auto grid w-full min-w-0 max-w-3xl gap-4">
       <header className="min-w-0">
-        <h2 className="text-3xl font-semibold tracking-tight text-balance">Documents</h2>
-        <FullNames wedding={space.wedding} />
-        <p className="mt-2 max-w-prose break-words text-sm leading-6 text-pretty text-muted">
+        <h1 className="font-serif text-4xl font-normal tracking-tight text-balance text-ink sm:text-5xl">Documents</h1>
+        <p className="mt-2 max-w-prose break-words text-[13px] leading-5 text-pretty text-ink">
           Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
         </p>
       </header>
@@ -163,10 +163,23 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
   );
 }
 
-function FullNames({ wedding }: { wedding: { partner_one_name: string; partner_one_last_name: string | null; partner_two_name: string; partner_two_last_name: string | null } }) {
-  const full = coupleFullNames(wedding.partner_one_name, wedding.partner_one_last_name, wedding.partner_two_name, wedding.partner_two_last_name);
-  if (!full) return null;
-  return <p className="mt-1 break-words text-sm text-muted">{full}</p>;
+function authorNames(
+  viewerId: string,
+  directory: { user_id: string; member_role: string; category: string | null }[],
+  members: { userId: string; role: string }[],
+): Record<string, string> {
+  const byUser = new Map(directory.map((person) => [person.user_id, person]));
+  const names: Record<string, string> = {};
+  for (const member of members) {
+    const person = byUser.get(member.userId);
+    names[member.userId] = documentAuthorLabel({
+      uploadedBy: member.userId,
+      viewerId,
+      role: person?.member_role ?? member.role,
+      category: person?.category && isVendorCategory(person.category) ? person.category : null,
+    });
+  }
+  return names;
 }
 
 async function OrphanSheet({ weddingId, kind }: { weddingId: string; kind: "photos" | "guests" }) {

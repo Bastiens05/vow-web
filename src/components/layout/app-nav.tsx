@@ -129,7 +129,7 @@ export async function MobileChrome() {
   const trialDays = access?.reason === "trial" && access.daysLeft !== null && path !== "/abonnement" ? access.daysLeft : null;
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-line bg-[var(--vow-glass)] px-4 pr-36 backdrop-blur-md md:hidden">
+      <header className={`sticky top-0 z-30 border-b border-line px-4 pr-36 md:hidden ${context.back ? "bg-paper" : "bg-[var(--vow-glass)] backdrop-blur-md"}`}>
         <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
           {context.back ? (
             <BackControl fallback={context.back.href} label={context.back.label} />

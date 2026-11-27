@@ -39,7 +39,6 @@ export function backTarget(
     const couple = actingAsCouple || role === "couple";
     if (couple) {
       if (section === "bulle") return { label: "Documents", href: `/mariage/${id}/bulles` };
-      if (["jour", "pratique", "equipe", "documents", "budget", "messages", "bulles", "coffre"].includes(section)) return null;
       if (!section) return { label: "Accueil", href: "/espace" };
       return { label: "Mariage", href: `/mariage/${id}` };
     }

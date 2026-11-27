@@ -112,6 +112,7 @@ describe("migration", () => {
       "vendor_billing_identity",
       "vendor_invoice_counters",
       "invoice_payments",
+      "storage_relocations",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);

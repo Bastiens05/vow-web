@@ -465,6 +465,7 @@ export type InvitationPreview =
       venueName: string;
       venueCity: string;
       trade: string;
+      inviteeName: string;
     };
 
 export async function previewInvitation(token: string): Promise<InvitationPreview> {
@@ -503,6 +504,7 @@ function parsePreview(value: Json): InvitationPreview {
       venueName: typeof value.venue_name === "string" ? value.venue_name : "",
       venueCity: typeof value.venue_city === "string" ? value.venue_city : "",
       trade: typeof value.invitee_trade === "string" ? value.invitee_trade : "",
+      inviteeName: typeof value.invitee_name === "string" ? value.invitee_name : "",
     };
   }
   return { status: "missing" };
