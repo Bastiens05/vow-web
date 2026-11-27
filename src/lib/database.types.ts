@@ -81,6 +81,7 @@ export type Database = {
           logo_path: string | null;
           share_phone: boolean;
           share_email: boolean;
+          discoverable?: boolean;
           stripe_account_id: string | null;
           created_at: string;
           updated_at: string;
@@ -110,6 +111,7 @@ export type Database = {
           logo_path?: string | null;
           share_phone?: boolean;
           share_email?: boolean;
+          discoverable?: boolean;
           stripe_account_id?: string | null;
           city?: string;
           zone?: string;
@@ -1404,6 +1406,21 @@ export type Database = {
       due_day_briefs: { Args: { p_day: string }; Returns: { wedding_id: string; user_id: string; email: string }[] };
       rebuild_cashflow: { Args: Record<string, never>; Returns: undefined };
       mark_brief_sent: { Args: { p_wedding: string; p_user: string; p_day: string }; Returns: undefined };
+      search_discoverable_vendors: {
+        Args: { p_query: string; p_category: string };
+        Returns: {
+          user_id: string;
+          business_name: string;
+          person_name: string;
+          category: string;
+          city: string;
+          logo_path: string | null;
+        }[];
+      };
+      invite_discovered_vendor: {
+        Args: { p_wedding: string; p_vendor: string; p_token: string };
+        Returns: Json;
+      };
       create_invitation: {
         Args: {
           p_wedding_id: string;
