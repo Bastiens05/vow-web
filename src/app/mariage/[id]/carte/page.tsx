@@ -25,7 +25,7 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
     <div className="grid gap-4">
       <Card>
         <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">{rain?.active ? "Carte · plan pluie" : "Carte du jour"}</h1>
-        <p className="mt-2 text-[13px] leading-5 text-ink">
+        <p className="mt-1 text-sm text-muted">
           {rain?.active
             ? "Le plan pluie remplace les lieux prévus. On peut le retirer."
             : "Les adresses saisies, le fond IGN et le temps de trajet entre chaque lieu."}
@@ -38,9 +38,9 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
         const time = stop.starts_at ? stop.starts_at.slice(0, 5) : "";
         return (
           <Card key={stop.id} className="space-y-3">
-            <p className="text-[13px] text-ink">{time || "Heure à confirmer"}</p>
+            <p className="text-xs text-muted">{time || "Heure à confirmer"}</p>
             <h2 className="font-serif text-2xl font-normal tracking-tight">{stop.label}</h2>
-            <p className="text-[13px] leading-5 text-ink">{stop.address}</p>
+            <p className="text-sm">{stop.address}</p>
           </Card>
         );
       })}

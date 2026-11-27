@@ -93,7 +93,7 @@ function DetailsForm({
   const steps = ["Téléphones", "Adresses", "Contacts", "Notes"];
   const fields = (
     <div className="grid gap-4">
-      {canEdit ? <p className="text-[13px] text-ink">Étape {step + 1} sur {steps.length} · {steps[step]}</p> : null}
+      {canEdit ? <p className="text-sm text-muted">Étape {step + 1} sur {steps.length} · {steps[step]}</p> : null}
       <div className={step === 0 || !canEdit ? "grid gap-4 sm:grid-cols-2" : "hidden"}>
         <Field label="Téléphone, premier partenaire">
           <TextInput name="partner_one_phone" defaultValue={practical?.partner_one_phone ?? ""} disabled={!canEdit} />

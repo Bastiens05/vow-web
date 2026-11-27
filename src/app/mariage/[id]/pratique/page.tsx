@@ -58,7 +58,7 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
         <p className="mt-2 mb-6 text-sm text-muted">Chaque information est saisie ici. Le photographe, le traiteur et les autres n&apos;en reçoivent que la part qui les concerne.</p>
         <ProfileForm weddingId={id} facts={facts} />
         <h2 className="mt-10 font-serif text-4xl font-normal tracking-tight text-ink">Infos du lieu</h2>
-        <p className="mt-2 mb-6 text-[13px] leading-5 text-ink">Les photos de groupe et les invités se remplissent dans Documents, chez le photographe ou le traiteur.</p>
+        <p className="mt-2 mb-6 text-sm text-muted">Les photos de groupe et les invités se remplissent dans Documents, chez le photographe ou le traiteur.</p>
         <div className="mb-8">
           <DayMap
             places={[

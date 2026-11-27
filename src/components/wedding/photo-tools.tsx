@@ -27,17 +27,17 @@ export function PhotoTools({
       <div>
         <h3 className="text-sm font-medium">Lumière dorée</h3>
         {light ? (
-          <p className="mt-1 text-[13px] leading-5 text-ink">
+          <p className="mt-1 text-sm text-muted">
             Matin {light.morningStart}–{light.morningEnd} · Soir {light.eveningStart}–{light.eveningEnd}
           </p>
         ) : (
-          <p className="mt-1 text-[13px] leading-5 text-ink">Indiquez la date et le lieu pour calculer la lumière dorée.</p>
+          <p className="mt-1 text-sm text-muted">Indiquez la date et le lieu pour calculer la lumière dorée.</p>
         )}
       </div>
       <div>
         <h3 className="text-sm font-medium">Séance couple</h3>
         {session ? (
-          <p className="mt-1 text-[13px] leading-5 text-ink">
+          <p className="mt-1 text-sm text-muted">
             {session.title} · {session.startsAt.slice(0, 5)}
           </p>
         ) : canEdit ? (
@@ -53,22 +53,22 @@ export function PhotoTools({
             <Button type="submit" disabled={pending}>
               {pending ? "Ajout…" : "Ajouter la séance couple"}
             </Button>
-            {state.error ? <p className="text-[13px] text-danger">{state.error}</p> : null}
+            {state.error ? <p className="text-sm text-danger">{state.error}</p> : null}
           </form>
         ) : (
-          <p className="mt-1 text-[13px] leading-5 text-ink">Aucune séance couple dans le déroulé.</p>
+          <p className="mt-1 text-sm text-muted">Aucune séance couple dans le déroulé.</p>
         )}
       </div>
       <div>
         <h3 className="text-sm font-medium">Photos de groupe</h3>
         {groups.length === 0 ? (
-          <p className="mt-1 text-[13px] leading-5 text-ink">Ajoutez les invités pour composer les groupes.</p>
+          <p className="mt-1 text-sm text-muted">Ajoutez les invités pour composer les groupes.</p>
         ) : (
           <ol className="mt-2 grid gap-2">
             {groups.map((group) => (
               <li key={group.title} className="rounded-2xl bg-ivory px-3 py-2">
                 <p className="text-sm font-medium">{group.title}</p>
-                <p className="text-[13px] leading-5 text-ink">{group.people}</p>
+                <p className="text-sm text-muted">{group.people}</p>
               </li>
             ))}
           </ol>

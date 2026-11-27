@@ -86,14 +86,14 @@ export function DayMap({ places }: { places: MapPlace[] }) {
   }, [points]);
 
   if (places.every((place) => place.address.trim().length < 3)) {
-    return <p className="text-[13px] leading-5 text-ink">Ajoutez une adresse pour afficher la carte et les temps de trajet.</p>;
+    return <p className="text-sm text-muted">Ajoutez une adresse pour afficher la carte et les temps de trajet.</p>;
   }
   return (
     <div className="grid gap-3">
       <div ref={node} className="h-72 w-full overflow-hidden rounded-2xl bg-mist" />
-      {ready && points.length === 0 ? <p className="text-[13px] text-ink">Ces adresses n&apos;ont pas été trouvées.</p> : null}
+      {ready && points.length === 0 ? <p className="text-sm text-muted">Ces adresses n&apos;ont pas été trouvées.</p> : null}
       {legs.length > 0 ? (
-        <ul className="grid gap-1 text-[13px] text-ink">
+        <ul className="grid gap-1 text-sm text-muted">
           {legs.map((leg) => (
             <li key={`${leg.from}-${leg.to}`}>
               {leg.from} → {leg.to} · {leg.minutes} min en voiture
