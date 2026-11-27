@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { DayMap } from "@/components/wedding/day-map";
 import { GuidedSetup } from "@/components/wedding/guided-setup";
 import { PracticalBoard } from "@/components/wedding/practical-board";
-import { ProfileForm, ProfileSlice } from "@/components/wedding/profile-form";
+import { PracticalJourney } from "@/components/wedding/practical-journey";
+import { ProfileSlice } from "@/components/wedding/profile-form";
 import { HashScroll } from "@/components/ui/hash-scroll";
 import { Card } from "@/components/ui/card";
 import { factsFromJson, fieldsForTrade, filledRatio, visibleFacts } from "@/lib/domain/profile";
@@ -54,18 +55,20 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
     return (
       <div id="lieu" className="scroll-mt-24">
         <HashScroll />
-        <h2 className="text-3xl font-semibold tracking-tight">Le mariage, une seule fois</h2>
-        <p className="mt-2 mb-6 text-sm text-muted">Chaque information est saisie ici. Le photographe, le traiteur et les autres n&apos;en reçoivent que la part qui les concerne.</p>
-        <ProfileForm weddingId={id} facts={facts} />
-        <h2 className="mt-10 font-serif text-4xl font-normal tracking-tight text-ink">Infos du lieu</h2>
-        <p className="mt-2 mb-6 text-sm text-muted">Les photos de groupe et les invités se remplissent dans Documents, chez le photographe ou le traiteur.</p>
-        <div className="mb-8">
+        <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Le mariage, une seule fois</h1>
+        <p className="mt-2 mb-6 text-sm text-muted">Quatre étapes. L&apos;adresse saisie ici est celle de la carte.</p>
+        <PracticalJourney
+          weddingId={id}
+          facts={{ ...facts, ceremony_address: facts.ceremony_address || sheet.practical?.ceremony_address || venue }}
+          phones={{ one: sheet.practical?.partner_one_phone ?? "", two: sheet.practical?.partner_two_phone ?? "" }}
+          notes={sheet.practical?.notes ?? ""}
+        />
+        <div className="my-8">
           <DayMap
             places={[
-              { label: "Cérémonie", address: sheet.practical?.ceremony_address || venue },
-              { label: "Réception", address: sheet.practical?.reception_address || "" },
-              { label: "Adresse postale", address: sheet.practical?.postal_address || "" },
-            ].filter((place) => place.address.trim().length > 2)}
+              { label: "Cérémonie", address: facts.ceremony_address || sheet.practical?.ceremony_address || venue },
+              { label: "Réception", address: facts.reception_address || sheet.practical?.reception_address || facts.ceremony_address || sheet.practical?.ceremony_address || venue },
+            ].filter((place, index, list) => place.address.trim().length > 2 && list.findIndex((item) => item.address === place.address && item.label === place.label) === index)}
           />
         </div>
         <PracticalBoard
@@ -73,7 +76,8 @@ export default async function PracticalPage({ params }: { params: Promise<{ id: 
           practical={sheet.practical}
           groups={sheet.groups}
           guests={sheet.guests}
-          canEditDetails
+          canEditDetails={false}
+          showDetails={false}
           showPhotos
           showGuests
           canEditPhotos

@@ -193,7 +193,7 @@ export function AuthFlow({
                   emailValid: isValidEmail(email),
                   kind: vendorInvite ? "invite-vendor" : "vendor",
                   intent: blankIntent({ role: "vendor", businessName, category, city }),
-                }).filter((item) => !(vendorInvite && item === "un e-mail valide"))}
+                }).filter((item) => item !== "un e-mail valide")}
               />
               <button
                 type="submit"
@@ -261,7 +261,7 @@ export function AuthFlow({
                     partnerTwoLast,
                     weddingDate,
                   }),
-                })}
+                }).filter((item) => item !== "un e-mail valide")}
               />
               <button
                 type="submit"

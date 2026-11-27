@@ -34,8 +34,71 @@ export async function proposeCoupleSession(
     slots: [{ title: "Séance couple", startsAt: parsed.value.startsAt, place: parsed.value.place, notes: "" }],
   });
   if (error) return { error: messageFromError(error) };
+  await supabase.rpc("notify_couple_session", {
+    p_wedding: weddingId,
+    p_body: `Séance couple proposée à ${parsed.value.startsAt}, ${parsed.value.place}.`,
+  });
   revalidatePath(`/mariage/${weddingId}/jour`);
+  revalidatePath("/nouveautes");
   return { success: "Proposition envoyée au couple." };
+}
+
+export async function composeNamedGroup(
+  weddingId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireSession();
+  if (session.vendor?.category !== "photographer" || session.vendor.user_id !== session.userId) {
+    return { error: "Réservé au photographe de ce mariage." };
+  }
+  const names = formData.getAll("name").map(String).map((name) => name.trim()).filter(Boolean);
+  if (names.length === 0) return { error: "Choisissez au moins un invité." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("compose_named_photo_group", {
+    p_wedding: weddingId,
+    p_title: String(formData.get("title") ?? "").trim(),
+    p_names: names,
+  });
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("could not find") || message.includes("compose_named_photo_group")) {
+      return { error: "La composition n'est pas encore ouverte." };
+    }
+    return { error: messageFromError(error) };
+  }
+  revalidatePath(`/mariage/${weddingId}/jour`);
+  revalidatePath(`/mariage/${weddingId}/documents`);
+  return { success: "Groupe enregistré." };
+}
+
+export async function respondCoupleSession(
+  weddingId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const space = await getWeddingSpace(weddingId);
+  if (!(space.role === "couple" || space.actingAsCouple)) {
+    return { error: "Seul le couple répond à la séance." };
+  }
+  const choice = String(formData.get("choice") ?? "");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("respond_couple_session", {
+    p_suggestion: String(formData.get("suggestion_id") ?? ""),
+    p_choice: choice,
+    p_time: String(formData.get("starts_at") ?? ""),
+    p_place: String(formData.get("place") ?? ""),
+  });
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("could not find") || message.includes("respond_couple_session")) {
+      return { error: "La réponse n'est pas encore ouverte." };
+    }
+    return { error: messageFromError(error) };
+  }
+  revalidatePath(`/mariage/${weddingId}/jour`);
+  revalidatePath("/nouveautes");
+  return { success: choice === "refuse" ? "Proposition refusée." : "Autre heure proposée." };
 }
 
 export async function acceptCoupleSession(

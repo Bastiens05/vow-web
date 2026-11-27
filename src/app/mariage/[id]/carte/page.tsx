@@ -11,9 +11,10 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const { id } = await params;
   const space = await getWeddingSpace(id);
   const supabase = await createClient();
-  const [{ data }, { data: rain }] = await Promise.all([
+  const [{ data }, { data: rain }, { data: practical }] = await Promise.all([
     supabase.from("wedding_stops").select("*").eq("wedding_id", id).order("sort_order").order("starts_at"),
     supabase.from("rain_plans").select("active").eq("wedding_id", id).maybeSingle(),
+    supabase.from("wedding_practical").select("ceremony_address, reception_address").eq("wedding_id", id).maybeSingle(),
   ]);
   const { data: rainStops } = rain?.active
     ? await supabase.from("rain_stops").select("id, label, address").eq("wedding_id", id).order("sort_order")
@@ -21,6 +22,11 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const stops = rain?.active && (rainStops ?? []).length > 0
     ? (rainStops ?? []).map((stop) => ({ id: stop.id, label: stop.label, address: stop.address, starts_at: null as string | null }))
     : (data ?? []);
+  const places = [
+    { label: "Cérémonie", address: practical?.ceremony_address ?? "" },
+    { label: "Réception", address: practical?.reception_address ?? "" },
+    ...stops.map((stop) => ({ label: stop.label, address: stop.address })),
+  ].filter((place) => place.address.trim().length > 2);
   return (
     <div className="grid gap-4">
       <Card>
@@ -31,7 +37,7 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
             : "Les adresses saisies, le fond IGN et le temps de trajet entre chaque lieu."}
         </p>
         <div className="mt-4">
-          <DayMap places={stops.map((stop) => ({ label: stop.label, address: stop.address }))} />
+          <DayMap places={places} />
         </div>
       </Card>
       {stops.map((stop) => {
@@ -39,7 +45,7 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
         return (
           <Card key={stop.id} className="space-y-3">
             <p className="text-xs text-muted">{time || "Heure à confirmer"}</p>
-            <h2 className="font-serif text-2xl font-normal tracking-tight">{stop.label}</h2>
+            <p className="text-lg font-medium">{stop.label}</p>
             <p className="text-sm">{stop.address}</p>
           </Card>
         );

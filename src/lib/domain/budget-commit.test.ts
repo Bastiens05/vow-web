@@ -1,10 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { committedCents, paidCents } from "./budget-commit";
+import { budgetBalance, committedCents, paidCents } from "./budget-commit";
 
 describe("budget commitments", () => {
   it("counts a pending invoice even when the typed line is zero", () => {
     expect(committedCents({ lineCents: 0, quoteCents: 0, invoiceCents: 370_000 })).toBe(370_000);
     expect(paidCents({ committed: 370_000, invoiceCents: 370_000, paymentCents: 0, linePaid: false })).toBe(0);
+  });
+
+  it("names the unpaid amount when no global budget is set", () => {
+    expect(budgetBalance({ budgetCents: 0, engagedCents: 370_000, paidCents: 0 })).toEqual({
+      label: "Reste à payer",
+      cents: 370_000,
+    });
+    expect(budgetBalance({ budgetCents: 200_000, engagedCents: 370_000, paidCents: 0 })).toEqual({
+      label: "Dépassement",
+      cents: 170_000,
+    });
+    expect(budgetBalance({ budgetCents: 500_000, engagedCents: 250_000, paidCents: 0 })).toEqual({
+      label: "Disponible",
+      cents: 250_000,
+    });
   });
 
   it("does not add the quote on top of its invoice", () => {

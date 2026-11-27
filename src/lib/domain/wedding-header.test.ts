@@ -21,6 +21,8 @@ describe("en-tête du mariage", () => {
     expect(weddingHeaderMode(`/mariage/${id}/documents`, id)).toBe("quiet");
     expect(weddingHeaderMode(`/mariage/${id}/budget`, id)).toBe("quiet");
     expect(weddingHeaderMode(`/mariage/${id}/devis`, id)).toBe("quiet");
+    expect(weddingHeaderMode(`/mariage/${id}/carte`, id)).toBe("quiet");
+    expect(weddingHeaderMode(`/mariage/${id}/brief`, id)).toBe("quiet");
     expect(weddingHeaderMode(`/mariage/${id}/messages`, id)).toBe("thread");
     expect(weddingHeaderMode(`/mariage/${id}/messages?avec=1`, id)).toBe("thread");
   });

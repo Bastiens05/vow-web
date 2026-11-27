@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { removeBudgetLine, saveBudgetLine, saveBudgetTotal } from "@/server/actions/budget";
-import { formatEuros } from "@/lib/domain/money";
+import { budgetBalance } from "@/lib/domain/budget-commit";
+import { formatBudgetEuros } from "@/lib/domain/money";
 
 export type BudgetRow = {
   key: string;
@@ -46,6 +47,7 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
   const cents = Math.round((Number(total.replace(",", ".")) || 0) * 100);
   const engaged = lines.reduce((sum, line) => sum + Math.round(line.euros * 100), 0);
   const paid = lines.reduce((sum, line) => sum + (line.paidCents ?? (line.paid ? Math.round(line.euros * 100) : 0)), 0);
+  const balance = budgetBalance({ budgetCents: cents, engagedCents: engaged, paidCents: paid });
   const ratio = cents > 0 ? Math.min(1, engaged / cents) : 0;
 
   const labels = useMemo(() => new Set(lines.map((line) => line.label)), [lines]);
@@ -114,9 +116,9 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
         <div className="mt-4 flex items-center gap-4">
           <Ring ratio={ratio} />
           <div className="text-sm">
-            <p>Engagé {formatEuros(engaged)}</p>
-            <p className="text-muted">Reste {formatEuros(Math.max(0, cents - engaged))}</p>
-            <p className="text-muted">Payé {formatEuros(paid)}</p>
+            <p>Engagé {formatBudgetEuros(engaged)}</p>
+            <p className="text-muted">{balance.label} {formatBudgetEuros(balance.cents)}</p>
+            <p className="text-muted">Payé {formatBudgetEuros(paid)}</p>
           </div>
         </div>
         {note ? <p className="mt-3 text-xs text-muted">{note}</p> : null}

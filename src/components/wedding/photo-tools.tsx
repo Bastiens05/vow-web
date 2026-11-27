@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
 import type { GoldenHour } from "@/lib/domain/solar";
-import { acceptCoupleSession, proposeCoupleSession } from "@/server/actions/photo-session";
+import { acceptCoupleSession, composeNamedGroup, proposeCoupleSession, respondCoupleSession } from "@/server/actions/photo-session";
 
 export function PhotoTools({
   weddingId,
@@ -15,6 +15,7 @@ export function PhotoTools({
   light,
   canPropose,
   canAccept,
+  suggestedTime,
 }: {
   weddingId: string;
   names: string[];
@@ -24,11 +25,16 @@ export function PhotoTools({
   light: GoldenHour | null;
   canPropose: boolean;
   canAccept: boolean;
+  suggestedTime: string;
 }) {
   const propose = proposeCoupleSession.bind(null, weddingId);
   const accept = acceptCoupleSession.bind(null, weddingId);
   const [proposalState, proposeAction, proposing] = useActionState(propose, {});
   const [acceptState, acceptAction, accepting] = useActionState(accept, {});
+  const respond = respondCoupleSession.bind(null, weddingId);
+  const [respondState, respondAction, responding] = useActionState(respond, {});
+  const compose = composeNamedGroup.bind(null, weddingId);
+  const [groupState, groupAction, grouping] = useActionState(compose, {});
   return (
     <section className="mt-8 grid gap-4 rounded-3xl border border-line bg-paper p-5">
       <h2 className="font-serif text-3xl font-normal tracking-tight">Outils photo</h2>
@@ -59,6 +65,25 @@ export function PhotoTools({
             </Button>
             {acceptState.error ? <p className="text-sm text-danger">{acceptState.error}</p> : null}
           </form>
+        ) : null}
+        {session ? null : proposal && canAccept ? (
+          <form action={respondAction} className="mt-3 grid gap-3">
+            <input type="hidden" name="suggestion_id" value={proposal.id} />
+            <input type="hidden" name="place" value={proposal.place} />
+            <Field label="Autre heure">
+              <TextInput name="starts_at" placeholder="19:00" />
+            </Field>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" name="choice" value="counter" variant="secondary" disabled={responding}>
+                Proposer cette heure
+              </Button>
+              <Button type="submit" name="choice" value="refuse" variant="ghost" disabled={responding}>
+                Refuser
+              </Button>
+            </div>
+            {respondState.error ? <p className="text-sm text-danger">{respondState.error}</p> : null}
+            {respondState.success ? <p className="text-sm text-muted">{respondState.success}</p> : null}
+          </form>
         ) : proposal ? (
           <p className="mt-1 text-sm text-muted">
             Proposition envoyée · {proposal.startsAt.slice(0, 5)} · {proposal.place}
@@ -66,7 +91,7 @@ export function PhotoTools({
         ) : canPropose ? (
           <form action={proposeAction} className="mt-2 grid gap-3">
             <Field label="Heure">
-              <TextInput name="starts_at" placeholder="16:30" required />
+              <TextInput name="starts_at" placeholder="16:30" defaultValue={suggestedTime} required />
             </Field>
             <Field label="Lieu">
               <TextInput name="place" placeholder="Jardin" required />
@@ -89,13 +114,26 @@ export function PhotoTools({
           ) : names.length === 0 ? (
             <p className="mt-1 text-sm text-muted">Aucun invité nommé pour l&apos;instant.</p>
           ) : (
-            <ul className="mt-2 grid gap-1">
-              {names.map((name, index) => (
-                <li key={`${name}-${index}`} className="text-sm">
-                  {name}
-                </li>
-              ))}
-            </ul>
+            <form action={groupAction} className="mt-3 grid gap-2">
+              <Field label="Titre du groupe">
+                <TextInput name="title" placeholder="Famille" />
+              </Field>
+              <ul className="grid gap-1">
+                {names.map((name, index) => (
+                  <li key={`${name}-${index}`}>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" name="name" value={name} />
+                      {name}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <Button type="submit" variant="secondary" disabled={grouping}>
+                {grouping ? "Enregistrement…" : "Composer ce groupe"}
+              </Button>
+              {groupState.error ? <p className="text-sm text-danger">{groupState.error}</p> : null}
+              {groupState.success ? <p className="text-sm text-muted">{groupState.success}</p> : null}
+            </form>
           )}
         </div>
       ) : null}

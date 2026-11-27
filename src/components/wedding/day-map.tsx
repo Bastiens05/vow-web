@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AddressSuggestion } from "@/lib/domain/address";
+import { appleMapsUrl, googleDirectionsUrl, googleMapsUrl } from "@/lib/domain/maps";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 export type MapPlace = { label: string; address: string };
@@ -59,6 +60,7 @@ export function DayMap({ places }: { places: MapPlace[] }) {
     let cancel = false;
     void import("maplibre-gl").then((maplibre) => {
       if (cancel || !node.current) return;
+      maplibre.setWorkerUrl(`${window.location.origin}/maplibre-gl-worker.mjs`);
       const created = new maplibre.Map({
         container: node.current,
         style: {
@@ -73,7 +75,10 @@ export function DayMap({ places }: { places: MapPlace[] }) {
       });
       const bounds = new maplibre.LngLatBounds();
       for (const point of points) {
-        new maplibre.Marker({ color: "#1c1b19" }).setLngLat([point.longitude, point.latitude]).addTo(created);
+        const label = document.createElement("div");
+        label.textContent = point.label;
+        label.className = "rounded-full bg-ink px-2 py-1 text-xs font-medium text-ivory shadow";
+        new maplibre.Marker({ element: label }).setLngLat([point.longitude, point.latitude]).addTo(created);
         bounds.extend([point.longitude, point.latitude]);
       }
       if (points.length > 1) created.fitBounds(bounds, { padding: 48, maxZoom: 15 });
@@ -92,6 +97,20 @@ export function DayMap({ places }: { places: MapPlace[] }) {
     <div className="grid gap-3">
       <div ref={node} className="h-72 w-full overflow-hidden rounded-2xl bg-mist" />
       {ready && points.length === 0 ? <p className="text-sm text-muted">Ces adresses n&apos;ont pas été trouvées.</p> : null}
+      <ul className="grid gap-2">
+        {places.filter((place) => place.address.trim().length > 2).map((place, index, list) => {
+          const previous = list[index - 1];
+          const google = previous ? googleDirectionsUrl(previous.address, place.address) : googleMapsUrl(place.address);
+          const plans = appleMapsUrl(place.address);
+          return (
+            <li key={`${place.label}-${place.address}`} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium">{place.label}</span>
+              <a className="underline" href={google} target="_blank" rel="noreferrer">Itinéraire · Google Maps</a>
+              <a className="underline" href={plans} target="_blank" rel="noreferrer">Itinéraire · Plans</a>
+            </li>
+          );
+        })}
+      </ul>
       {legs.length > 0 ? (
         <ul className="grid gap-1 text-sm text-muted">
           {legs.map((leg) => (

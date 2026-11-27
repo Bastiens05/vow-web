@@ -1,6 +1,6 @@
 export type WeddingHeaderMode = "hero" | "thread" | "title" | "quiet";
 
-const OWN_TITLE = new Set(["documents", "budget", "devis"]);
+const OWN_TITLE = new Set(["documents", "budget", "devis", "carte", "brief"]);
 
 export function weddingHeaderMode(path: string, weddingId: string): WeddingHeaderMode {
   if (path === `/mariage/${weddingId}`) return "hero";

@@ -13,7 +13,7 @@ import {
   type VendorVaultCategory,
 } from "@/lib/domain/vendor-vault";
 import { createClient } from "@/lib/supabase/client";
-import { replaceVaultFile, saveVaultFile, updateVaultFile } from "@/server/actions/vendor-vault";
+import { deleteVaultFile, replaceVaultFile, saveVaultFile, updateVaultFile } from "@/server/actions/vendor-vault";
 
 export type VaultFileRow = {
   id: string;
@@ -92,7 +92,16 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
                 <p className="mt-2 text-sm">Ce document a expiré. Remplacez-le par une nouvelle version.</p>
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
+                <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={`/api/vault/${file.id}`}>
+                  Ouvrir
+                </a>
                 <ReplaceFile userId={userId} fileId={file.id} />
+                <form action={deleteVaultFile}>
+                  <input type="hidden" name="id" value={file.id} />
+                  <Button type="submit" variant="ghost">
+                    Retirer
+                  </Button>
+                </form>
               </div>
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm underline">Modifier</summary>

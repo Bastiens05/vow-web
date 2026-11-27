@@ -25,7 +25,7 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
   const [{ data: rain }, { data: directory }, { data: suggestions }] = await Promise.all([
     supabase.from("rain_plans").select("active").eq("wedding_id", id).maybeSingle(),
     supabase.rpc("wedding_directory", { p_wedding_id: id }),
-    supabase.from("timeline_suggestions").select("id, label, slots").eq("wedding_id", id).order("created_at", { ascending: false }).limit(1),
+    supabase.from("timeline_suggestions").select("id, label, slots").eq("wedding_id", id).neq("label", "Séance couple").order("created_at", { ascending: false }).limit(1),
   ]);
   const [{ data: rainRows }, { data: groups }] = await Promise.all([
     supabase.from("rain_slots").select("id, title, starts_at, place, sort_order").eq("wedding_id", id).order("sort_order"),
@@ -124,6 +124,7 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
             light={light}
             canPropose={photographer}
             canAccept={couple}
+            suggestedTime={light?.eveningStart ?? ""}
           />
         ) : null}
         <PhotoQueue

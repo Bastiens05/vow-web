@@ -84,7 +84,6 @@ export async function VendorDossier({
       </Card>
       {showPhotos || showGuests ? (
         <Card>
-          <h3 className="mb-4 text-lg font-semibold tracking-tight">{showPhotos ? "Photos de groupe" : "Invités, tables et régimes"}</h3>
           <PracticalBoard
             weddingId={weddingId}
             practical={null}
