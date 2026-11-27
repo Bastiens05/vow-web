@@ -166,98 +166,12 @@ revoke all on function public.finish_storage_relocation(uuid, boolean) from publ
 grant execute on function public.pending_storage_relocations() to authenticated;
 grant execute on function public.finish_storage_relocation(uuid, boolean) to authenticated;
 
--- A member of the kept wedding may move a file uploaded by someone else.
--- The ordinary insert rule requires the second folder to be the current user.
-
-drop policy if exists wedding_documents_relocate_select on storage.objects;
-create policy wedding_documents_relocate_select on storage.objects
-  for select to authenticated
-  using (
-    bucket_id = 'wedding-documents'
-    and exists (
-      select 1 from public.storage_relocations r
-      where r.bucket_id = bucket_id
-        and r.moved_at is null
-        and (r.from_path = name or r.to_path = name)
-        and public.storage_wedding_id(r.to_path) is not null
-        and public.is_wedding_member(public.storage_wedding_id(r.to_path))
-    )
-  );
-
-drop policy if exists wedding_documents_relocate_insert on storage.objects;
-create policy wedding_documents_relocate_insert on storage.objects
-  for insert to authenticated
-  with check (
-    bucket_id = 'wedding-documents'
-    and exists (
-      select 1 from public.storage_relocations r
-      where r.bucket_id = bucket_id
-        and r.moved_at is null
-        and r.to_path = name
-        and public.storage_wedding_id(r.to_path) is not null
-        and public.is_wedding_member(public.storage_wedding_id(r.to_path))
-    )
-  );
-
-drop policy if exists wedding_documents_relocate_delete on storage.objects;
-create policy wedding_documents_relocate_delete on storage.objects
-  for delete to authenticated
-  using (
-    bucket_id = 'wedding-documents'
-    and exists (
-      select 1 from public.storage_relocations r
-      where r.bucket_id = bucket_id
-        and r.moved_at is null
-        and r.from_path = name
-        and public.storage_wedding_id(r.to_path) is not null
-        and public.is_wedding_member(public.storage_wedding_id(r.to_path))
-    )
-  );
-
-drop policy if exists wedding_gallery_relocate_select on storage.objects;
-create policy wedding_gallery_relocate_select on storage.objects
-  for select to authenticated
-  using (
-    bucket_id = 'wedding-gallery'
-    and exists (
-      select 1 from public.storage_relocations r
-      where r.bucket_id = bucket_id
-        and r.moved_at is null
-        and (r.from_path = name or r.to_path = name)
-        and public.storage_wedding_id(r.to_path) is not null
-        and public.is_wedding_member(public.storage_wedding_id(r.to_path))
-    )
-  );
-
-drop policy if exists wedding_gallery_relocate_insert on storage.objects;
-create policy wedding_gallery_relocate_insert on storage.objects
-  for insert to authenticated
-  with check (
-    bucket_id = 'wedding-gallery'
-    and exists (
-      select 1 from public.storage_relocations r
-      where r.bucket_id = bucket_id
-        and r.moved_at is null
-        and r.to_path = name
-        and public.storage_wedding_id(r.to_path) is not null
-        and public.is_wedding_member(public.storage_wedding_id(r.to_path))
-    )
-  );
-
-drop policy if exists wedding_gallery_relocate_delete on storage.objects;
-create policy wedding_gallery_relocate_delete on storage.objects
-  for delete to authenticated
-  using (
-    bucket_id = 'wedding-gallery'
-    and exists (
-      select 1 from public.storage_relocations r
-      where r.bucket_id = bucket_id
-        and r.moved_at is null
-        and r.from_path = name
-        and public.storage_wedding_id(r.to_path) is not null
-        and public.is_wedding_member(public.storage_wedding_id(r.to_path))
-    )
-  );
+-- Production recorded this migration as 20261127070957, then dropped the six
+-- *_relocate_* policies. They read storage_relocations directly, and that table
+-- is revoked from authenticated, so every upload failed with
+-- "permission denied for table storage_relocations". Those policies are not
+-- part of the live database. Their replacement is
+-- 20261127160000_storage_relocation_access.sql.
 
 -- preview_invitation gains invitee_name. Older clients ignore the extra key.
 create or replace function public.preview_invitation(p_token text)

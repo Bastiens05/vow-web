@@ -17,6 +17,27 @@ export function orphanSource(target: string, objectNames: string[]): string | nu
   return matches.length === 1 ? matches[0] : null;
 }
 
+export type RelocationOp = "select" | "insert" | "delete";
+
+export type RelocationRow = { bucket: string; fromPath: string; toPath: string; moved: boolean };
+
+/** Same rule as storage_relocation_allows. A normal upload is not a pending move, so this stays false. */
+export function relocationAllows(
+  operation: RelocationOp,
+  bucket: string,
+  name: string,
+  rows: RelocationRow[],
+  memberOfDestination: boolean,
+): boolean {
+  if (!memberOfDestination || !name) return false;
+  return rows.some((row) => {
+    if (row.moved || row.bucket !== bucket) return false;
+    if (operation === "select") return row.fromPath === name || row.toPath === name;
+    if (operation === "insert") return row.toPath === name;
+    return row.fromPath === name;
+  });
+}
+
 export function relocationPath(keepId: string, dropId: string, path: string): string | null {
   const prefix = `${dropId}/`;
   if (!path.startsWith(prefix) || keepId === dropId) return null;
