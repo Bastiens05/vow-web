@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isVendorCategory } from "@/lib/domain/categories";
-import { groupStoragePaths } from "@/lib/domain/account-files";
 import { coupleIntentReady, readSignupIntent } from "@/lib/domain/signup-intent";
 import { slugify } from "@/lib/domain/slug";
 import { messageFromError } from "@/lib/errors";
@@ -108,76 +107,3 @@ export async function createCoupleWedding(_prev: ActionState, formData: FormData
   redirect(`/mariage/${data}`);
 }
 
-export async function deleteAccount(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  if (String(formData.get("confirm") ?? "").trim() !== "SUPPRIMER") {
-    return { error: "Écrivez SUPPRIMER pour confirmer." };
-  }
-  const session = await requireSession();
-  const supabase = await createClient();
-  const listed = await supabase.rpc("my_account_files");
-  if (listed.error) {
-    const message = listed.error.message.toLowerCase();
-    if (message.includes("could not find") || message.includes("my_account_files")) {
-      return { error: "La suppression de compte n'est pas encore ouverte." };
-    }
-    return { error: messageFromError(listed.error) };
-  }
-  const ownFolders = await listOwnStorageFolders(supabase, session.userId);
-  const removed = await removeAccountFiles(supabase, [...(listed.data ?? []), ...ownFolders]);
-  if (removed) return { error: removed };
-  const { error } = await supabase.rpc("delete_my_account");
-  if (error) {
-    const message = error.message.toLowerCase();
-    if (message.includes("storage")) {
-      return { error: "La suppression des fichiers n'est pas passée par l'API Storage. Le compte est resté en place." };
-    }
-    return { error: messageFromError(error) };
-  }
-  await supabase.auth.signOut();
-  redirect("/");
-}
-
-async function listOwnStorageFolders(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-): Promise<{ bucket: string; path: string }[]> {
-  const { data: memberships } = await supabase.from("wedding_members").select("wedding_id").eq("user_id", userId);
-  const prefixes: { bucket: string; prefix: string }[] = [
-    { bucket: "vendor-media", prefix: userId },
-    { bucket: "wedding-documents", prefix: `coffre/${userId}` },
-  ];
-  for (const membership of memberships ?? []) {
-    prefixes.push({ bucket: "wedding-documents", prefix: `${membership.wedding_id}/${userId}` });
-    prefixes.push({ bucket: "wedding-gallery", prefix: `${membership.wedding_id}/${userId}` });
-  }
-  const files: { bucket: string; path: string }[] = [];
-  for (const item of prefixes) {
-    const { data, error } = await supabase.storage.from(item.bucket).list(item.prefix, { limit: 1000 });
-    if (error || !data) continue;
-    for (const entry of data) {
-      if (!entry.id || !entry.name) continue;
-      files.push({ bucket: item.bucket, path: `${item.prefix}/${entry.name}` });
-    }
-  }
-  return files;
-}
-
-async function removeAccountFiles(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  files: { bucket: string; path: string }[],
-): Promise<string | null> {
-  const grouped = groupStoragePaths(files);
-  for (const [bucket, paths] of grouped) {
-    for (let index = 0; index < paths.length; index += 100) {
-      const chunk = paths.slice(index, index + 100);
-      const { error } = await supabase.storage.from(bucket).remove(chunk);
-      if (!error) continue;
-      const message = error.message.toLowerCase();
-      if (message.includes("row-level") || message.includes("policy") || message.includes("unauthorized") || message.includes("not allowed")) {
-        return "Certains fichiers restent hors de portée de votre session (droits du stockage). Le compte n'a pas été supprimé. Vos propres fichiers (vitrine, coffre, documents dont le dossier est le vôtre) partent avec cette session. Un fichier déposé par quelqu'un d'autre, ou une galerie que vous ne gérez pas, demande une suppression côté serveur avec la clé service_role. Elle n'est pas branchée ici.";
-      }
-      return "Les fichiers n'ont pas pu être retirés. Le compte n'a pas été supprimé.";
-    }
-  }
-  return null;
-}

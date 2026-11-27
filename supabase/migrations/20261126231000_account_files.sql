@@ -128,3 +128,19 @@ $$;
 
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- The uploader can delete their own object. The second folder is their user id
+-- for wedding documents, the vault (coffre) and the gallery.
+create policy wedding_documents_delete_own on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'wedding-documents'
+    and (storage.foldername(name))[2] = auth.uid()::text
+  );
+
+create policy wedding_gallery_delete_own on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'wedding-gallery'
+    and (storage.foldername(name))[2] = auth.uid()::text
+  );

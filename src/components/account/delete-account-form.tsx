@@ -1,29 +1,41 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { deleteAccount } from "@/server/actions/account";
-import type { ActionState } from "@/server/actions/auth";
-
-const initial: ActionState = {};
 
 export function DeleteAccountForm() {
-  const [state, action, pending] = useActionState(deleteAccount, initial);
+  const router = useRouter();
   const [confirm, setConfirm] = useState("");
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (confirm.trim() !== "SUPPRIMER") {
+      setError("Écrivez SUPPRIMER pour confirmer.");
+      return;
+    }
+    setPending(true);
+    setError(null);
+    const response = await fetch("/api/compte", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ confirm }),
+    });
+    const payload = (await response.json().catch(() => null)) as { error?: string; ok?: boolean } | null;
+    if (!response.ok || !payload?.ok) {
+      setError(payload?.error || "La suppression n'a pas abouti.");
+      setPending(false);
+      return;
+    }
+    router.push("/");
+    router.refresh();
+  }
+
   return (
-    <form
-      action={action}
-      noValidate
-      className="grid gap-3"
-      onSubmit={(event) => {
-        if (confirm !== "SUPPRIMER") {
-          event.preventDefault();
-          setLocalError("Écrivez SUPPRIMER pour confirmer.");
-        }
-      }}
-    >
+    <form noValidate className="grid gap-3" onSubmit={(event) => void onSubmit(event)}>
       <p className="text-sm leading-6 text-muted">
         Le compte, les messages et les fichiers personnels sont effacés. Les factures déjà émises restent conservées, avec les paiements qui les justifient, pendant le délai légal.
       </p>
@@ -35,13 +47,12 @@ export function DeleteAccountForm() {
           value={confirm}
           onChange={(event) => {
             setConfirm(event.target.value);
-            setLocalError(null);
+            setError(null);
           }}
           className="min-h-12 rounded-2xl border border-line bg-paper px-4"
         />
       </label>
-      {localError ? <Alert>{localError}</Alert> : null}
-      {state.error ? <Alert>{state.error}</Alert> : null}
+      {error ? <Alert>{error}</Alert> : null}
       <Button type="submit" variant="secondary" disabled={pending}>
         {pending ? "Suppression…" : "Supprimer mon compte"}
       </Button>
