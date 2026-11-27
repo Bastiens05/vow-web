@@ -1565,6 +1565,10 @@ export type Database = {
         Args: { p_wedding: string };
         Returns: { vendor_id: string; user_id: string }[];
       };
+      wedding_guest_names: {
+        Args: { p_wedding: string };
+        Returns: { full_name: string }[];
+      };
       pending_storage_relocations: {
         Args: Record<string, never>;
         Returns: { id: string; bucket_id: string; from_path: string; to_path: string }[];

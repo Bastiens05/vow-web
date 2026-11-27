@@ -26,6 +26,11 @@ export function photoGroupsFromGuests(guests: GuestSeat[]): PlannedGroup[] {
   return groups;
 }
 
+/** Names only. The photographer does not receive a table or a diet. */
+export function photoNames(names: string[]): string[] {
+  return names.map((name) => name.trim()).filter((name) => name.length > 0);
+}
+
 export function coupleSessionSlot(slots: { title: string; startsAt: string }[]): { title: string; startsAt: string } | null {
   return (
     slots.find((slot) => /s[ée]ance\s+couple|photos?\s+du\s+couple|portrait\s+du\s+couple/i.test(slot.title)) ?? null

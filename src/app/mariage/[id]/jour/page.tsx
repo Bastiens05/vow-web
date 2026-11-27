@@ -10,7 +10,7 @@ import { featureEnabled } from "@/lib/domain/plans";
 import { todayIso } from "@/lib/domain/format";
 import { parseTemplateSlots } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/server";
-import { coupleSessionSlot, photoGroupsFromGuests } from "@/lib/domain/photo-plan";
+import { coupleSessionSlot, photoNames } from "@/lib/domain/photo-plan";
 import { goldenHour } from "@/lib/domain/solar";
 import { getWeddingSpace, listTimeline, type SlotView } from "@/server/data";
 import { geocodeAddress } from "@/server/geocode";
@@ -45,11 +45,24 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
   }));
   const couple = space.role === "couple" || space.actingAsCouple;
   const photographer = space.session.vendor?.category === "photographer";
-  const [{ data: guests }, { data: weather }, { data: practical }] = await Promise.all([
-    supabase.from("guests").select("full_name, table_label").eq("wedding_id", id).order("sort_order"),
+  const [{ data: weather }, { data: practical }, guestNames, proposals] = await Promise.all([
     supabase.from("weather_settings").select("latitude, longitude").eq("wedding_id", id).maybeSingle(),
     supabase.from("wedding_practical").select("ceremony_address").eq("wedding_id", id).maybeSingle(),
+    photographer
+      ? supabase.rpc("wedding_guest_names", { p_wedding: id })
+      : Promise.resolve({ data: [] as { full_name: string }[], error: null }),
+    supabase
+      .from("timeline_suggestions")
+      .select("id, slots")
+      .eq("wedding_id", id)
+      .eq("label", "Séance couple")
+      .order("created_at", { ascending: false })
+      .limit(1),
   ]);
+  const namesUnavailable = Boolean(guestNames.error);
+  const names = photoNames((guestNames.data ?? []).map((guest) => guest.full_name));
+  const proposed = parseTemplateSlots(proposals.data?.[0]?.slots).find((slot) => slot.title === "Séance couple");
+  const proposal = proposals.data?.[0] && proposed ? { id: proposals.data[0].id, startsAt: proposed.startsAt, place: proposed.place } : null;
   const storedPoint =
     weather?.latitude != null && weather?.longitude != null
       ? { latitude: weather.latitude, longitude: weather.longitude }
@@ -101,13 +114,16 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
               : null
           }
         />
-        {photographer ? (
+        {photographer || (couple && proposal) ? (
           <PhotoTools
             weddingId={id}
-            groups={photoGroupsFromGuests((guests ?? []).map((guest) => ({ fullName: guest.full_name, tableLabel: guest.table_label })))}
+            names={names}
+            namesUnavailable={namesUnavailable}
             session={coupleSessionSlot(slots.map((slot) => ({ title: slot.title, startsAt: slot.startsAt })))}
+            proposal={proposal}
             light={light}
-            canEdit
+            canPropose={photographer}
+            canAccept={couple}
           />
         ) : null}
         <PhotoQueue

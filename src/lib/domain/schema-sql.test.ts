@@ -152,6 +152,8 @@ describe("migration", () => {
     expect(sql).toContain("function public.delete_my_account()");
     expect(sql).toContain("function public.my_account_files()");
     expect(sql).toContain("function public.wedding_invoice_vendors(p_wedding uuid)");
+    expect(sql).toContain("function public.wedding_guest_names(p_wedding uuid)");
+    expect(sql).toContain("v.category::text = 'photographer'");
     expect(sql).toContain("public.is_wedding_couple(p_wedding)");
     expect(sql).toContain("on delete set null");
     expect(sql).toContain("function public.issue_invoice_from_quote(p_quote uuid)");

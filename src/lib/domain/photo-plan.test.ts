@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coupleSessionSlot, photoGroupsFromGuests } from "./photo-plan";
+import { coupleSessionSlot, photoGroupsFromGuests, photoNames } from "./photo-plan";
 
 describe("plan photo", () => {
   it("builds one group per table from the guest list", () => {
@@ -14,6 +14,10 @@ describe("plan photo", () => {
       { title: "Table Famille", people: "Anne Martin, Louis Martin" },
       { title: "Sans table", people: "Camille" },
     ]);
+  });
+
+  it("keeps only the names for the photographer", () => {
+    expect(photoNames([" Anne Martin ", "", "  ", "Louis"])).toEqual(["Anne Martin", "Louis"]);
   });
 
   it("finds the couple portrait already on the day plan", () => {
