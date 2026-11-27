@@ -74,14 +74,14 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
           Le partage automatique est éteint, sauf si vous le cochez.
         </p>
       </div>
-      {files.length === 0 ? <p className="text-[13px] leading-5 text-ink">Le coffre-fort est vide. Déposez une pièce avec le formulaire ci-dessous.</p> : null}
+      {files.length === 0 ? <p className="text-sm text-muted">Le coffre-fort est vide.</p> : null}
       <ul className="divide-y divide-line">
         {files.map((file) => {
           const freshness = vaultFreshness(file.expiresOn, file.alertDays, today);
           return (
             <li key={file.id} className="py-4">
               <p className="text-sm font-medium">{file.title}</p>
-              <p className="mt-1 text-[13px] leading-5 text-ink">
+              <p className="mt-1 text-xs text-muted">
                 {vendorVaultCategoryLabel(file.category)} · {file.fileName}
                 {file.autoShare ? " · partagé avec chaque nouveau mariage" : ""}
               </p>
@@ -154,7 +154,7 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
           Partager automatiquement avec chaque nouveau mariage
         </label>
         <Field label="Fichier">
-          <input name="file" type="file" required className="block w-full min-w-0 max-w-full text-[13px]" />
+          <input name="file" type="file" required className="block w-full min-w-0 max-w-full text-sm" />
         </Field>
         {error ? <Alert>{error}</Alert> : null}
         <Button type="submit" disabled={uploading}>

@@ -90,10 +90,10 @@ export function WeddingChrome({
         </section>
       ) : mode === "thread" || mode === "quiet" ? null : (
         <header className="mb-8">
-          <p className="text-[13px] font-medium text-ink">{dateLabel}</p>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-accent">{dateLabel}</p>
           <h1 className="mt-2 font-serif text-5xl font-normal tracking-tight text-ink sm:text-6xl">{title}</h1>
-          <p className="mt-2 text-[13px] text-ink">{venue}</p>
-          {roleLine ? <p className="mt-3 text-[13px] font-medium text-ink">{roleLine}</p> : null}
+          <p className="mt-2 text-sm text-muted">{venue}</p>
+          {roleLine ? <p className="mt-3 text-sm font-medium">{roleLine}</p> : null}
         </header>
       )}
       {children}

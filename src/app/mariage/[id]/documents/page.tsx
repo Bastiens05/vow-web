@@ -36,11 +36,11 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
         <HashScroll />
         <header className="min-w-0">
           <h1 className="font-serif text-4xl font-normal tracking-tight text-balance text-ink sm:text-5xl">Documents</h1>
-          <p className="mt-2 max-w-prose text-[13px] leading-5 text-pretty text-ink">Un espace par prestataire.</p>
+          <p className="mt-2 max-w-prose text-sm leading-6 text-pretty text-muted">Un espace par prestataire.</p>
         </header>
         {vendors.length === 0 ? (
           <Card>
-            <p className="text-[13px] text-ink">Aucun prestataire pour l&apos;instant.</p>
+            <p className="text-sm text-muted">Aucun prestataire pour l&apos;instant.</p>
             <AddVendorInvite weddingId={id} />
           </Card>
         ) : null}
@@ -116,7 +116,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
     <div className="mx-auto grid w-full min-w-0 max-w-3xl gap-4">
       <header className="min-w-0">
         <h1 className="font-serif text-4xl font-normal tracking-tight text-balance text-ink sm:text-5xl">Documents</h1>
-        <p className="mt-2 max-w-prose break-words text-[13px] leading-5 text-pretty text-ink">
+        <p className="mt-2 max-w-prose break-words text-sm leading-6 text-pretty text-muted">
           Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
         </p>
       </header>

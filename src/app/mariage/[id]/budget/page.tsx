@@ -13,7 +13,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
     return (
       <Card>
         <h1 className="font-serif text-4xl font-normal tracking-tight text-ink">Budget</h1>
-        <p className="mt-2 text-[13px] text-ink">Le budget reste chez les mariés. Les prestataires ne le voient pas.</p>
+        <p className="mt-2 text-sm text-muted">Le budget reste chez les mariés. Les prestataires ne le voient pas.</p>
       </Card>
     );
   }
@@ -107,7 +107,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
     <div className="grid gap-3">
       <header>
         <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Budget</h1>
-        <p className="mt-2 text-[13px] leading-5 text-ink">Visible seulement par vous. Les factures comptent dans l&apos;engagé.</p>
+        <p className="mt-1 text-sm text-muted">Visible seulement par vous.</p>
       </header>
       <BudgetBoard weddingId={id} totalCents={budget?.total_cents ?? 0} rows={rows} />
     </div>

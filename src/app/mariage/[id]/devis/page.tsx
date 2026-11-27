@@ -56,7 +56,7 @@ export default async function QuotesPage({
     <div className="grid gap-4">
       <Card>
         <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Devis et factures</h1>
-        <p className="mt-2 text-[13px] leading-5 text-ink">Un numéro par prestataire. Le couple voit les montants, pas ceux des autres métiers.</p>
+        <p className="mt-1 text-sm text-muted">Un numéro par prestataire. Le couple voit les montants, pas ceux des autres métiers.</p>
         {query.facture === "erreur" ? (
           <div className="mt-4">
             <Alert>La facture n&apos;a pas pu être créée.</Alert>
@@ -72,8 +72,8 @@ export default async function QuotesPage({
         const year = new Date(quote.created_at).getFullYear();
         return (
           <Card key={quote.id} className="space-y-3">
-            <p className="text-[13px] text-ink">{documentNumber("D", year, quote.number)}</p>
-            <h2 className="font-serif text-2xl font-normal tracking-tight">{quote.title}</h2>
+            <p className="text-xs text-muted">{documentNumber("D", year, quote.number)}</p>
+            <h3 className="text-xl font-semibold">{quote.title}</h3>
             <p>{formatEuros(quote.amount_cents)} · {QUOTE_LABEL[quote.status] ?? quote.status}</p>
             <div className="flex flex-wrap gap-2">
               <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={`/api/quotes/${quote.id}/pdf`}>PDF</a>
@@ -112,13 +112,13 @@ export default async function QuotesPage({
         const settled = invoice.status === "paid" || invoiceSettled(invoice.amount_cents, paid);
         return (
           <Card key={invoice.id} className="space-y-2">
-            <p className="text-[13px] text-ink">{documentNumber("F", year, invoice.number)}</p>
-            <h2 className="font-serif text-2xl font-normal tracking-tight">{invoice.title}</h2>
+            <p className="text-xs text-muted">{documentNumber("F", year, invoice.number)}</p>
+            <h3 className="text-xl font-semibold">{invoice.title}</h3>
             <p>{formatEuros(invoice.amount_cents)} · {settled ? "Acquittée" : "En attente"}</p>
             <p className="text-sm">Reste à payer {formatEuros(remaining)}</p>
-            {invoice.client_name ? <p className="text-[13px] text-ink">Client · {invoice.client_name}</p> : null}
+            {invoice.client_name ? <p className="text-sm text-muted">Client · {invoice.client_name}</p> : null}
             {lines.length > 0 ? (
-              <ul className="grid gap-1 text-[13px] text-ink">
+              <ul className="grid gap-1 text-sm text-muted">
                 {lines.map((payment) => (
                   <li key={payment.id}>
                     {formatLongDate(payment.paid_on)} · {paymentKindLabel(payment.kind)} · {paymentMethodLabel(payment.method)} · {formatEuros(payment.amount_cents)}
@@ -136,21 +136,14 @@ export default async function QuotesPage({
                 </form>
               ) : null}
             </div>
-            {canWrite && !settled ? (
-              <details className="rounded-2xl border border-line px-4 py-3">
-                <summary className="cursor-pointer text-sm font-medium">Enregistrer un paiement</summary>
-                <div className="mt-3">
-                  <PaymentForm weddingId={id} invoiceId={invoice.id} />
-                </div>
-              </details>
-            ) : null}
+            {canWrite && !settled ? <PaymentForm weddingId={id} invoiceId={invoice.id} /> : null}
           </Card>
         );
       })}
       {(deposits.data ?? []).map((deposit) => (
         <Card key={deposit.id} className="space-y-2">
-          <h2 className="font-serif text-2xl font-normal tracking-tight">Acompte {formatEuros(deposit.amount_cents)}</h2>
-          <p className="text-[13px] text-ink">Échéance {formatLongDate(deposit.due_on)} · {deposit.status === "pending" ? "À venir" : deposit.status === "reminded" ? "Relancé" : deposit.status === "paid" ? "Payé" : "Annulé"}</p>
+          <h3 className="text-xl font-semibold">Acompte {formatEuros(deposit.amount_cents)}</h3>
+          <p className="text-sm text-muted">Échéance {formatLongDate(deposit.due_on)} · {deposit.status === "pending" ? "À venir" : deposit.status === "reminded" ? "Relancé" : deposit.status === "paid" ? "Payé" : "Annulé"}</p>
           {!stripeEnabled() ? <p className="text-sm">Paiement en ligne fermé.</p> : null}
           {space.actingAsCouple && deposit.status !== "paid" ? (
             <form action={payDeposit}>
@@ -161,21 +154,12 @@ export default async function QuotesPage({
           ) : null}
         </Card>
       ))}
-      {(quotes.data ?? []).length === 0 && (invoices.data ?? []).length === 0 ? (
-        <Card>
-          <p className="text-[13px] text-ink">Aucun devis pour l&apos;instant.</p>
-          {canWrite ? <p className="mt-2 text-[13px] text-ink">Ouvrez « Nouveau document » pour écrire le premier.</p> : null}
-        </Card>
-      ) : null}
       {canWrite ? (
-        <details className="rounded-3xl border border-line bg-paper p-6">
-          <summary className="cursor-pointer text-sm font-medium">Nouveau document</summary>
-          <div className="mt-4 grid gap-4">
-            <AgreedPriceForm weddingId={id} amount={agreedAmount} />
-            <QuoteForm weddingId={id} category={space.session.vendor?.category ?? null} />
-            <DepositForm weddingId={id} />
-          </div>
-        </details>
+        <>
+          <AgreedPriceForm weddingId={id} amount={agreedAmount} />
+          <QuoteForm weddingId={id} category={space.session.vendor?.category ?? null} />
+          <DepositForm weddingId={id} />
+        </>
       ) : null}
     </div>
   );
