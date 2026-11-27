@@ -27,10 +27,17 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
     supabase.from("invoice_payments").select("vendor_id, amount_cents").eq("wedding_id", id),
   ]);
   const vendors = (directory ?? []).filter((person) => person.member_role === "vendor");
-  const { data: profiles } = vendors.length
-    ? await supabase.from("vendor_profiles").select("id, user_id").in("user_id", vendors.map((person) => person.user_id))
-    : { data: [] as { id: string; user_id: string }[] };
-  const userByProfile = new Map((profiles ?? []).map((profile) => [profile.id, profile.user_id]));
+  const mapped = await supabase.rpc("wedding_invoice_vendors", { p_wedding: id });
+  let userByProfile = new Map<string, string>();
+  if (!mapped.error && mapped.data) {
+    userByProfile = new Map(mapped.data.map((row) => [row.vendor_id, row.user_id]));
+  } else if (vendors.length > 0) {
+    const { data: profiles } = await supabase
+      .from("vendor_profiles")
+      .select("id, user_id")
+      .in("user_id", vendors.map((person) => person.user_id));
+    userByProfile = new Map((profiles ?? []).map((profile) => [profile.id, profile.user_id]));
+  }
   const quoted = new Map<string, number>();
   for (const quote of quotes ?? []) {
     const userId = userByProfile.get(quote.vendor_id);
