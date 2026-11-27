@@ -129,8 +129,28 @@ $$;
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
 
--- The uploader can delete their own object. The second folder is their user id
--- for wedding documents, the vault (coffre) and the gallery.
+create or replace function public.account_deletion_ready()
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  perform public.delete_my_account();
+  raise exception 'account_deletion_probe';
+exception
+  when others then
+    if sqlerrm = 'account_deletion_probe' then
+      return;
+    end if;
+    raise;
+end;
+$$;
+
+revoke all on function public.account_deletion_ready() from public, anon;
+grant execute on function public.account_deletion_ready() to authenticated;
+
+drop policy if exists wedding_documents_delete_own on storage.objects;
 create policy wedding_documents_delete_own on storage.objects
   for delete to authenticated
   using (
@@ -138,6 +158,7 @@ create policy wedding_documents_delete_own on storage.objects
     and (storage.foldername(name))[2] = auth.uid()::text
   );
 
+drop policy if exists wedding_gallery_delete_own on storage.objects;
 create policy wedding_gallery_delete_own on storage.objects
   for delete to authenticated
   using (

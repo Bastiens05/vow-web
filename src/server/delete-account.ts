@@ -23,17 +23,19 @@ export async function deleteSignedInAccount(confirm: string): Promise<{ error: s
     }
     return { error: messageFromError(listed.error) };
   }
-  const ownFolders = await listOwnStorageFolders(supabase, userId);
-  const removed = await removeAccountFiles(supabase, [...(listed.data ?? []), ...ownFolders]);
-  if (removed) return { error: removed };
-
-  const { error } = await supabase.rpc("delete_my_account");
-  if (error) {
-    if (error.message.toLowerCase().includes("storage")) {
-      return { error: "La suppression des fichiers n'est pas passée par l'API Storage. Le compte est resté en place." };
+  const ready = await supabase.rpc("account_deletion_ready");
+  if (ready.error) {
+    const message = ready.error.message.toLowerCase();
+    if (message.includes("could not find") || message.includes("account_deletion_ready")) {
+      return { error: "La suppression de compte n'est pas encore ouverte." };
     }
-    return { error: messageFromError(error) };
+    return { error: messageFromError(ready.error) };
   }
+  const files = [...(listed.data ?? []), ...(await listOwnStorageFolders(supabase, userId))];
+  const removed = await removeAccountFiles(supabase, files);
+  if (removed) return { error: removed };
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) return { error: "Les fichiers sont retirés, mais le compte n'a pas pu être fermé. Réessayez." };
   await supabase.auth.signOut();
   return { ok: true };
 }

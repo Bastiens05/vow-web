@@ -1,7 +1,7 @@
 -- Follow-up to 20261126213739_session_fixes.sql. Do not edit that file.
--- Same RPC signatures. Safe for the application already in production:
--- preview_invitation gains one extra JSON key, accept_invitation(text) still returns a uuid.
--- An issued invoice keeps its text. During a merge only, its wedding key may move.
+-- create or replace only. Safe to run again on a database that already has 20261126213739_session_fixes.
+-- The application on main still calls accept_invitation(text), merge_weddings(uuid, uuid)
+-- and preview_invitation(text). The extra invitee_trade key is ignored by older clients.
 
 create or replace function public.lock_issued_invoice()
 returns trigger
@@ -217,6 +217,11 @@ begin
           accepted_by = uid
       where id = invite.id
         and accepted_at is null;
+      insert into public.notification_reads (notification_id, user_id)
+      select n.id, uid
+      from public.wedding_notifications n
+      where n.wedding_id = kept
+      on conflict (notification_id, user_id) do nothing;
       insert into public.wedding_notifications (wedding_id, author_id, kind, body)
       values (kept, uid, 'reminder', 'Le couple a rejoint le mariage.');
       return kept;
@@ -234,10 +239,16 @@ begin
     and accepted_at is null;
 
   notice := case
-    when invite.invited_role = 'vendor' and invite.invitee_name <> '' then invite.invitee_name || ' a rejoint le mariage.'
+    when invite.invited_role = 'vendor' and btrim(coalesce(invite.invitee_name, '')) <> '' then btrim(invite.invitee_name) || ' a rejoint le mariage.'
     when invite.invited_role = 'vendor' then 'Le prestataire a rejoint le mariage.'
     else 'Le couple a rejoint le mariage.'
   end;
+
+  insert into public.notification_reads (notification_id, user_id)
+  select n.id, uid
+  from public.wedding_notifications n
+  where n.wedding_id = invite.wedding_id
+  on conflict (notification_id, user_id) do nothing;
 
   insert into public.wedding_notifications (wedding_id, author_id, kind, body)
   values (invite.wedding_id, uid, 'reminder', notice);

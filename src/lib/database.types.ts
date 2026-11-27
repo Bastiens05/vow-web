@@ -1559,6 +1559,7 @@ export type Database = {
       decline_invitation: { Args: { p_token: string }; Returns: undefined };
       merge_weddings: { Args: { p_keep: string; p_drop: string }; Returns: string };
       delete_my_account: { Args: Record<string, never>; Returns: undefined };
+      account_deletion_ready: { Args: Record<string, never>; Returns: undefined };
       my_account_files: { Args: Record<string, never>; Returns: { bucket: string; path: string }[] };
       my_pending_invitations: {
         Args: Record<string, never>;

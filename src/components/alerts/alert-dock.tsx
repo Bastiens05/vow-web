@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { InviteDecisionCard } from "@/components/alerts/invite-decision-card";
 import { createClient } from "@/lib/supabase/client";
+import { joinNoticeVisible, type NoticeViewerRole } from "@/lib/domain/notices";
 import { dismissNotice } from "@/server/actions/day";
 
 export function AlertDock({
@@ -14,6 +15,8 @@ export function AlertDock({
   initialUnread = 0,
   inApp = true,
   calm = false,
+  viewerRole = "vendor",
+  children,
 }: {
   initialToast?: string | null;
   initialToastHref?: string | null;
@@ -22,6 +25,8 @@ export function AlertDock({
   initialUnread?: number;
   inApp?: boolean;
   calm?: boolean;
+  viewerRole?: NoticeViewerRole;
+  children?: ReactNode;
 }) {
   const me = useRef<string | null>(null);
   const timer = useRef<number | null>(null);
@@ -100,7 +105,18 @@ export function AlertDock({
         : { data: [] };
       const seenSignupIds = new Set((seenSignups ?? []).map((row) => row.notice_id));
       const freshSignups = (signups ?? []).filter((notice) => !seenSignupIds.has(notice.id));
-      const others = (notes ?? []).filter((note) => note.author_id !== currentUserId);
+      const { data: memberships } = await supabase.from("wedding_members").select("wedding_id, created_at").eq("user_id", currentUserId);
+      const joinedAt = new Map((memberships ?? []).map((row) => [row.wedding_id, row.created_at]));
+      const others = (notes ?? []).filter((note) =>
+        joinNoticeVisible({
+          body: note.body,
+          authorId: note.author_id,
+          viewerId: currentUserId,
+          viewerRole,
+          noticeAt: note.created_at,
+          membershipAt: joinedAt.get(note.wedding_id) ?? null,
+        }),
+      );
       const ids = others.map((note) => note.id);
       const { data: reads } = ids.length
         ? await supabase.from("notification_reads").select("notification_id").in("notification_id", ids)
@@ -145,7 +161,14 @@ export function AlertDock({
           { event: "INSERT", schema: "public", table: "wedding_notifications" },
           (payload) => {
             const row = payload.new as { body?: string; author_id?: string; wedding_id?: string; kind?: string };
-            if (!inApp || !row.body || row.author_id === me.current) return;
+            if (!inApp || !row.body || !joinNoticeVisible({
+              body: row.body,
+              authorId: row.author_id ?? "",
+              viewerId: me.current ?? "",
+              viewerRole,
+              noticeAt: new Date().toISOString(),
+              membershipAt: null,
+            })) return;
             const href = row.kind === "message" && row.wedding_id ? `/mariage/${row.wedding_id}/messages?avec=${row.author_id ?? ""}` : null;
             showToast(row.body, href, typeof payload.new === "object" && payload.new && "id" in payload.new ? String((payload.new as { id?: string }).id ?? "") : null, "wedding");
             setUnread((count) => count + 1);
@@ -203,13 +226,24 @@ export function AlertDock({
       active = false;
       void supabase.removeChannel(channel);
     };
-  }, [inApp]);
+  }, [inApp, viewerRole]);
 
-  if (!userId && !toast) return null;
+  if (!userId && !toast) {
+    return (
+      <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
+        <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="relative">
+      <div className="pointer-events-none fixed right-0 top-0 z-50 md:sticky md:right-auto md:z-40 md:h-0">
+        <div className="pointer-events-auto flex h-14 items-center justify-end gap-0.5 px-3 md:mx-auto md:h-16 md:w-full md:max-w-6xl md:pl-6 md:pr-9">
+          {children}
+          <div className="relative">
         <button
           type="button"
           className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition active:scale-95 hover:bg-ink/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
@@ -250,24 +284,13 @@ export function AlertDock({
             </Link>
           </div>
         ) : null}
+          </div>
+        </div>
       </div>
       {toast ? (
-        <div
-          role="status"
-          className="relative z-10 mx-4 mt-3 max-w-sm rounded-3xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:ml-auto md:mr-6"
-        >
-          {toastHref ? (
-            <Link href={toastHref} className="block text-ivory">
-              {toast}
-            </Link>
-          ) : (
-            <p>{toast}</p>
-          )}
-          <button
-            type="button"
-            className="mt-2 text-xs text-ivory/80"
-            onClick={hideToast}
-          >
+        <div role="status" className="mx-4 mb-2 mt-3 max-w-sm rounded-3xl bg-ink px-4 py-4 text-sm leading-6 text-ivory shadow-lg md:mx-auto md:mt-20 md:max-w-6xl">
+          {toastHref ? <Link href={toastHref} className="block text-ivory">{toast}</Link> : <p>{toast}</p>}
+          <button type="button" className="mt-2 text-xs text-ivory/80" onClick={hideToast}>
             Fermer
           </button>
         </div>

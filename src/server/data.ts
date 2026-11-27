@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { joinNoticeVisible, type NoticeViewerRole } from "@/lib/domain/notices";
 import { notFound } from "next/navigation";
 import type { AppRole, Json, Tables } from "@/lib/database.types";
 import { sortTimelineSlots, weddingTitle } from "@/lib/domain/format";
@@ -411,12 +412,23 @@ export const latestUnreadAlert = cache(async (userId: string) => {
     .limit(1);
   const offer = offers?.[0];
   if (offer) return { id: offer.id, body: offer.body, href: "/nouveautes", source: "grant" as const };
-  const { data: notes } = await supabase
-    .from("wedding_notifications")
-    .select("id, body, author_id")
-    .order("created_at", { ascending: false })
-    .limit(20);
-  const others = (notes ?? []).filter((note) => note.author_id !== userId);
+  const [{ data: profile }, { data: memberships }, { data: notes }] = await Promise.all([
+    supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+    supabase.from("wedding_members").select("wedding_id, created_at").eq("user_id", userId),
+    supabase.from("wedding_notifications").select("id, body, author_id, wedding_id, created_at").order("created_at", { ascending: false }).limit(20),
+  ]);
+  const role: NoticeViewerRole = profile?.role === "couple" ? "couple" : "vendor";
+  const joinedAt = new Map((memberships ?? []).map((row) => [row.wedding_id, row.created_at]));
+  const others = (notes ?? []).filter((note) =>
+    joinNoticeVisible({
+      body: note.body,
+      authorId: note.author_id,
+      viewerId: userId,
+      viewerRole: role,
+      noticeAt: note.created_at,
+      membershipAt: joinedAt.get(note.wedding_id) ?? null,
+    }),
+  );
   if (others.length === 0) return null;
   const ids = others.map((note) => note.id);
   const { data: reads } = await supabase.from("notification_reads").select("notification_id").in("notification_id", ids);
