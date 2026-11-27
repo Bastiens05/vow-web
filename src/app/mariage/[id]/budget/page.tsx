@@ -111,7 +111,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
     });
   }
   return (
-    <div className="grid gap-3">
+    <div className="grid min-w-0 max-w-full gap-3 overflow-x-hidden">
       <header>
         <h1 className="font-serif text-4xl font-normal tracking-tight text-ink sm:text-5xl">Budget</h1>
         <p className="mt-1 text-sm text-muted">Visible seulement par vous.</p>

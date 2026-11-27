@@ -12,6 +12,21 @@ export function isVendorVaultCategory(value: string): value is VendorVaultCatego
   return VENDOR_VAULT_CATEGORIES.some((item) => item.id === value);
 }
 
+export function removalWarning(audience: "couple" | "vendor" | "both"): string {
+  if (audience === "vendor") return "Ce document est partagé. Le retirer l'enlève aussi chez le prestataire.";
+  if (audience === "both") return "Ce document est partagé. Le retirer l'enlève aussi chez le couple et le prestataire.";
+  return "Ce document est partagé. Le retirer l'enlève aussi chez le couple.";
+}
+
+export function shareAudience(recipients: Array<string | null>): "couple" | "vendor" | "both" | null {
+  if (recipients.length === 0) return null;
+  const couple = recipients.some((id) => id == null);
+  const vendor = recipients.some((id) => id != null);
+  if (couple && vendor) return "both";
+  if (vendor) return "vendor";
+  return "couple";
+}
+
 export function vendorVaultCategoryLabel(value: string): string {
   return VENDOR_VAULT_CATEGORIES.find((item) => item.id === value)?.label ?? "Autre";
 }

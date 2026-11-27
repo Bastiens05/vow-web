@@ -8,6 +8,7 @@ import { FrenchDateInput } from "@/components/ui/french-date";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import {
   VENDOR_VAULT_CATEGORIES,
+  removalWarning,
   vaultFreshness,
   vendorVaultCategoryLabel,
   type VendorVaultCategory,
@@ -23,7 +24,7 @@ export type VaultFileRow = {
   expiresOn: string | null;
   alertDays: number;
   autoShare: boolean;
-  shared?: boolean;
+  sharedWith?: "couple" | "vendor" | "both" | null;
 };
 
 export function VendorVaultBoard({ userId, files, today }: { userId: string; files: VaultFileRow[]; today: string }) {
@@ -103,8 +104,8 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
                 <form
                   action={deleteVaultFile}
                   onSubmit={(event) => {
-                    if (!file.shared) return;
-                    if (!window.confirm("Ce document est partagé. Le retirer l'enlève aussi chez le couple.")) event.preventDefault();
+                    if (!file.sharedWith) return;
+                    if (!window.confirm(removalWarning(file.sharedWith))) event.preventDefault();
                   }}
                 >
                   <input type="hidden" name="id" value={file.id} />

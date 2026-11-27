@@ -28,4 +28,14 @@ describe("map places", () => {
       }).map((place) => place.label),
     ).toEqual(["Cérémonie", "Photos"]);
   });
+
+  it("hides a manual réception when Pratique already has one, even at another address", () => {
+    expect(
+      mapPlaces({
+        ceremony: "Mairie de Bordeaux",
+        reception: "Château de Léognan",
+        stops: [{ label: "Réception", address: "Autre salle" }],
+      }).map((place) => place.label),
+    ).toEqual(["Cérémonie", "Réception"]);
+  });
 });

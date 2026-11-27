@@ -31,7 +31,9 @@ const EXTRAS = ["Tenues", "Fleurs et décoration", "Alliances", "Faire-part", "C
 
 export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string; totalCents: number; rows: BudgetRow[] }) {
   const [total, setTotal] = useState(totalCents ? String(totalCents / 100) : "");
+  const [totalFocused, setTotalFocused] = useState(false);
   const [lines, setLines] = useState(rows);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
 
   useEffect(() => {
@@ -46,7 +48,11 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
 
   const cents = Math.round((Number(total.replace(",", ".")) || 0) * 100);
   const engaged = lines.reduce((sum, line) => sum + Math.round(line.euros * 100), 0);
-  const paid = lines.reduce((sum, line) => sum + (line.paidCents ?? (line.paid ? Math.round(line.euros * 100) : 0)), 0);
+  const paid = lines.reduce((sum, line) => {
+    const amount = Math.round(line.euros * 100);
+    const recorded = line.paidCents ?? 0;
+    return sum + (line.paid ? Math.max(recorded, amount) : recorded);
+  }, 0);
   const balance = budgetBalance({ budgetCents: cents, engagedCents: engaged, paidCents: paid });
   const ratio = cents > 0 ? Math.min(1, engaged / cents) : 0;
 
@@ -100,18 +106,23 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
   }
 
   return (
-    <div className="grid gap-4">
-      <section className="rounded-3xl border border-line bg-paper p-5">
+    <div className="grid min-w-0 max-w-full gap-4">
+      <section className="min-w-0 rounded-3xl border border-line bg-paper p-5">
         <label className="block text-sm text-muted" htmlFor="budget-total">
           Budget global
         </label>
         <input
           id="budget-total"
           inputMode="decimal"
-          value={total}
+          value={totalFocused ? total : cents > 0 ? formatBudgetEuros(cents) : ""}
+          onFocus={() => {
+            setTotalFocused(true);
+            setTotal(cents > 0 ? String(cents / 100) : "");
+          }}
+          onBlur={() => setTotalFocused(false)}
           onChange={(event) => setTotal(event.target.value)}
           placeholder="0"
-          className="mt-1 w-full bg-transparent text-5xl font-semibold tracking-tight outline-none"
+          className="mt-1 w-full min-w-0 bg-transparent text-5xl font-semibold tracking-tight outline-none"
         />
         <div className="mt-4 flex items-center gap-4">
           <Ring ratio={ratio} />
@@ -123,7 +134,7 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
         </div>
         {note ? <p className="mt-3 text-xs text-muted">{note}</p> : null}
       </section>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex min-w-0 max-w-full gap-2 overflow-x-auto pb-1">
         <button type="button" className="min-h-11 shrink-0 rounded-full border border-line px-3 text-sm" onClick={() => void suggest()}>
           Répartition suggérée
         </button>
@@ -145,51 +156,71 @@ export function BudgetBoard({ weddingId, totalCents, rows }: { weddingId: string
       </div>
       <ul className="grid gap-2">
         {lines.map((line) => (
-          <li key={line.key} className="flex items-center gap-3 rounded-2xl border border-line bg-paper px-3 py-2">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">
-              {line.label.slice(0, 1)}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{line.label}</span>
-              {line.trade ? <span className="block truncate text-xs text-muted">{line.trade}</span> : null}
-            </span>
-            <input
-              inputMode="decimal"
-              aria-label={`Montant ${line.label}`}
-              value={formatBudgetEuros(Math.round(line.euros * 100))}
-              onChange={(event) =>
-                update(line.key, { euros: Number(event.target.value.replace(/[^\d,.]/g, "").replace(",", ".")) || 0 }, false)
-              }
-              onBlur={() => {
-                const row = lines.find((item) => item.key === line.key);
-                if (row) void persist(row);
-              }}
-              className="w-20 bg-transparent text-right text-sm outline-none"
-            />
-            <button
-              type="button"
-              className={`min-h-11 rounded-full px-3 text-xs ${line.paid ? "bg-ok/15 text-ink" : "border border-line text-muted"}`}
-              onClick={() => update(line.key, { paid: !line.paid })}
-            >
-              {line.paid ? "Payé" : "Marquer payé"}
-            </button>
-            {line.id ? (
+          <li key={line.key} className="min-w-0 rounded-2xl border border-line bg-paper px-3 py-2">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-xs font-medium">
+                {line.label.slice(0, 1)}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{line.label}</span>
+                {line.trade ? <span className="block truncate text-xs text-muted">{line.trade}</span> : null}
+              </span>
+              <input
+                inputMode="decimal"
+                aria-label={`Montant ${line.label}`}
+                value={drafts[line.key] ?? formatBudgetEuros(Math.round(line.euros * 100))}
+                onFocus={() => setDrafts((current) => ({ ...current, [line.key]: String(line.euros) }))}
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  setDrafts((current) => ({ ...current, [line.key]: raw }));
+                  update(line.key, { euros: readEuros(raw) }, false);
+                }}
+                onBlur={(event) => {
+                  const euros = readEuros(event.currentTarget.value);
+                  const next = { ...line, euros };
+                  setLines((current) => current.map((item) => (item.key === line.key ? next : item)));
+                  setDrafts((current) => {
+                    const copy = { ...current };
+                    delete copy[line.key];
+                    return copy;
+                  });
+                  void persist(next);
+                }}
+                className="w-28 shrink-0 bg-transparent text-right text-sm outline-none"
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2 pl-[3.25rem]">
               <button
                 type="button"
-                className="text-xs text-muted underline"
-                onClick={() => {
-                  void removeBudgetLine(weddingId, line.id as string);
-                  setLines((current) => current.filter((item) => item.key !== line.key));
-                }}
+                className={`min-h-11 rounded-full px-3 text-xs ${line.paid ? "bg-ok/15 text-ink" : "border border-line text-muted"}`}
+                onClick={() => update(line.key, { paid: !line.paid })}
               >
-                Retirer
+                {line.paid ? "Payé" : "Marquer payé"}
               </button>
-            ) : null}
+              {line.id ? (
+                <button
+                  type="button"
+                  className="text-xs text-muted underline"
+                  onClick={() => {
+                    void removeBudgetLine(weddingId, line.id as string);
+                    setLines((current) => current.filter((item) => item.key !== line.key));
+                  }}
+                >
+                  Retirer
+                </button>
+              ) : null}
+            </div>
           </li>
         ))}
       </ul>
     </div>
   );
+}
+
+function readEuros(value: string): number {
+  const cleaned = value.replace(/[\s\u00a0\u202f€]/g, "").replace(",", ".");
+  const amount = Number(cleaned);
+  return Number.isFinite(amount) && amount >= 0 ? amount : 0;
 }
 
 function Ring({ ratio }: { ratio: number }) {

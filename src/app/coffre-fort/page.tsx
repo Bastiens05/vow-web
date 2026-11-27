@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { VendorVaultBoard } from "@/components/account/vendor-vault-board";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
+import { isVendorVaultCategory, shareAudience } from "@/lib/domain/vendor-vault";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
 
@@ -20,9 +20,8 @@ export default async function VendorVaultPage() {
     .order("created_at", { ascending: false });
   const fileIds = (vaultFiles ?? []).map((file) => file.id);
   const { data: shares } = fileIds.length
-    ? await supabase.from("vendor_vault_shares").select("file_id").in("file_id", fileIds)
-    : { data: [] };
-  const sharedIds = new Set((shares ?? []).map((row) => row.file_id));
+    ? await supabase.from("vendor_vault_shares").select("file_id, recipient_user_id").in("file_id", fileIds)
+    : { data: [] as { file_id: string; recipient_user_id: string | null }[] };
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-5 py-8 lg:max-w-3xl">
       <PageHeader
@@ -45,7 +44,7 @@ export default async function VendorVaultPage() {
                     expiresOn: file.expires_on,
                     alertDays: file.alert_days,
                     autoShare: file.auto_share,
-                    shared: sharedIds.has(file.id),
+                    sharedWith: shareAudience((shares ?? []).filter((row) => row.file_id === file.id).map((row) => row.recipient_user_id)),
                   },
                 ]
               : [],

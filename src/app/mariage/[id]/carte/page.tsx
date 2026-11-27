@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { DayMap } from "@/components/wedding/day-map";
 import { StopForm } from "@/components/wedding/stop-form";
 import { factsFromJson } from "@/lib/domain/profile";
-import { mapPlaces } from "@/lib/domain/map-places";
+import { mapPlaces, pratiquePlaceLabels } from "@/lib/domain/map-places";
 import { createClient } from "@/lib/supabase/server";
 import { getWeddingSpace } from "@/server/data";
 
@@ -22,15 +22,19 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
   const { data: rainStops } = rain?.active
     ? await supabase.from("rain_stops").select("id, label, address").eq("wedding_id", id).order("sort_order")
     : { data: [] };
-  const stops = rain?.active && (rainStops ?? []).length > 0
+  const stops = [...(rain?.active && (rainStops ?? []).length > 0
     ? (rainStops ?? []).map((stop) => ({ id: stop.id, label: stop.label, address: stop.address, starts_at: null as string | null }))
-    : (data ?? []);
+    : (data ?? []))].sort((a, b) => (a.starts_at ?? "99:99").localeCompare(b.starts_at ?? "99:99"));
   const facts = factsFromJson(slice);
+  const ceremony = facts.ceremony_address || practical?.ceremony_address || "";
+  const reception = facts.reception_address || "";
   const places = mapPlaces({
-    ceremony: facts.ceremony_address || practical?.ceremony_address || "",
-    reception: facts.reception_address || "",
+    ceremony,
+    reception,
     stops: stops.map((stop) => ({ label: stop.label, address: stop.address })),
   });
+  const hiddenKinds = pratiquePlaceLabels(ceremony, reception);
+  const listed = stops.filter((stop) => !hiddenKinds.has(stop.label.trim().toLowerCase()));
   return (
     <div className="grid gap-4">
       <Card>
@@ -44,7 +48,7 @@ export default async function MapPage({ params }: { params: Promise<{ id: string
           <DayMap places={places} />
         </div>
       </Card>
-      {stops.map((stop) => {
+      {listed.map((stop) => {
         const time = stop.starts_at ? stop.starts_at.slice(0, 5) : "";
         return (
           <Card key={stop.id} className="space-y-3">
