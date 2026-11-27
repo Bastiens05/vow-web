@@ -15,7 +15,7 @@ export function AuthDesktopFrame({ children }: { children: ReactNode }) {
           veil="auth"
           priority
         />
-        <Logo variant="white" className="relative z-10" />
+        <Logo variant="white" className="relative z-10 hidden self-start lg:block" />
         <div className="relative z-10">
           <p className="max-w-sm font-serif text-4xl font-normal text-[#f7f3ec]">Le mariage, dans un seul espace.</p>
           <p className="mt-4 max-w-sm text-base leading-7 text-[#f7f3ec]">

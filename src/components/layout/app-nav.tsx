@@ -135,7 +135,7 @@ export async function MobileChrome() {
             <BackControl fallback={context.back.href} label={context.back.label} />
           ) : (
             <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
-              <Logo className="h-[38px] w-auto" />
+              <Logo />
             </Link>
           )}
           <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
@@ -172,8 +172,8 @@ export function PublicHeader({ accounts = true, overlay = false }: { accounts?: 
           : "sticky top-0 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
       }`}
     >
-      <Link href="/" aria-label="VOW">
-        <Logo variant={overlay ? "white" : "ink"} className="h-[38px] w-auto" />
+      <Link href="/" aria-label="VOW" className="shrink-0">
+        <Logo variant={overlay ? "white" : "ink"} />
       </Link>
       <nav className="flex items-center gap-1 text-base sm:gap-3">
         <Link href="/#ce-qui-compte" className="hidden min-h-12 items-center px-3 sm:inline-flex">
