@@ -86,9 +86,10 @@ export function DayMap({ places }: { places: MapPlace[] }) {
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
         if (width < 32 || height < 32) return;
-        const attribution = canvas.querySelector(".maplibregl-ctrl-attrib");
-        const bottomInset = Math.ceil((attribution?.getBoundingClientRect().height ?? 24) + 10);
-        const labelFrame = { width, height, bottomInset, edge: 6 };
+        const attribution = canvas.querySelector(".maplibregl-ctrl-bottom-right") ?? canvas.querySelector(".maplibregl-ctrl-attrib");
+        const attributionHeight = attribution?.getBoundingClientRect().height ?? 24;
+        const bottomInset = Math.ceil(attributionHeight + 16);
+        const labelFrame = { width, height, bottomInset, edge: 8 };
         const groups = clusterMoments(points.map((point) => {
           const projected = created.project([point.longitude, point.latitude]);
           return { x: projected.x, y: projected.y, label: point.label };
@@ -98,7 +99,7 @@ export function DayMap({ places }: { places: MapPlace[] }) {
           const size = badgeSize(text, labelFrame);
           return { x: group.x, y: group.y, w: size.w, h: size.h };
         });
-        const offsets = separateLabels(boxes, labelFrame);
+        const offsets = separateLabels(boxes, labelFrame, 8);
         groups.forEach((group, index) => {
           const text = group.labels.length > 1 ? `${group.labels.length} moments` : (group.labels[0] ?? "");
           const size = boxes[index];
@@ -123,20 +124,24 @@ export function DayMap({ places }: { places: MapPlace[] }) {
           markers.push(marker);
         });
         const container = canvas.getBoundingClientRect();
-        for (const marker of markers) {
+        const measured = markers.map((marker) => {
           const rect = marker.getElement().getBoundingClientRect();
-          let dx = 0;
-          let dy = 0;
-          if (rect.left < container.left + 6) dx = container.left + 6 - rect.left;
-          else if (rect.right > container.right - 6) dx = container.right - 6 - rect.right;
-          if (rect.top < container.top + 6) dy = container.top + 6 - rect.top;
-          else if (rect.bottom > container.bottom - bottomInset) dy = container.bottom - bottomInset - rect.bottom;
-          if (!dx && !dy) continue;
+          return {
+            x: rect.left - container.left + rect.width / 2,
+            y: rect.top - container.top + rect.height / 2,
+            w: rect.width,
+            h: rect.height,
+          };
+        });
+        const fitted = separateLabels(measured, { width: container.width, height: container.height, bottomInset, edge: 8 }, 8);
+        markers.forEach((marker, index) => {
+          const extra = fitted[index];
+          if (!extra || (extra.x === 0 && extra.y === 0)) return;
           const current = marker.getOffset();
           const x = Array.isArray(current) ? current[0] : current.x;
           const y = Array.isArray(current) ? current[1] : current.y;
-          marker.setOffset([x + dx, y + dy]);
-        }
+          marker.setOffset([x + extra.x, y + extra.y]);
+        });
       };
       const schedule = () => {
         cancelAnimationFrame(frame);

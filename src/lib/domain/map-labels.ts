@@ -45,22 +45,69 @@ function hitsEarlier(box: LabelBox, items: LabelBox[], offsets: { x: number; y: 
   });
 }
 
+function freeOffset(
+  item: LabelBox,
+  candidate: { x: number; y: number },
+  items: LabelBox[],
+  offsets: { x: number; y: number }[],
+  index: number,
+  frame: LabelFrame | undefined,
+  gap: number,
+): boolean {
+  const box = placedBox(item, candidate);
+  if (frame && !inside(box, frame)) return false;
+  return !hitsEarlier(box, items, offsets, index, gap);
+}
+
+/** Positions inside the map, nearest to the clamped pin first. Off-screen pins no longer collapse onto one corner. */
+function frameSlots(item: LabelBox, preferred: { x: number; y: number }, frame: LabelFrame, gap: number): { x: number; y: number }[] {
+  const edge = frame.edge ?? 4;
+  const maxX = frame.width - edge - item.w;
+  const maxY = frame.height - frame.bottomInset - item.h;
+  const slots: { x: number; y: number }[] = [];
+  const stepY = Math.max(8, item.h + gap);
+  const stepX = Math.max(8, Math.round(item.w / 2));
+  for (let top = edge; top <= maxY + 0.5; top += stepY) {
+    for (let left = edge; left <= maxX + 0.5; left += stepX) {
+      slots.push({
+        x: left + item.w / 2 - item.x,
+        y: top + item.h / 2 - item.y,
+      });
+    }
+  }
+  const preferredBox = placedBox(item, preferred);
+  slots.sort((a, b) => {
+    const aBox = placedBox(item, a);
+    const bBox = placedBox(item, b);
+    const aDist = (aBox.x - preferredBox.x) ** 2 + (aBox.y - preferredBox.y) ** 2;
+    const bDist = (bBox.x - preferredBox.x) ** 2 + (bBox.y - preferredBox.y) ** 2;
+    return aDist - bDist;
+  });
+  return slots;
+}
+
 /** Pixel offsets so labels stay readable, inside the map, and clear of the attribution. */
 export function separateLabels(items: LabelBox[], frame?: LabelFrame, gap = 6): { x: number; y: number }[] {
   const offsets = items.map(() => ({ x: 0, y: 0 }));
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (!item) continue;
-    let chosen = frame ? clampOffset(item, { x: 0, y: 0 }, frame) : { x: 0, y: 0 };
+    const preferred = frame ? clampOffset(item, { x: 0, y: 0 }, frame) : { x: 0, y: 0 };
+    let chosen = preferred;
     const limit = frame ? Math.max(frame.width, frame.height) : 240;
-    let found = false;
-    for (let radius = 0; radius <= limit && !found; radius += 8) {
-      const samples = radius === 0 ? [{ x: 0, y: 0 }] : ring(radius);
-      for (const raw of samples) {
+    let found = freeOffset(item, preferred, items, offsets, i, frame, gap);
+    for (let radius = 8; radius <= limit && !found; radius += 8) {
+      for (const raw of ring(radius)) {
         const candidate = frame ? clampOffset(item, raw, frame) : raw;
-        const box = placedBox(item, candidate);
-        if (frame && !inside(box, frame)) continue;
-        if (hitsEarlier(box, items, offsets, i, gap)) continue;
+        if (!freeOffset(item, candidate, items, offsets, i, frame, gap)) continue;
+        chosen = candidate;
+        found = true;
+        break;
+      }
+    }
+    if (!found && frame) {
+      for (const candidate of frameSlots(item, preferred, frame, gap)) {
+        if (!freeOffset(item, candidate, items, offsets, i, frame, gap)) continue;
         chosen = candidate;
         found = true;
         break;

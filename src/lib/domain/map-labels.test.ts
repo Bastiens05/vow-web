@@ -79,6 +79,36 @@ describe("map labels", () => {
     expect(zoomed).toHaveLength(3);
   });
 
+  it("stacks labels that would otherwise collapse into the same corner", () => {
+    const frame = { width: 320, height: 288, bottomInset: 48, edge: 6 };
+    const boxes = [
+      { x: -240, y: -180, w: 72, h: 28 },
+      { x: -200, y: -160, w: 72, h: 28 },
+    ];
+    const offsets = separateLabels(boxes, frame, 8);
+    const placed = boxes.map((box, index) => ({
+      x: box.x + (offsets[index]?.x ?? 0) - box.w / 2,
+      y: box.y + (offsets[index]?.y ?? 0) - box.h / 2,
+      w: box.w,
+      h: box.h,
+    }));
+    expect(covers(placed[0]!, placed[1]!)).toBe(false);
+    for (const box of placed) {
+      expect(box.x).toBeGreaterThanOrEqual(6);
+      expect(box.y).toBeGreaterThanOrEqual(6);
+      expect(box.x + box.w).toBeLessThanOrEqual(314);
+      expect(box.y + box.h).toBeLessThanOrEqual(288 - 48);
+    }
+  });
+
+  it("keeps a label clear of the attribution band", () => {
+    const frame = { width: 320, height: 288, bottomInset: 48, edge: 6 };
+    const ceremony = { x: 200, y: 270, w: 110, h: 28 };
+    const [offset] = separateLabels([ceremony], frame, 8);
+    const bottom = ceremony.y + (offset?.y ?? 0) + ceremony.h / 2;
+    expect(bottom).toBeLessThanOrEqual(288 - 48);
+  });
+
   it("leaves distant labels where they are", () => {
     expect(separateLabels([
       { x: 10, y: 10, w: 40, h: 20 },
