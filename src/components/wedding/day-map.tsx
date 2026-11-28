@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AddressSuggestion } from "@/lib/domain/address";
-import { separateLabels } from "@/lib/domain/map-labels";
+import { badgeSize, clusterMoments, separateLabels } from "@/lib/domain/map-labels";
 import { appleDirectionsTo, appleDirectionsUrl, googleDirectionsTo, googleDirectionsUrl } from "@/lib/domain/maps";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -19,6 +19,7 @@ export function DayMap({ places }: { places: MapPlace[] }) {
   const [points, setPoints] = useState<Point[]>([]);
   const [legs, setLegs] = useState<Leg[]>([]);
   const [ready, setReady] = useState(false);
+  const [moments, setMoments] = useState<string[] | null>(null);
   const key = places.map((place) => `${place.label}|${place.address}`).join("\n");
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export function DayMap({ places }: { places: MapPlace[] }) {
     if (!node.current || points.length === 0) return;
     let map: { remove: () => void } | null = null;
     let cancel = false;
+    let frame = 0;
     void import("maplibre-gl").then((maplibre) => {
       if (cancel || !node.current) return;
       maplibre.setWorkerUrl(`${window.location.origin}/maplibre-gl-worker.mjs`);
@@ -75,45 +77,79 @@ export function DayMap({ places }: { places: MapPlace[] }) {
         zoom: 13,
       });
       const bounds = new maplibre.LngLatBounds();
-      const markers = points.map((point) => {
-        const label = document.createElement("div");
-        label.textContent = point.label;
-        label.className = "rounded-full bg-ink px-2 py-1 text-xs font-medium text-ivory shadow whitespace-nowrap";
-        const marker = new maplibre.Marker({ element: label, anchor: "center" }).setLngLat([point.longitude, point.latitude]).addTo(created);
-        bounds.extend([point.longitude, point.latitude]);
-        return marker;
-      });
+      for (const point of points) bounds.extend([point.longitude, point.latitude]);
+      const markers: { remove: () => void; getElement: () => HTMLElement; getOffset: () => { x: number; y: number } | [number, number]; setOffset: (offset: [number, number]) => void }[] = [];
       const spread = () => {
+        for (const marker of markers) marker.remove();
+        markers.length = 0;
         const canvas = created.getContainer();
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        if (width < 32 || height < 32) return;
         const attribution = canvas.querySelector(".maplibregl-ctrl-attrib");
         const bottomInset = Math.ceil((attribution?.getBoundingClientRect().height ?? 24) + 10);
-        const boxes = markers.map((marker, index) => {
-          const point = points[index];
-          const projected = point ? created.project([point.longitude, point.latitude]) : { x: 0, y: 0 };
-          const element = marker.getElement();
-          element.style.maxWidth = `${Math.max(72, canvas.clientWidth - 16)}px`;
-          const width = element.offsetWidth || Math.max(48, (point?.label.length ?? 4) * 7 + 16);
-          const height = element.offsetHeight || 24;
-          return { x: projected.x, y: projected.y, w: width, h: height };
+        const labelFrame = { width, height, bottomInset, edge: 6 };
+        const groups = clusterMoments(points.map((point) => {
+          const projected = created.project([point.longitude, point.latitude]);
+          return { x: projected.x, y: projected.y, label: point.label };
+        }));
+        const boxes = groups.map((group) => {
+          const text = group.labels.length > 1 ? `${group.labels.length} moments` : (group.labels[0] ?? "");
+          const size = badgeSize(text, labelFrame);
+          return { x: group.x, y: group.y, w: size.w, h: size.h };
         });
-        const offsets = separateLabels(boxes, {
-          width: canvas.clientWidth,
-          height: canvas.clientHeight,
-          bottomInset,
-          edge: 6,
-        });
-        markers.forEach((marker, index) => {
+        const offsets = separateLabels(boxes, labelFrame);
+        groups.forEach((group, index) => {
+          const text = group.labels.length > 1 ? `${group.labels.length} moments` : (group.labels[0] ?? "");
+          const size = boxes[index];
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = text;
+          button.className = "rounded-full bg-ink px-2 py-1 text-center text-xs font-medium leading-4 text-ivory shadow";
+          button.style.width = `${size?.w ?? 72}px`;
+          button.style.whiteSpace = "normal";
+          if (group.labels.length > 1) {
+            button.setAttribute("aria-expanded", "false");
+            button.setAttribute("aria-label", group.labels.join(", "));
+            button.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setMoments(group.labels);
+            });
+          }
+          const lngLat = created.unproject([group.x, group.y]);
           const offset = offsets[index] ?? { x: 0, y: 0 };
-          marker.setOffset([offset.x, offset.y]);
+          const marker = new maplibre.Marker({ element: button, anchor: "center" }).setLngLat(lngLat).setOffset([offset.x, offset.y]).addTo(created);
+          markers.push(marker);
         });
+        const container = canvas.getBoundingClientRect();
+        for (const marker of markers) {
+          const rect = marker.getElement().getBoundingClientRect();
+          let dx = 0;
+          let dy = 0;
+          if (rect.left < container.left + 6) dx = container.left + 6 - rect.left;
+          else if (rect.right > container.right - 6) dx = container.right - 6 - rect.right;
+          if (rect.top < container.top + 6) dy = container.top + 6 - rect.top;
+          else if (rect.bottom > container.bottom - bottomInset) dy = container.bottom - bottomInset - rect.bottom;
+          if (!dx && !dy) continue;
+          const current = marker.getOffset();
+          const x = Array.isArray(current) ? current[0] : current.x;
+          const y = Array.isArray(current) ? current[1] : current.y;
+          marker.setOffset([x + dx, y + dy]);
+        }
       };
-      if (points.length > 1) created.fitBounds(bounds, { padding: { top: 36, bottom: 64, left: 48, right: 48 }, maxZoom: 15 });
-      created.on("moveend", spread);
+      const schedule = () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(spread);
+      };
+      if (points.length > 1) created.fitBounds(bounds, { padding: { top: 48, bottom: 72, left: 28, right: 28 }, maxZoom: 15 });
+      created.on("move", schedule);
       created.once("idle", spread);
       map = created;
     });
     return () => {
       cancel = true;
+      cancelAnimationFrame(frame);
       map?.remove();
     };
   }, [points]);
@@ -124,6 +160,13 @@ export function DayMap({ places }: { places: MapPlace[] }) {
   return (
     <div className="grid gap-3">
       <div ref={node} className="h-72 w-full overflow-hidden rounded-2xl bg-mist" />
+      {moments && moments.length > 1 ? (
+        <ul className="grid gap-1 rounded-2xl border border-line bg-paper px-4 py-3 text-sm" aria-label="Moments à ce repère">
+          {moments.map((label) => (
+            <li key={label}>{label}</li>
+          ))}
+        </ul>
+      ) : null}
       {ready && points.length === 0 ? <p className="text-sm text-muted">Ces adresses n&apos;ont pas été trouvées.</p> : null}
       <ul className="grid gap-2">
         {places.filter((place) => place.address.trim().length > 2).map((place, index, list) => {

@@ -18,8 +18,10 @@ export function PublicHeader() {
     if (!home) return;
     const update = () => {
       const hero = document.getElementById("vow-hero");
-      if (!hero) return;
-      setOnPhoto(hero.getBoundingClientRect().bottom > 64);
+      const title = hero?.querySelector("h1");
+      const header = document.querySelector("[data-public-header]");
+      if (!hero || !title || !header) return;
+      setOnPhoto(title.getBoundingClientRect().top > header.getBoundingClientRect().bottom);
     };
     update();
     const observer = new MutationObserver(update);
@@ -37,6 +39,7 @@ export function PublicHeader() {
   const solidHome = home && !onPhoto;
   return (
     <header
+      data-public-header
       className={`z-30 flex items-center justify-between gap-2 px-4 sm:gap-3 sm:px-5 ${
         overlay
           ? "fixed inset-x-0 top-0 h-16 border-0 bg-transparent text-[#f7f3ec]"

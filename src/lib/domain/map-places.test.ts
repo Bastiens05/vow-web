@@ -16,17 +16,19 @@ describe("map places", () => {
     ]);
   });
 
-  it("does not show the ceremony a second time as the reception", () => {
+  it("keeps each moment when the ceremony and the reception share an address", () => {
     expect(
       mapPlaces({
         ceremony: "Mairie de Bordeaux",
         reception: "Mairie de Bordeaux",
         stops: [
           { label: "Cérémonie", address: "mairie de bordeaux" },
+          { label: "Vin d'honneur", address: "Mairie de Bordeaux" },
+          { label: "Dessert", address: "Mairie de Bordeaux" },
           { label: "Photos", address: "Jardin public" },
         ],
       }).map((place) => place.label),
-    ).toEqual(["Cérémonie", "Photos"]);
+    ).toEqual(["Cérémonie", "Réception", "Vin d'honneur", "Dessert", "Photos"]);
   });
 
   it("orders Pratique and the extra places by time", () => {

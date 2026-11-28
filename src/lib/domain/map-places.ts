@@ -20,7 +20,7 @@ function clock(value: string | null | undefined): number | null {
   return weddingDayMinutes(`${match[1].padStart(2, "0")}:${match[2]}`);
 }
 
-/** Every place, including Pratique, in time order. The same address, or the same kind of place, is kept once. */
+/** Every place, including Pratique, in time order. The same moment at the same address is kept once. */
 export function mapPlaces(input: {
   ceremony: string;
   ceremonyTime?: string | null;
@@ -50,7 +50,7 @@ export function mapPlaces(input: {
   const places: MapPlace[] = [];
   const seen = new Set<string>();
   for (const row of rows) {
-    const key = keyOf(row.address);
+    const key = `${keyOf(row.address)}|${row.label.trim().toLowerCase()}`;
     if (seen.has(key)) continue;
     seen.add(key);
     places.push({ label: row.label, address: row.address });
