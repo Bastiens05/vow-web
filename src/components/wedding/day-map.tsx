@@ -84,21 +84,30 @@ export function DayMap({ places }: { places: MapPlace[] }) {
         return marker;
       });
       const spread = () => {
+        const canvas = created.getContainer();
+        const attribution = canvas.querySelector(".maplibregl-ctrl-attrib");
+        const bottomInset = Math.ceil((attribution?.getBoundingClientRect().height ?? 24) + 10);
         const boxes = markers.map((marker, index) => {
           const point = points[index];
           const projected = point ? created.project([point.longitude, point.latitude]) : { x: 0, y: 0 };
           const element = marker.getElement();
+          element.style.maxWidth = `${Math.max(72, canvas.clientWidth - 16)}px`;
           const width = element.offsetWidth || Math.max(48, (point?.label.length ?? 4) * 7 + 16);
           const height = element.offsetHeight || 24;
           return { x: projected.x, y: projected.y, w: width, h: height };
         });
-        const offsets = separateLabels(boxes);
+        const offsets = separateLabels(boxes, {
+          width: canvas.clientWidth,
+          height: canvas.clientHeight,
+          bottomInset,
+          edge: 6,
+        });
         markers.forEach((marker, index) => {
           const offset = offsets[index] ?? { x: 0, y: 0 };
           marker.setOffset([offset.x, offset.y]);
         });
       };
-      if (points.length > 1) created.fitBounds(bounds, { padding: 72, maxZoom: 15 });
+      if (points.length > 1) created.fitBounds(bounds, { padding: { top: 36, bottom: 64, left: 48, right: 48 }, maxZoom: 15 });
       created.on("moveend", spread);
       created.once("idle", spread);
       map = created;

@@ -25,6 +25,22 @@ describe("map labels", () => {
     expect(covers(photoBox, dessertBox)).toBe(false);
   });
 
+  it("keeps a low label inside the frame and above the attribution", () => {
+    const frame = { width: 320, height: 502, bottomInset: 36, edge: 4 };
+    const session = { x: 160, y: 490, w: 120, h: 24 };
+    const [offset] = separateLabels([session], frame);
+    const box = {
+      x: session.x + (offset?.x ?? 0) - session.w / 2,
+      y: session.y + (offset?.y ?? 0) - session.h / 2,
+      w: session.w,
+      h: session.h,
+    };
+    expect(box.x).toBeGreaterThanOrEqual(4);
+    expect(box.y).toBeGreaterThanOrEqual(4);
+    expect(box.x + box.w).toBeLessThanOrEqual(316);
+    expect(box.y + box.h).toBeLessThanOrEqual(502 - 36);
+  });
+
   it("leaves distant labels where they are", () => {
     expect(separateLabels([
       { x: 10, y: 10, w: 40, h: 20 },
