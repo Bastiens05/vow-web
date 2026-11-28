@@ -6,7 +6,7 @@ import { FileDrop } from "@/components/ui/file-drop";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
-import { categoryLabel, type VendorCategory } from "@/lib/domain/categories";
+import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
 import { prepareLogoFile } from "@/lib/images/prepare-logo";
 import { saveDiscoverable } from "@/server/actions/vendor-search";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
@@ -72,13 +72,11 @@ export function BusinessForm({
   category,
   city,
   phone,
-  categories,
 }: {
   businessName: string;
   category: VendorCategory | null;
   city: string;
   phone: string;
-  categories: readonly VendorCategory[];
 }) {
   const [state, action, pending] = useActionState(saveBusinessBasics, {});
   return (
@@ -89,8 +87,8 @@ export function BusinessForm({
       <Field label="Métier">
         <SelectInput name="category" defaultValue={category ?? ""} required>
           <option value="">Choisir un métier</option>
-          {category && !categories.includes(category) ? <option value={category}>{categoryLabel(category)}</option> : null}
-          {categories.map((value) => (
+          {category && !(VENDOR_CATEGORIES as readonly string[]).includes(category) ? <option value={category}>{categoryLabel(category)}</option> : null}
+          {VENDOR_CATEGORIES.map((value) => (
             <option key={value} value={value}>
               {categoryLabel(value)}
             </option>

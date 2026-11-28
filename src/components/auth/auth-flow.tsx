@@ -26,7 +26,6 @@ export function AuthFlow({
   initialPlan,
   initialBusinessName = "",
   notice,
-  vendorCategories = VENDOR_CATEGORIES,
 }: {
   mode: "login" | "signup";
   nextPath: string;
@@ -38,7 +37,6 @@ export function AuthFlow({
   initialPlan?: VendorPlan;
   initialBusinessName?: string;
   notice?: ReactNode;
-  vendorCategories?: readonly VendorCategory[];
 }) {
   const invite = nextPath.startsWith("/invitation/") || nextPath.startsWith("/equipe/");
   const vendorInvite = invite && lockedRole === "vendor";
@@ -57,7 +55,7 @@ export function AuthFlow({
   );
   const [email, setEmail] = useState(initialEmail);
   const [category, setCategory] = useState<VendorCategory | null>(
-    initialCategory && vendorCategories.includes(initialCategory) ? initialCategory : (vendorCategories[0] ?? null),
+    initialCategory && (VENDOR_CATEGORIES as readonly string[]).includes(initialCategory) ? initialCategory : (VENDOR_CATEGORIES[0] ?? null),
   );
   const [businessName, setBusinessName] = useState(initialBusinessName);
   const [city, setCity] = useState("");
@@ -142,7 +140,7 @@ export function AuthFlow({
               <RoleChoice selected="vendor" />
               <input type="hidden" name="category" value={category ?? ""} />
               <div className="flex flex-wrap gap-2">
-                {vendorCategories.map((value) => (
+                {VENDOR_CATEGORIES.map((value) => (
                   <button
                     key={value}
                     type="button"

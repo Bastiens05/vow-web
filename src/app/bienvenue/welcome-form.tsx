@@ -6,22 +6,11 @@ import { AuthDesktopFrame } from "@/components/auth/auth-frame";
 import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { LogoField } from "@/components/account/settings-forms";
-import { categoryLabel, type VendorCategory } from "@/lib/domain/categories";
+import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
 import { completeVendor } from "@/server/actions/auth";
 
-export function WelcomeForm({
-  logo,
-  userId,
-  logoPath,
-  categories,
-}: {
-  logo: boolean;
-  userId: string;
-  logoPath: string | null;
-  categories: readonly VendorCategory[];
-}) {
-  const choices = categories.length > 0 ? categories : (["photographer"] as const);
-  const [category, setCategory] = useState<VendorCategory>(choices[0] ?? "photographer");
+export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId: string; logoPath: string | null }) {
+  const [category, setCategory] = useState<VendorCategory>(VENDOR_CATEGORIES[0]);
   const [state, action, pending] = useActionState(completeVendor, {});
   if (logo) {
     return (
@@ -51,7 +40,7 @@ export function WelcomeForm({
       <p className="mt-2 text-base leading-7 text-muted">Le nom, le métier et la ville. Le reste viendra après.</p>
       <form action={action} className="mt-8 grid gap-4">
         <div className="flex flex-wrap gap-2">
-          {choices.map((value) => (
+          {VENDOR_CATEGORIES.map((value) => (
             <button
               key={value}
               type="button"

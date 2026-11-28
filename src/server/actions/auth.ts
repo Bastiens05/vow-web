@@ -16,7 +16,6 @@ import { landingPath } from "@/server/auth-landing";
 import { materializeSignup } from "@/server/signup-materialize";
 import { requireSession } from "@/server/session";
 import { serviceClient } from "@/server/service";
-import { categoryIsOpen } from "@/server/vendor-categories";
 
 export type ActionState = {
   error?: string;
@@ -68,9 +67,6 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   }
   if (role === "couple" && (intent.partnerOne || intent.partnerTwo || intent.weddingDate) && !coupleIntentReady(intent)) {
     return { error: "Indiquez le prénom, le nom et la date du mariage." };
-  }
-  if (role === "vendor" && intent.category && !(await categoryIsOpen(intent.category))) {
-    return { error: "Ce métier n'est pas encore disponible." };
   }
 
   const destination = invited ? requested : "/espace";
@@ -180,7 +176,6 @@ export async function completeVendor(_prev: ActionState, formData: FormData): Pr
   const city = String(formData.get("city") ?? "").trim();
   if (businessName.length < 2 || businessName.length > 120) return { error: "Indiquez le nom de votre activité." };
   if (!isVendorCategory(category)) return { error: "Choisissez votre métier." };
-  if (!(await categoryIsOpen(category))) return { error: "Ce métier n'est pas encore disponible." };
   if (city.length < 2 || city.length > 120) return { error: "Indiquez votre ville." };
 
   const supabase = await createClient();

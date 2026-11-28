@@ -6,7 +6,6 @@ import { isVendorPlan } from "@/lib/domain/plans";
 import { safeNextPath } from "@/lib/domain/paths";
 import { hasPublicSupabaseEnv } from "@/lib/env";
 import { redirectSignedInHome } from "@/server/signed-in-home";
-import { openVendorCategories } from "@/server/vendor-categories";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Inscription" };
@@ -36,7 +35,6 @@ export default async function SignupPage({
       initialFullName={fullName || undefined}
       initialBusinessName={params.business?.trim().slice(0, 120) || undefined}
       initialPlan={params.plan && isVendorPlan(params.plan) ? params.plan : invite?.plan && isVendorPlan(invite.plan) ? invite.plan : undefined}
-      vendorCategories={await openVendorCategories()}
     />
   );
 }

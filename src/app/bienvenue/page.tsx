@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { WelcomeForm } from "@/app/bienvenue/welcome-form";
 import { getSession } from "@/server/session";
-import { openVendorCategories } from "@/server/vendor-categories";
 
 export default async function WelcomePage({
   searchParams,
@@ -17,7 +16,6 @@ export default async function WelcomePage({
       logo={params.etape === "logo"}
       userId={session.userId}
       logoPath={session.vendor?.logo_path ?? null}
-      categories={await openVendorCategories()}
     />
   );
 }
