@@ -110,6 +110,7 @@ export type Database = {
           website?: string;
           instagram?: string;
           weddings_per_year?: string;
+          music_kind?: string | null;
           starting_price_cents?: number | null;
           currency?: string;
           published?: boolean;

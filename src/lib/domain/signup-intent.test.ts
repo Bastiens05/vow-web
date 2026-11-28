@@ -23,6 +23,14 @@ describe("signup gaps", () => {
     );
     const vendor = readSignupIntent(new FormData(), "vendor");
     expect(vendorInviteReady(vendor)).toBe(false);
+    const dj = new FormData();
+    dj.set("category", "dj");
+    dj.set("music_kind", "choir");
+    expect(readSignupIntent(dj, "vendor").musicKind).toBe("choir");
+    const photographer = new FormData();
+    photographer.set("category", "photographer");
+    photographer.set("music_kind", "choir");
+    expect(readSignupIntent(photographer, "vendor").musicKind).toBe("");
     expect(signupMissing({ email: "", password: "", emailValid: false, kind: "invite-vendor", intent: vendor })).toEqual([
       "un e-mail valide",
       "un mot de passe d'au moins 8 caractères",

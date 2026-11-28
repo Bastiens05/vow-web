@@ -21,6 +21,7 @@ export async function materializeSignup(supabase: Client, userId: string, intent
         website: intent.website,
         instagram: intent.instagram,
         weddings_per_year: intent.weddingsPerYear,
+        ...(intent.category === "dj" && intent.musicKind ? { music_kind: intent.musicKind } : {}),
       });
       if (error) return messageFromError(error);
     }
