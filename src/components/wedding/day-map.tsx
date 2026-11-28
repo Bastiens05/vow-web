@@ -110,7 +110,7 @@ export function DayMap({ places }: { places: MapPlace[] }) {
           button.style.whiteSpace = "normal";
           if (group.labels.length > 1) {
             button.setAttribute("aria-expanded", "false");
-            button.setAttribute("aria-label", group.labels.join(", "));
+            button.setAttribute("aria-label", `${text}. ${group.labels.join(", ")}`);
             button.addEventListener("click", (event) => {
               event.preventDefault();
               event.stopPropagation();
