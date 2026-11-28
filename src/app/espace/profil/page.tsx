@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ButtonLink } from "@/components/ui/button";
 import { getVendorEditor } from "@/server/data";
 import { requireSession } from "@/server/session";
+import { openVendorCategories } from "@/server/vendor-categories";
 import { siteUrl } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Ma vitrine" };
@@ -48,7 +49,7 @@ export default async function ProfilePage() {
         </Card>
       ) : null}
       <Card>
-        <ProfileForm vendor={vendor} />
+        <ProfileForm vendor={vendor} categories={await openVendorCategories()} />
       </Card>
       {vendor ? (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">

@@ -24,6 +24,7 @@ import { siteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { rotateCalendar } from "@/server/actions/suite";
 import { requireSession } from "@/server/session";
+import { openVendorCategories } from "@/server/vendor-categories";
 import { ClientDocumentSettings } from "@/components/account/client-document-settings";
 import { VendorVaultBoard } from "@/components/account/vendor-vault-board";
 import { isVendorVaultCategory, shareAudience } from "@/lib/domain/vendor-vault";
@@ -90,6 +91,7 @@ export default async function SettingsPage() {
             category={session.vendor?.category ?? null}
             city={session.vendor?.city ?? ""}
             phone={session.vendor?.contact_phone ?? ""}
+            categories={await openVendorCategories()}
           />
           {session.vendor ? <LogoField userId={session.userId} logoPath={session.vendor.logo_path} /> : null}
           {session.vendor ? (

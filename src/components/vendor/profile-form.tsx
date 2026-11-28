@@ -5,7 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AddressInput } from "@/components/ui/address-input";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/field";
-import { MUSIC_KINDS, VENDOR_CATEGORIES, categoryLabel, isMusicKind, musicKindLabel } from "@/lib/domain/categories";
+import { MUSIC_KINDS, categoryLabel, isMusicKind, isVendorCategory, musicKindLabel, type VendorCategory } from "@/lib/domain/categories";
 import type { Tables } from "@/lib/database.types";
 import type { ActionState } from "@/server/actions/auth";
 import { saveVendorProfile } from "@/server/actions/vendor";
@@ -15,7 +15,7 @@ function centsToInput(cents: number | null): string {
   return (cents / 100).toLocaleString("fr-FR", { maximumFractionDigits: 2 });
 }
 
-export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | null }) {
+export function ProfileForm({ vendor, categories }: { vendor: Tables<"vendor_profiles"> | null; categories: readonly VendorCategory[] }) {
   const [state, action, pending] = useActionState(saveVendorProfile, {} as ActionState);
   return (
     <form action={action} className="space-y-4">
@@ -29,8 +29,10 @@ export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | nu
         <Field label="Catégorie">
           <SelectInput name="category" defaultValue={vendor?.category ?? ""} required>
             <option value="">Choisir un métier</option>
-            {vendor?.category === "beauty" ? <option value="beauty">{categoryLabel("beauty")}</option> : null}
-            {VENDOR_CATEGORIES.map((category) => (
+            {vendor?.category === "beauty" || (vendor?.category && isVendorCategory(vendor.category) && !categories.includes(vendor.category)) ? (
+              <option value={vendor.category}>{categoryLabel(vendor.category)}</option>
+            ) : null}
+            {categories.map((category) => (
               <option key={category} value={category}>
                 {categoryLabel(category)}
               </option>

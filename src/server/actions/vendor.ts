@@ -7,6 +7,7 @@ import { validateOffer, validateVendorProfile } from "@/lib/domain/validation";
 import { emptyPromo, parsePromo } from "@/lib/domain/promo";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/server/session";
+import { categoryIsOpen } from "@/server/vendor-categories";
 import type { ActionState } from "@/server/actions/auth";
 
 export async function saveVendorProfile(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -27,6 +28,7 @@ export async function saveVendorProfile(_prev: ActionState, formData: FormData):
     published: formData.get("published") === "on",
   });
   if (!parsed.ok) return { error: parsed.error };
+  if (!(await categoryIsOpen(parsed.value.category))) return { error: "Ce métier n'est pas encore disponible." };
 
   const supabase = await createClient();
   const payload = {

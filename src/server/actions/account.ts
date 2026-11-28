@@ -9,6 +9,7 @@ import { messageFromError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
 import { requireSession } from "@/server/session";
+import { categoryIsOpen } from "@/server/vendor-categories";
 
 export async function saveAccountName(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireSession();
@@ -64,6 +65,7 @@ export async function saveBusinessBasics(_prev: ActionState, formData: FormData)
   if (city.length > 120) return { error: "La ville est trop longue." };
   if (phone.length > 40) return { error: "Le téléphone est trop long." };
   if (!isVendorCategory(category)) return { error: "Choisissez un métier." };
+  if (!(await categoryIsOpen(category))) return { error: "Ce métier n'est pas encore disponible." };
 
   const supabase = await createClient();
   if (session.vendor) {
