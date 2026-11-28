@@ -259,6 +259,7 @@ export type Database = {
           accepted_by: string | null;
           invitee_name: string;
           invitee_trade: string;
+          invite_source: string;
           created_at: string;
         },
         {
@@ -273,6 +274,7 @@ export type Database = {
           accepted_by?: string | null;
           invitee_name?: string;
           invitee_trade?: string;
+          invite_source?: string;
         },
         { accepted_at?: string | null; accepted_by?: string | null }
       >;
@@ -1431,6 +1433,24 @@ export type Database = {
       invite_discovered_vendor: {
         Args: { p_wedding: string; p_vendor: string; p_token: string };
         Returns: Json;
+      };
+      couple_invitation_cards: {
+        Args: { p_wedding: string };
+        Returns: {
+          id: string;
+          wedding_id: string;
+          email: string | null;
+          token: string;
+          invited_role: AppRole;
+          invited_by: string;
+          expires_at: string;
+          accepted_at: string | null;
+          accepted_by: string | null;
+          invitee_name: string;
+          invitee_trade: string;
+          invite_source: string;
+          created_at: string;
+        }[];
       };
       create_invitation: {
         Args: {

@@ -28,11 +28,10 @@ export async function InviteBlock({
   const invitations = (await listInvitations(weddingId))
     .filter((row) => row.invited_by === session.userId && row.accepted_at === null)
     .map((row) => {
-      const stored = row as typeof row & { conceal_contact?: boolean | null };
       const concealContact = invitationHidesContact({
         invitee_name: row.invitee_name,
         invitee_trade: row.invitee_trade,
-        conceal_contact: stored.conceal_contact,
+        invite_source: row.invite_source,
       });
       return {
         id: row.id,

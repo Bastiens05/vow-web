@@ -2,17 +2,16 @@ import { describe, expect, it } from "vitest";
 import { invitationHidesContact } from "./invitation-card";
 
 describe("invitation card", () => {
-  it("hides the address of a search invite before the column exists", () => {
+  it("hides a search invite before the column exists when name and trade are stored", () => {
     expect(invitationHidesContact({ invitee_name: "Atelier Lumière", invitee_trade: "photographer" })).toBe(true);
   });
 
-  it("keeps a typed e-mail visible when only the address was given", () => {
-    expect(invitationHidesContact({ invitee_name: "", invitee_trade: "", conceal_contact: false })).toBe(false);
+  it("keeps a typed e-mail visible", () => {
     expect(invitationHidesContact({ invitee_name: "", invitee_trade: "" })).toBe(false);
+    expect(invitationHidesContact({ invitee_name: "Atelier", invitee_trade: "photographer", invite_source: "manual" })).toBe(false);
   });
 
-  it("follows the column once the migration is applied", () => {
-    expect(invitationHidesContact({ invitee_name: "Atelier", invitee_trade: "photo", conceal_contact: true })).toBe(true);
-    expect(invitationHidesContact({ invitee_name: "Atelier", invitee_trade: "photo", conceal_contact: false })).toBe(false);
+  it("hides the address once the row is marked as search", () => {
+    expect(invitationHidesContact({ invitee_name: "Atelier", invitee_trade: "photographer", invite_source: "search" })).toBe(true);
   });
 });
