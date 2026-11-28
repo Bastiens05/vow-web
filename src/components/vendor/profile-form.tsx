@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AddressInput } from "@/components/ui/address-input";
@@ -17,6 +17,7 @@ function centsToInput(cents: number | null): string {
 
 export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | null }) {
   const [state, action, pending] = useActionState(saveVendorProfile, {} as ActionState);
+  const [category, setCategory] = useState(vendor?.category ?? "");
   return (
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -27,7 +28,7 @@ export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | nu
           <TextInput name="slug" defaultValue={vendor?.slug ?? ""} placeholder="atelier-lumiere" />
         </Field>
         <Field label="Catégorie">
-          <SelectInput name="category" defaultValue={vendor?.category ?? ""} required>
+          <SelectInput name="category" defaultValue={vendor?.category ?? ""} required onChange={(event) => setCategory(event.target.value)}>
             <option value="">Choisir un métier</option>
             {vendor?.category && isVendorCategory(vendor.category) && !(VENDOR_CATEGORIES as readonly string[]).includes(vendor.category) ? (
               <option value={vendor.category}>{categoryLabel(vendor.category)}</option>
@@ -39,16 +40,18 @@ export function ProfileForm({ vendor }: { vendor: Tables<"vendor_profiles"> | nu
             ))}
           </SelectInput>
         </Field>
-        <Field label="Type de musique" hint="DJ, groupe, orchestre ou chorale.">
-          <SelectInput name="music_kind" defaultValue={vendor?.music_kind && isMusicKind(vendor.music_kind) ? vendor.music_kind : ""}>
-            <option value="">À préciser</option>
-            {MUSIC_KINDS.map((kind) => (
-              <option key={kind} value={kind}>
-                {musicKindLabel(kind)}
-              </option>
-            ))}
-          </SelectInput>
-        </Field>
+        {category === "dj" ? (
+          <Field label="Type de musique" hint="DJ, groupe, orchestre ou chorale.">
+            <SelectInput name="music_kind" defaultValue={vendor?.music_kind && isMusicKind(vendor.music_kind) ? vendor.music_kind : ""}>
+              <option value="">À préciser</option>
+              {MUSIC_KINDS.map((kind) => (
+                <option key={kind} value={kind}>
+                  {musicKindLabel(kind)}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+        ) : null}
         <Field label="Ville">
           <AddressInput name="city" required mode="city" defaultValue={vendor?.city ?? ""} placeholder="Bordeaux" />
         </Field>
