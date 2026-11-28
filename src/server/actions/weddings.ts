@@ -132,7 +132,19 @@ export async function revokeInvitation(formData: FormData) {
 }
 
 export async function resendInvitation(formData: FormData) {
-  await createInvitation({}, formData);
+  await requireSession();
+  const weddingId = String(formData.get("wedding_id") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createClient();
+  const { data } = await supabase.from("invitations").select("*").eq("id", id).eq("wedding_id", weddingId).maybeSingle();
+  if (!data || data.accepted_at) return;
+  const next = new FormData();
+  next.set("wedding_id", weddingId);
+  next.set("role", data.invited_role);
+  next.set("email", data.email);
+  next.set("invitee_name", data.invitee_name);
+  next.set("invitee_trade", data.invitee_trade);
+  await createInvitation({}, next);
 }
 
 export async function acceptInvitation(formData: FormData) {
