@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "Couple", trade = "Photo") {
+export async function revealPasswordSignup(page: Page, role?: "Prestataire" | "Couple", trade = "Photographe") {
   const choice =
     role === "Couple"
       ? page.getByRole("button", { name: "Nous sommes les mariés" })
@@ -48,7 +48,7 @@ async function saveVendorStudio(page: Page, business: string) {
     const logo = page.getByRole("heading", { name: "Votre logo" });
     await Promise.race([activity.waitFor({ timeout: 15000 }), logo.waitFor({ timeout: 15000 })]).catch(() => undefined);
     if (await activity.isVisible().catch(() => false)) {
-      const trade = page.getByRole("button", { name: "Photo" });
+      const trade = page.getByRole("button", { name: "Photographe" });
       if (await trade.isVisible().catch(() => false)) await trade.click();
       await activity.fill(business);
       const city = page.getByLabel("Ville").first();
