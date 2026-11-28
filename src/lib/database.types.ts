@@ -341,6 +341,36 @@ export type Database = {
         { wedding_id: string; notes?: string },
         { notes?: string }
       >;
+      wedding_songs: Table<
+        {
+          id: string;
+          wedding_id: string;
+          moment: string;
+          title: string;
+          artist: string;
+          album: string;
+          artwork_url: string;
+          preview_url: string;
+          apple_url: string;
+          itunes_id: string;
+          sort_order: number;
+          created_at: string;
+        },
+        {
+          id?: string;
+          wedding_id: string;
+          moment: string;
+          title: string;
+          artist: string;
+          album?: string;
+          artwork_url?: string;
+          preview_url?: string;
+          apple_url?: string;
+          itunes_id?: string;
+          sort_order?: number;
+        },
+        { sort_order?: number }
+      >;
       wedding_practical: Table<
         {
           wedding_id: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canDeliver, canSeeSheet, offerExample, pratiqueLabel, sheetsFor } from "./trades";
+import { canDeliver, canSeeMusicPlaylist, canSeeSheet, offerExample, pratiqueLabel, sheetsFor } from "./trades";
 
 describe("sheetsFor", () => {
   it("gives the couple every sheet", () => {
@@ -31,6 +31,13 @@ describe("sheetsFor", () => {
     expect(sheetsFor("vendor", "dj")).toEqual(["practical", "music"]);
     expect(canSeeSheet("vendor", "florist", "music")).toBe(false);
     expect(canSeeSheet("vendor", "florist", "photos")).toBe(false);
+  });
+
+  it("keeps the song list to the couple and the DJ", () => {
+    expect(canSeeMusicPlaylist("couple", null)).toBe(true);
+    expect(canSeeMusicPlaylist("vendor", "dj")).toBe(true);
+    expect(canSeeMusicPlaylist("vendor", "planner")).toBe(false);
+    expect(canSeeMusicPlaylist("vendor", "photographer")).toBe(false);
   });
 });
 

@@ -18,6 +18,11 @@ export function canSeeSheet(role: "vendor" | "couple", category: VendorCategory 
   return sheetsFor(role, category).includes(sheet);
 }
 
+/** The song list is for the couple and the DJ. The planner keeps the other sheets, not these titles. */
+export function canSeeMusicPlaylist(role: "vendor" | "couple", category: VendorCategory | null): boolean {
+  return role === "couple" || category === "dj";
+}
+
 export function canDeliver(role: "vendor" | "couple", category: VendorCategory | null): boolean {
   if (role === "couple") return true;
   return category === "photographer" || category === "videographer";
