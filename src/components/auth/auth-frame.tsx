@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { HeroPhoto } from "@/components/brand/hero-photo";
 import { Logo } from "@/components/brand/logo";
 
@@ -15,7 +16,9 @@ export function AuthDesktopFrame({ children }: { children: ReactNode }) {
           veil="auth"
           priority
         />
-        <Logo variant="white" className="relative z-10 hidden self-start lg:block" />
+        <Link href="/" aria-label="VOW" className="relative z-10 hidden self-start lg:inline-flex">
+          <Logo variant="white" />
+        </Link>
         <div className="relative z-10">
           <p className="max-w-sm font-serif text-4xl font-normal text-[#f7f3ec]">Le mariage, dans un seul espace.</p>
           <p className="mt-4 max-w-sm text-base leading-7 text-[#f7f3ec]">
