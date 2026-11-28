@@ -25,7 +25,7 @@ import { rotateCalendar } from "@/server/actions/suite";
 import { requireSession } from "@/server/session";
 import { ClientDocumentSettings } from "@/components/account/client-document-settings";
 import { VendorVaultBoard } from "@/components/account/vendor-vault-board";
-import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
+import { isVendorVaultCategory, shareAudience } from "@/lib/domain/vendor-vault";
 import { documentSuggestions } from "@/lib/domain/client-documents";
 import { isVendorCategory } from "@/lib/domain/categories";
 import { AvailabilityForm, TeamInviteForm } from "./extras";
@@ -44,6 +44,10 @@ export default async function SettingsPage() {
         .eq("vendor_id", session.vendor.id)
         .order("created_at", { ascending: false })
     : { data: [] };
+  const vaultIds = (vaultFiles ?? []).map((file) => file.id);
+  const { data: vaultShares } = vaultIds.length
+    ? await supabase.from("vendor_vault_shares").select("file_id, recipient_user_id").in("file_id", vaultIds)
+    : { data: [] as { file_id: string; recipient_user_id: string | null }[] };
   const { data: templates } = owner && session.vendor
     ? await supabase
         .from("vendor_document_templates")
@@ -130,6 +134,7 @@ export default async function SettingsPage() {
                       expiresOn: file.expires_on,
                       alertDays: file.alert_days,
                       autoShare: file.auto_share,
+                      sharedWith: shareAudience((vaultShares ?? []).filter((row) => row.file_id === file.id).map((row) => row.recipient_user_id)),
                     },
                   ]
                 : [],

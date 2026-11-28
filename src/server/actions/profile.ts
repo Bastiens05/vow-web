@@ -26,3 +26,27 @@ export async function saveWeddingProfile(weddingId: string, _prev: ActionState, 
   revalidatePath(`/mariage/${weddingId}/pratique`);
   return { success: "Enregistré. Chaque métier ne voit que ce qui le concerne." };
 }
+
+export async function savePracticalJourney(weddingId: string, prev: ActionState, formData: FormData): Promise<ActionState> {
+  const saved = await saveWeddingProfile(weddingId, prev, formData);
+  if (saved.error) return saved;
+  const ceremony = String(formData.get("ceremony_address") ?? "").trim();
+  const same = formData.get("same_place") === "on";
+  const reception = same ? ceremony : String(formData.get("reception_address") ?? "").trim();
+  const supabase = await createClient();
+  const { data: existing } = await supabase.from("wedding_practical").select("*").eq("wedding_id", weddingId).maybeSingle();
+  const { error } = await supabase.from("wedding_practical").upsert({
+    wedding_id: weddingId,
+    partner_one_phone: String(formData.get("partner_one_phone") ?? existing?.partner_one_phone ?? ""),
+    partner_two_phone: String(formData.get("partner_two_phone") ?? existing?.partner_two_phone ?? ""),
+    postal_address: existing?.postal_address ?? "",
+    ceremony_address: ceremony,
+    reception_address: reception,
+    key_contacts: String(formData.get("key_contacts") ?? existing?.key_contacts ?? ""),
+    notes: String(formData.get("notes") ?? existing?.notes ?? ""),
+  });
+  if (error) return { error: messageFromError(error) };
+  revalidatePath(`/mariage/${weddingId}/pratique`);
+  revalidatePath(`/mariage/${weddingId}/carte`);
+  return saved;
+}

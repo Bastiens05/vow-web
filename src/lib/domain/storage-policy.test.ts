@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const applied = readFileSync("supabase/migrations/20261127103000_vault_read_storage_move.sql", "utf8");
-const access = readFileSync("supabase/migrations/20261127160000_storage_relocation_access.sql", "utf8");
-const init = readFileSync("supabase/migrations/20261110180000_init.sql", "utf8");
-const vault = readFileSync("supabase/migrations/20261111530000_vendor_vault.sql", "utf8");
+const applied = readFileSync("supabase/migrations/20261127070957_vault_read_storage_move.sql", "utf8");
+const access = readFileSync("supabase/migrations/20261127074004_storage_relocation_access.sql", "utf8");
+const init = readFileSync("supabase/migrations/20261110180806_init.sql", "utf8");
+const vault = readFileSync("supabase/migrations/20261113004031_vendor_vault.sql", "utf8");
 
 function policyBody(sql: string, name: string): string {
   const match = sql.match(new RegExp(`create policy ${name} on storage\\.objects[\\s\\S]*?(?=\\n\\n|\\ndrop policy|\\ncreate |$)`));

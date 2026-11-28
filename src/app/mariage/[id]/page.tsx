@@ -6,6 +6,7 @@ import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReviewForm } from "@/components/wedding/review-form";
+import { ReceivedVault } from "@/components/wedding/shared-vault";
 import { LineIcon, SettingsGroup, SettingsLink } from "@/components/wedding/settings-list";
 import { canDeliver } from "@/lib/domain/trades";
 import { countLabel, moneyStatus, questionStatus, sheetStatus } from "@/lib/domain/overview";
@@ -152,6 +153,9 @@ export default async function WeddingOverviewPage({
         ) : null}
       </Card>
       <section className="grid gap-5">
+        {space.actingAsCouple || space.role === "couple" ? null : (
+          <ReceivedVault weddingId={id} userId={space.session.userId} today={todayIso()} />
+        )}
         {space.actingAsCouple || space.role === "couple" ? null : (
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Votre métier</h2>

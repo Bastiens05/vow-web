@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocumentManager } from "@/components/wedding/document-manager";
+import { ReceivedVault } from "@/components/wedding/shared-vault";
 import { VaultPicker } from "@/components/wedding/vault-picker";
 import { isVendorVaultCategory } from "@/lib/domain/vendor-vault";
 import { AddVendorInvite } from "@/components/wedding/invite-block";
@@ -120,6 +121,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ id: 
           Visibles uniquement par les membres de ce mariage. Une signature demandée ici est une signature électronique simple (eIDAS SES).
         </p>
       </header>
+      <ReceivedVault weddingId={id} userId={space.session.userId} today={today} />
       {space.session.vendor && space.session.vendor.user_id === space.session.userId ? (
         <Card>
         <VaultPicker

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appleMapsUrl, googleDirectionsUrl, googleMapsUrl } from "./maps";
+import { appleDirectionsTo, appleDirectionsUrl, appleMapsUrl, googleDirectionsTo, googleDirectionsUrl, googleMapsUrl } from "./maps";
 
 describe("maps", () => {
   it("builds Google and Apple links from an address", () => {
@@ -13,5 +13,13 @@ describe("maps", () => {
     expect(googleDirectionsUrl("Mairie", "Château")).toBe(
       "https://www.google.com/maps/dir/?api=1&origin=Mairie&destination=Ch%C3%A2teau",
     );
+    expect(appleDirectionsUrl("Mairie", "Château")).toBe(
+      "https://maps.apple.com/?saddr=Mairie&daddr=Ch%C3%A2teau",
+    );
+  });
+
+  it("opens directions to a single place instead of a search", () => {
+    expect(googleDirectionsTo("Château")).toBe("https://www.google.com/maps/dir/?api=1&destination=Ch%C3%A2teau");
+    expect(appleDirectionsTo("Château")).toBe("https://maps.apple.com/?daddr=Ch%C3%A2teau");
   });
 });

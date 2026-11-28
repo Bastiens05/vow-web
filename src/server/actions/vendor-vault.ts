@@ -98,6 +98,23 @@ export async function updateVaultFile(formData: FormData): Promise<void> {
   refresh();
 }
 
+export async function deleteVaultFile(formData: FormData): Promise<void> {
+  const vendor = await ownVendor();
+  if (!vendor) return;
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("vendor_vault_files")
+    .select("storage_path")
+    .eq("id", id)
+    .eq("vendor_id", vendor.id)
+    .maybeSingle();
+  if (!data) return;
+  await supabase.storage.from("wedding-documents").remove([data.storage_path]);
+  await supabase.from("vendor_vault_files").delete().eq("id", id).eq("vendor_id", vendor.id);
+  refresh();
+}
+
 export async function shareVaultFiles(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const vendor = await ownVendor();
   if (!vendor) return { error: "Réservé au prestataire." };

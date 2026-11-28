@@ -8,12 +8,13 @@ import { FrenchDateInput } from "@/components/ui/french-date";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import {
   VENDOR_VAULT_CATEGORIES,
+  removalWarning,
   vaultFreshness,
   vendorVaultCategoryLabel,
   type VendorVaultCategory,
 } from "@/lib/domain/vendor-vault";
 import { createClient } from "@/lib/supabase/client";
-import { replaceVaultFile, saveVaultFile, updateVaultFile } from "@/server/actions/vendor-vault";
+import { deleteVaultFile, replaceVaultFile, saveVaultFile, updateVaultFile } from "@/server/actions/vendor-vault";
 
 export type VaultFileRow = {
   id: string;
@@ -23,6 +24,7 @@ export type VaultFileRow = {
   expiresOn: string | null;
   alertDays: number;
   autoShare: boolean;
+  sharedWith?: "couple" | "vendor" | "both" | null;
 };
 
 export function VendorVaultBoard({ userId, files, today }: { userId: string; files: VaultFileRow[]; today: string }) {
@@ -92,7 +94,25 @@ export function VendorVaultBoard({ userId, files, today }: { userId: string; fil
                 <p className="mt-2 text-sm">Ce document a expiré. Remplacez-le par une nouvelle version.</p>
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
+                <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={`/api/vault/${file.id}`}>
+                  Ouvrir
+                </a>
+                <a className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" href={`/api/vault/${file.id}?download=1`}>
+                  Télécharger
+                </a>
                 <ReplaceFile userId={userId} fileId={file.id} />
+                <form
+                  action={deleteVaultFile}
+                  onSubmit={(event) => {
+                    if (!file.sharedWith) return;
+                    if (!window.confirm(removalWarning(file.sharedWith))) event.preventDefault();
+                  }}
+                >
+                  <input type="hidden" name="id" value={file.id} />
+                  <Button type="submit" variant="ghost">
+                    Retirer
+                  </Button>
+                </form>
               </div>
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm underline">Modifier</summary>

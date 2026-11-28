@@ -36,7 +36,7 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
       <header className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-muted">Brief du jour</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">{brief.title}</h2>
+          <h1 className="mt-1 font-serif text-4xl font-normal tracking-tight text-ink">{brief.title}</h1>
           <p className="mt-1 text-sm text-muted">{brief.date}</p>
         </div>
         <PrintButton />

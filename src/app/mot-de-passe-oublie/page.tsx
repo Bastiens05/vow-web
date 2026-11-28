@@ -14,8 +14,8 @@ export default function ForgotPasswordPage() {
     <AuthDesktopFrame>
       <div className="auth-screen flex min-h-[calc(100dvh-3.5rem)] w-full flex-col px-5 py-10 md:min-h-dvh md:justify-center lg:min-h-dvh lg:justify-start lg:px-16 lg:py-12">
         <div className="mx-auto w-full max-w-md">
-          <p className="text-sm font-semibold tracking-[0.28em] lg:sr-only">VOW</p>
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight">Mot de passe oublié</h1>
+          <p className="sr-only">VOW</p>
+          <h1 className="text-4xl font-semibold tracking-tight">Mot de passe oublié</h1>
           <p className="mt-2 text-base leading-7 text-muted">
             Un e-mail permet de choisir un nouveau mot de passe. C&apos;est aussi le chemin pour un compte créé sans mot de passe.
           </p>

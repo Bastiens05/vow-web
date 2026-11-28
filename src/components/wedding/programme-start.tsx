@@ -63,7 +63,7 @@ export function ProgrammeStart({
             >
               <span>
                 <span className="block text-sm font-medium">{template.label}</span>
-                <span className="mt-1 block text-xs text-muted">{template.slots.length} étapes</span>
+                <span className="mt-1 block text-xs text-muted">{template.slots.length} {template.slots.length > 1 ? "étapes" : "étape"}</span>
               </span>
               <span className="text-sm text-muted">Voir</span>
             </button>

@@ -32,17 +32,17 @@ Copier `.env.example` vers `.env.local`.
 
 Migrations, dans cet ordre, sur un projet vide :
 
-1. `supabase/migrations/20261110180000_init.sql`
-2. `supabase/migrations/20261110210000_practical.sql` — infos pratiques, photos de groupe, invités, et le mode Jour J (décalages, alertes, abonnements push)
-3. `supabase/migrations/20261110230000_spaces.sql` — métiers (vidéaste, officiant), fiches visibles par métier (`can_see_sheet`), et Jour J réservé au couple (`shift_timeline_slot`, `post_wedding_alert`)
-4. `supabase/migrations/20261110233000_shell.sql` — coquille globale (préférences d'alertes, logo), et le mariage démo isolé (`open_couple_demo`, `leave_couple_preview`, `delete_couple_demo`). Un prestataire ne devient couple que sur ce mariage démo.
-5. `supabase/migrations/20261110240000_day_tools.sql` — demandes de devis (`leads`, `submit_quote_request`), modèles de déroulé (le couple les applique, le prestataire les suggère), rappels J-60/J-30/J-14 (`run_due_reminders`) et signatures électroniques simples (`signature_requests`, `record_signature`). L'insertion et la modification de `timeline_slots` sont réservées au couple, y compris via `is_wedding_couple` pour l'essai démo.
-6. `supabase/migrations/20261111000000_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
-7. `supabase/migrations/20261111010000_daypack.sql` — questionnaire par métier, lieux du jour J, annuaire (téléphone et e-mail seulement si le prestataire les ouvre) et galerie photo / vidéo.
-8. `supabase/migrations/20261111020000_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part. Déjà appliquée sur vow-mvp : ne pas la relancer.
-9. `supabase/migrations/20261111030000_suite.sql` — équipe (lecture des mariages, facturation au titulaire), calendrier ICS privé, rendez-vous, RSVP, plan de table, budget du couple et page publique des mariés.
-10. `supabase/migrations/20261111040000_relay.sql` — relais d'étape, plan pluie, besoins techniques, seuils météo et recommandations tracées. Le texte du déroulé reste modifiable par le couple seul.
-11. `supabase/migrations/20261111050000_billing.sql` — essai de 7 jours puis abonnement prestataire, administrateurs (`admin_emails`) et codes test hashés. Les mariés ne sont jamais limités. Stripe n'est pas appelé sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`. Aucun code n'est livré dans le dépôt.
+1. `supabase/migrations/20261110180806_init.sql`
+2. `supabase/migrations/20261110204217_practical.sql` — infos pratiques, photos de groupe, invités, et le mode Jour J (décalages, alertes, abonnements push)
+3. `supabase/migrations/20261110211521_spaces.sql` — métiers (vidéaste, officiant), fiches visibles par métier (`can_see_sheet`), et Jour J réservé au couple (`shift_timeline_slot`, `post_wedding_alert`)
+4. `supabase/migrations/20261110215050_shell.sql` — coquille globale (préférences d'alertes, logo), et le mariage démo isolé (`open_couple_demo`, `leave_couple_preview`, `delete_couple_demo`). Un prestataire ne devient couple que sur ce mariage démo.
+5. `supabase/migrations/20261110224656_day_tools.sql` — demandes de devis (`leads`, `submit_quote_request`), modèles de déroulé (le couple les applique, le prestataire les suggère), rappels J-60/J-30/J-14 (`run_due_reminders`) et signatures électroniques simples (`signature_requests`, `record_signature`). L'insertion et la modification de `timeline_slots` sont réservées au couple, y compris via `is_wedding_couple` pour l'essai démo.
+6. `supabase/migrations/20261110231320_ledger.sql` — devis, factures, acomptes (`run_deposit_reminders`) et avis. Stripe reste éteint sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`.
+7. `supabase/migrations/20261110232445_daypack.sql` — questionnaire par métier, lieux du jour J, annuaire (téléphone et e-mail seulement si le prestataire les ouvre) et galerie photo / vidéo.
+8. `supabase/migrations/20261111151628_mail.sql` — préférences d'e-mail, file d'envoi et désinscription des rappels. Sans `RESEND_API_KEY`, aucun e-mail ne part. Déjà appliquée sur vow-mvp : ne pas la relancer.
+9. `supabase/migrations/20261111152424_suite.sql` — équipe (lecture des mariages, facturation au titulaire), calendrier ICS privé, rendez-vous, RSVP, plan de table, budget du couple et page publique des mariés.
+10. `supabase/migrations/20261111152606_relay.sql` — relais d'étape, plan pluie, besoins techniques, seuils météo et recommandations tracées. Le texte du déroulé reste modifiable par le couple seul.
+11. `supabase/migrations/20261111175959_billing.sql` — essai de 7 jours puis abonnement prestataire, administrateurs (`admin_emails`) et codes test hashés. Les mariés ne sont jamais limités. Stripe n'est pas appelé sans `NEXT_PUBLIC_STRIPE_ENABLED=true` et `STRIPE_SECRET_KEY`. Aucun code n'est livré dans le dépôt.
 
 La météo interroge Open-Meteo (gratuit, usage non commercial) seulement si `WEATHER_ALERTS_ENABLED=true`. Avant une exploitation commerciale, il faut un fournisseur ou un plan commercial : laissez la variable vide. `WEATHER_PROVIDER` vaut `open-meteo` par défaut. Les e-mails produit, y compris le relais, le plan pluie et la météo, partent via Resend si `RESEND_API_KEY` et `EMAIL_FROM` sont définis ; sinon le fil dans l'application et le push (clés VAPID) suffisent.
 
@@ -86,7 +86,7 @@ npx supabase link --project-ref hwrcmkvfuytviixqibzo
 npx supabase db push
 ```
 
-Ou, dans le SQL Editor du dashboard, coller les fichiers dans l'ordre ci-dessus, chacun une seule fois. `20261110233000_shell.sql` n'est pas encore appliqué sur `vow-mvp`.
+Ou, dans le SQL Editor du dashboard, coller les fichiers dans l'ordre ci-dessus, chacun une seule fois. Ces versions sont déjà enregistrées sur `vow-mvp` : ne pas les relancer.
 
 Les buckets `vendor-media` (public) et `wedding-documents` (privé) sont créés par la migration. Vérifiez-les dans Storage après l'application. Aucune création manuelle n'est nécessaire si la migration passe.
 

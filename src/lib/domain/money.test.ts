@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { documentNumber, eurosToCents, formatEuros, textPdf } from "./money";
+import { documentNumber, eurosToCents, formatBudgetEuros, formatEuros, textPdf } from "./money";
 
 describe("money", () => {
   it("numbers documents per vendor and reads euros", () => {
     expect(documentNumber("D", 2026, 4)).toBe("D-2026-004");
     expect(eurosToCents("1 250,50")).toBe(125050);
     expect(formatEuros(150000)).toContain("1");
+    expect(formatBudgetEuros(250_000)).toMatch(/2\s500\s€/);
+    expect(formatBudgetEuros(250_000)).not.toContain(",00");
   });
 
   it("builds a pdf", () => {

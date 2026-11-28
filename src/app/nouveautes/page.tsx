@@ -34,7 +34,7 @@ export default async function AlertsPage() {
       : Promise.resolve({ count: 0 }),
   ]);
   await markAlertsRead();
-  const notes = data ?? [];
+  const notes = (data ?? []).filter((note) => !couple || note.author_id !== session.userId);
   const notices = offers ?? [];
   const signupNotes = signups ?? [];
   const newLeads = leads.count ?? 0;

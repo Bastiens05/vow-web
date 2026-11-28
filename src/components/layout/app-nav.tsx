@@ -135,13 +135,13 @@ export async function MobileChrome() {
             <BackControl fallback={context.back.href} label={context.back.label} />
           ) : (
             <Link href={session ? "/espace" : "/"} className="shrink-0" aria-label="VOW">
-              <Logo className="h-[38px] w-auto" />
+              <Logo />
             </Link>
           )}
           <p className="truncate text-right text-sm text-muted">{context.back || context.quiet ? "" : name}</p>
         </div>
         {trialDays !== null ? (
-          <p className="truncate pb-2 text-center text-xs text-muted">
+          <p className="truncate pb-2 text-left text-xs text-muted">
             Essai · {trialDays} jour{trialDays > 1 ? "s" : ""} ·{" "}
             <Link href="/abonnement" className="text-ink underline">Voir l&apos;offre</Link>
           </p>
@@ -160,44 +160,6 @@ export async function MobileChrome() {
       />
       )}
     </>
-  );
-}
-
-export function PublicHeader({ accounts = true, overlay = false }: { accounts?: boolean; overlay?: boolean }) {
-  return (
-    <header
-      className={`z-30 flex h-16 items-center justify-between gap-2 px-4 sm:gap-3 sm:px-5 ${
-        overlay
-          ? "fixed inset-x-0 top-0 border-0 bg-transparent text-[#f7f3ec]"
-          : "sticky top-0 border-b border-line bg-[var(--vow-glass)] backdrop-blur-md"
-      }`}
-    >
-      <Link href="/" aria-label="VOW">
-        <Logo variant={overlay ? "white" : "ink"} className="h-[38px] w-auto" />
-      </Link>
-      <nav className="flex items-center gap-1 text-base sm:gap-3">
-        <Link href="/#ce-qui-compte" className="hidden min-h-12 items-center px-3 sm:inline-flex">
-          Fonctionnalités
-        </Link>
-        <Link href="/#tarifs" className="hidden min-h-12 items-center px-3 sm:inline-flex">
-          Tarifs
-        </Link>
-        {accounts ? (
-          <>
-            <Link href="/connexion" className="inline-flex min-h-12 items-center px-2 font-medium sm:px-3">
-              Connexion
-            </Link>
-            <Link
-              href="/inscription"
-              className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium sm:min-h-12 sm:px-4 sm:text-base ${overlay ? "bg-[#f7f3ec] text-[#1c1b19]" : "bg-ink text-ivory"}`}
-            >
-              <span className="sm:hidden">Compte</span>
-              <span className="hidden sm:inline">Créer un compte</span>
-            </Link>
-          </>
-        ) : null}
-      </nav>
-    </header>
   );
 }
 

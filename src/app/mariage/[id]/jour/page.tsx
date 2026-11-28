@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DayBoard } from "@/components/wedding/day-board";
 import { PhotoQueue } from "@/components/wedding/photo-queue";
+import { PhotoTools } from "@/components/wedding/photo-tools";
 import { JourCache } from "@/components/wedding/jour-cache";
 import { categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { parisClockMinutes } from "@/lib/domain/day";
@@ -9,7 +10,10 @@ import { featureEnabled } from "@/lib/domain/plans";
 import { todayIso } from "@/lib/domain/format";
 import { parseTemplateSlots } from "@/lib/domain/timeline-templates";
 import { createClient } from "@/lib/supabase/server";
+import { coupleSessionSlot, photoNames } from "@/lib/domain/photo-plan";
+import { goldenHour } from "@/lib/domain/solar";
 import { getWeddingSpace, listTimeline, type SlotView } from "@/server/data";
+import { geocodeAddress } from "@/server/geocode";
 
 export const metadata: Metadata = { title: "Jour J" };
 
@@ -21,7 +25,7 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
   const [{ data: rain }, { data: directory }, { data: suggestions }] = await Promise.all([
     supabase.from("rain_plans").select("active").eq("wedding_id", id).maybeSingle(),
     supabase.rpc("wedding_directory", { p_wedding_id: id }),
-    supabase.from("timeline_suggestions").select("id, label, slots").eq("wedding_id", id).order("created_at", { ascending: false }).limit(1),
+    supabase.from("timeline_suggestions").select("id, label, slots").eq("wedding_id", id).neq("label", "Séance couple").order("created_at", { ascending: false }).limit(1),
   ]);
   const [{ data: rainRows }, { data: groups }] = await Promise.all([
     supabase.from("rain_slots").select("id, title, starts_at, place, sort_order").eq("wedding_id", id).order("sort_order"),
@@ -40,6 +44,34 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
     ready: false,
   }));
   const couple = space.role === "couple" || space.actingAsCouple;
+  const photographer = space.session.vendor?.category === "photographer";
+  const [{ data: weather }, { data: practical }, guestNames, proposals] = await Promise.all([
+    supabase.from("weather_settings").select("latitude, longitude").eq("wedding_id", id).maybeSingle(),
+    supabase.from("wedding_practical").select("ceremony_address").eq("wedding_id", id).maybeSingle(),
+    photographer
+      ? supabase.rpc("wedding_guest_names", { p_wedding: id })
+      : Promise.resolve({ data: [] as { full_name: string }[], error: null }),
+    supabase
+      .from("timeline_suggestions")
+      .select("id, slots")
+      .eq("wedding_id", id)
+      .eq("label", "Séance couple")
+      .order("created_at", { ascending: false })
+      .limit(1),
+  ]);
+  const namesUnavailable = Boolean(guestNames.error);
+  const names = photoNames((guestNames.data ?? []).map((guest) => guest.full_name));
+  const proposed = parseTemplateSlots(proposals.data?.[0]?.slots).find((slot) => slot.title === "Séance couple");
+  const proposal = proposals.data?.[0] && proposed
+    ? { id: proposals.data[0].id, startsAt: proposed.startsAt, place: proposed.place, fromCouple: proposed.notes === "couple" }
+    : null;
+  const storedPoint =
+    weather?.latitude != null && weather?.longitude != null
+      ? { latitude: weather.latitude, longitude: weather.longitude }
+      : null;
+  const venue = [space.wedding.venue_name, space.wedding.venue_city].filter(Boolean).join(", ");
+  const point = storedPoint ?? (await geocodeAddress(practical?.ceremony_address || venue));
+  const light = point ? goldenHour(space.wedding.wedding_date, point.latitude, point.longitude) : null;
   const vendorSlots = rain?.active && rainSlots.length > 0 ? rainSlots : slots;
   const suggestion = suggestions?.[0];
   const vendors = (directory ?? [])
@@ -84,6 +116,20 @@ export default async function WeddingDayPage({ params }: { params: Promise<{ id:
               : null
           }
         />
+        {photographer || (couple && proposal) ? (
+          <PhotoTools
+            weddingId={id}
+            names={names}
+            namesUnavailable={namesUnavailable}
+            session={coupleSessionSlot(slots.map((slot) => ({ title: slot.title, startsAt: slot.startsAt })))}
+            proposal={proposal}
+            light={light}
+            canPropose={photographer}
+            canAccept={couple}
+            suggestedTime={light?.eveningStart ?? ""}
+            fromCouple={proposal?.fromCouple ?? false}
+          />
+        ) : null}
         <PhotoQueue
           weddingId={id}
           canCall={couple || ["photographer", "videographer", "planner"].includes(space.session.vendor?.category && isVendorCategory(space.session.vendor.category) ? space.session.vendor.category : "")}

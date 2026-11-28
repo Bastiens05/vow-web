@@ -1565,6 +1565,24 @@ export type Database = {
         Args: { p_wedding: string };
         Returns: { vendor_id: string; user_id: string }[];
       };
+      wedding_guest_names: {
+        Args: { p_wedding: string };
+        Returns: { full_name: string }[];
+      };
+      shared_vault_files: {
+        Args: { p_wedding: string; p_vendor_user: string };
+        Returns: { id: string; title: string; file_name: string; category: string; storage_path: string; expires_on: string | null; alert_days: number }[];
+      };
+      notify_couple_session: { Args: { p_wedding: string; p_body: string }; Returns: undefined };
+      respond_couple_session: {
+        Args: { p_suggestion: string; p_choice: string; p_time: string; p_place: string };
+        Returns: undefined;
+      };
+      compose_named_photo_group: {
+        Args: { p_wedding: string; p_title: string; p_names: string[] };
+        Returns: string;
+      };
+      answer_couple_counter: { Args: { p_suggestion: string; p_choice: string }; Returns: undefined };
       pending_storage_relocations: {
         Args: Record<string, never>;
         Returns: { id: string; bucket_id: string; from_path: string; to_path: string }[];

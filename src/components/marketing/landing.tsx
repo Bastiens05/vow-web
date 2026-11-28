@@ -68,7 +68,7 @@ export function Landing() {
   const [audience, setAudience] = useState<Audience>("couples");
   return (
     <div>
-      <section className="relative flex min-h-[640px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[700px]">
+      <section id="vow-hero" className="relative flex min-h-[640px] items-end overflow-hidden bg-[#121110] text-[#f7f3ec] lg:min-h-[700px]">
         <HeroPhoto src="/hero/venue-golden.jpg" position="75% 58%" positionFromMd="center 62%" priority sizes="100vw" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-8 pt-24 md:pb-28 lg:pb-36 lg:pt-28">
           <h1 className="max-w-4xl font-serif text-6xl font-normal leading-[0.95] tracking-tight text-[#f7f3ec] sm:text-7xl lg:text-8xl">
@@ -90,7 +90,7 @@ export function Landing() {
         <HeroCard icon={PenLine} title="Documents & signatures" text="Contrats et signatures au même endroit." />
         <HeroCard icon={MessageCircle} title="Messages" text="Un fil entre les mariés et chaque métier." />
       </div>
-      <section id="ce-qui-compte" className="mx-auto max-w-6xl px-5 py-16 lg:py-24">
+      <section id="ce-qui-compte" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16 lg:py-24">
         <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
           Ce qui compte, du premier contact au jour J.
         </h2>

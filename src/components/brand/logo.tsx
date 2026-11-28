@@ -5,7 +5,7 @@ const star = "M0 -6.2 L1.15 -1.35 L6.1 -1.15 L1.9 1.55 L3.15 6.2 L0 3.35 L-3.15 
 export function Logo({ variant = "ink", className }: { variant?: "ink" | "white"; className?: string }) {
   const ink = variant === "white" ? "#F7F3EC" : "#1C1B19";
   return (
-    <svg viewBox="0 0 108 40" className={cn("h-[38px] w-auto", variant === "white" && "drop-shadow-[0_1px_2px_rgba(18,17,16,0.55)]", className)} role="img" aria-label="VOW">
+    <svg viewBox="0 0 108 40" className={cn("h-[38px] w-[102.6px] shrink-0", variant === "white" && "drop-shadow-[0_1px_2px_rgba(18,17,16,0.55)]", className)} role="img" aria-label="VOW">
       <path d="M1 8 15 34" fill="none" stroke={ink} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       <path d="M29 8 15 34" fill="none" stroke={ink} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx="44" cy="22" r="10.5" fill="none" stroke={ink} strokeWidth="2.3" />

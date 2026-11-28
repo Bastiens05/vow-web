@@ -14,6 +14,16 @@ export function formatEuros(cents: number): string {
   return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 }
 
+/** Whole euros read as « 2 500 € ». Cents stay visible when they are not zero. */
+export function formatBudgetEuros(cents: number): string {
+  const whole = cents % 100 === 0;
+  const text = (cents / 100).toLocaleString("fr-FR", {
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: whole ? 0 : 2,
+  });
+  return `${text}\u00a0€`;
+}
+
 const EXTRA: Record<string, number> = {
   "é": 0xe9, "è": 0xe8, "ê": 0xea, "à": 0xe0, "ù": 0xf9, "ç": 0xe7, "É": 0xc9, "€": 0x80,
 };

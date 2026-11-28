@@ -36,9 +36,11 @@ export function AddressInput({
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const picked = useRef(false);
+  const touched = useRef(false);
+  const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (picked.current) {
+    if (!touched.current || picked.current) {
       picked.current = false;
       return;
     }
@@ -61,6 +63,15 @@ export function AddressInput({
     return () => window.clearTimeout(handle);
   }, [text, disabled]);
 
+  useEffect(() => {
+    if (!open) return;
+    function close(event: PointerEvent) {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+
   function commit(next: string) {
     setDraft(next);
     onValueChange?.(next);
@@ -79,7 +90,7 @@ export function AddressInput({
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={root}>
       <input
         name={name}
         value={text}
@@ -92,7 +103,10 @@ export function AddressInput({
         aria-controls={listId}
         aria-autocomplete="list"
         className={cn(fieldClass, "min-h-11", className)}
-        onChange={(event) => commit(event.target.value)}
+        onChange={(event) => {
+          touched.current = true;
+          commit(event.target.value);
+        }}
         onKeyDown={(event) => {
           if (!open || items.length === 0) return;
           if (event.key === "ArrowDown") {
