@@ -12,7 +12,16 @@ export type VendorCategory =
   | "planner"
   | "beauty"
   | "officiant"
-  | "other";
+  | "other"
+  | "cake"
+  | "wine"
+  | "animation"
+  | "decor"
+  | "hair"
+  | "makeup"
+  | "attire"
+  | "stationery"
+  | "transport";
 
 type Table<Row, Insert, Update> = {
   Row: Row;
@@ -81,6 +90,8 @@ export type Database = {
           logo_path: string | null;
           share_phone: boolean;
           share_email: boolean;
+          discoverable?: boolean;
+          music_kind?: string | null;
           stripe_account_id: string | null;
           created_at: string;
           updated_at: string;
@@ -99,6 +110,7 @@ export type Database = {
           website?: string;
           instagram?: string;
           weddings_per_year?: string;
+          music_kind?: string | null;
           starting_price_cents?: number | null;
           currency?: string;
           published?: boolean;
@@ -110,6 +122,8 @@ export type Database = {
           logo_path?: string | null;
           share_phone?: boolean;
           share_email?: boolean;
+          discoverable?: boolean;
+          music_kind?: string | null;
           stripe_account_id?: string | null;
           city?: string;
           zone?: string;
@@ -246,6 +260,7 @@ export type Database = {
           accepted_by: string | null;
           invitee_name: string;
           invitee_trade: string;
+          invite_source: string;
           created_at: string;
         },
         {
@@ -260,6 +275,7 @@ export type Database = {
           accepted_by?: string | null;
           invitee_name?: string;
           invitee_trade?: string;
+          invite_source?: string;
         },
         { accepted_at?: string | null; accepted_by?: string | null }
       >;
@@ -1404,6 +1420,39 @@ export type Database = {
       due_day_briefs: { Args: { p_day: string }; Returns: { wedding_id: string; user_id: string; email: string }[] };
       rebuild_cashflow: { Args: Record<string, never>; Returns: undefined };
       mark_brief_sent: { Args: { p_wedding: string; p_user: string; p_day: string }; Returns: undefined };
+      search_discoverable_vendors: {
+        Args: { p_query: string; p_category: string };
+        Returns: {
+          user_id: string;
+          business_name: string;
+          person_name: string;
+          category: string;
+          city: string;
+          logo_path: string | null;
+        }[];
+      };
+      invite_discovered_vendor: {
+        Args: { p_wedding: string; p_vendor: string; p_token: string };
+        Returns: Json;
+      };
+      couple_invitation_cards: {
+        Args: { p_wedding: string };
+        Returns: {
+          id: string;
+          wedding_id: string;
+          email: string | null;
+          token: string;
+          invited_role: AppRole;
+          invited_by: string;
+          expires_at: string;
+          accepted_at: string | null;
+          accepted_by: string | null;
+          invitee_name: string;
+          invitee_trade: string;
+          invite_source: string;
+          created_at: string;
+        }[];
+      };
       create_invitation: {
         Args: {
           p_wedding_id: string;

@@ -8,6 +8,7 @@ import {
   AccountNameForm,
   BillingIdentityForm,
   BusinessForm,
+  DiscoverableForm,
   LogoField,
   NotificationForm,
   PasswordForm,
@@ -94,6 +95,7 @@ export default async function SettingsPage() {
           {session.vendor ? (
             <ShareForm sharePhone={session.vendor.share_phone} shareEmail={session.vendor.share_email} />
           ) : null}
+          {owner && session.vendor ? <DiscoverableSetting vendorId={session.vendor.id} /> : null}
           {owner && session.vendor ? (
             <div className="space-y-3 border-t border-line pt-4">
               <h3 className="text-base font-semibold">Factures</h3>
@@ -282,6 +284,17 @@ export default async function SettingsPage() {
           <a href="/confidentialite" className="underline">Confidentialité</a>
         </p>
       </Card>
+    </div>
+  );
+}
+
+async function DiscoverableSetting({ vendorId }: { vendorId: string }) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("vendor_profiles").select("discoverable").eq("id", vendorId).maybeSingle();
+  const enabled = !error && data && typeof data.discoverable === "boolean" ? data.discoverable : null;
+  return (
+    <div className="border-t border-line pt-4">
+      <DiscoverableForm enabled={enabled ?? false} available={enabled !== null} />
     </div>
   );
 }

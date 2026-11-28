@@ -10,7 +10,7 @@ import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/dom
 import { completeVendor } from "@/server/actions/auth";
 
 export function WelcomeForm({ logo, userId, logoPath }: { logo: boolean; userId: string; logoPath: string | null }) {
-  const [category, setCategory] = useState<VendorCategory>("photographer");
+  const [category, setCategory] = useState<VendorCategory>(VENDOR_CATEGORIES[0]);
   const [state, action, pending] = useActionState(completeVendor, {});
   if (logo) {
     return (

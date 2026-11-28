@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 import { landingPath } from "@/server/auth-landing";
 import { materializeSignup } from "@/server/signup-materialize";
 import { requireSession } from "@/server/session";
+import { serviceClient } from "@/server/service";
 
 export type ActionState = {
   error?: string;
@@ -86,7 +87,12 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
       error: "Le compte est créé, mais Supabase attend encore une confirmation par e-mail. Coupez « Confirm email » pour entrer tout de suite.",
     };
   }
-  await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
+  const profileError = await materializeSignup(supabase, data.user.id, { ...intent, fullName, role });
+  if (profileError) {
+    const admin = serviceClient();
+    if (admin) await admin.auth.admin.deleteUser(data.user.id);
+    return { error: profileError };
+  }
   redirect(await landingPath(supabase, destination, true));
 }
 

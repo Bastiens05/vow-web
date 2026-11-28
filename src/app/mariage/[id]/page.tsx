@@ -18,7 +18,7 @@ import { formatLongDate, formatSlotTime, todayIso } from "@/lib/domain/format";
 import { countdownLabel, daysUntil } from "@/lib/domain/next-actions";
 import { siteUrl } from "@/lib/env";
 import { recommendVendor } from "@/server/actions/relay";
-import { getWeddingSpace } from "@/server/data";
+import { getWeddingSpace, listInvitations } from "@/server/data";
 
 export const metadata: Metadata = { title: "Mariage" };
 
@@ -79,7 +79,12 @@ export default async function WeddingOverviewPage({
     space.role === "couple" || space.actingAsCouple
       ? "Privé"
       : moneyStatus((invoices.data ?? []).map((row) => row.status), quotes.data?.length ?? 0);
-  const vendorStat = vendorStatCard(vendorCount, vendorInvites.data?.length ?? 0);
+  const coupleView = space.role === "couple";
+  const coupleInvites = coupleView ? await listInvitations(id) : [];
+  const pendingVendors = coupleView
+    ? coupleInvites.filter((row) => row.invited_role === "vendor" && row.accepted_at === null).length
+    : (vendorInvites.data?.length ?? 0);
+  const vendorStat = vendorStatCard(vendorCount, pendingVendors);
   const documentStat = documentStatCard(requests.data ?? [], documentCount);
   const budgetStat = budgetStatCard(budgetLines.data ?? [], weddingBudget.data?.total_cents ?? null, invoices.data ?? [], budgetText);
   const stepStat = stepStatCard({

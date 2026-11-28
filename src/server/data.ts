@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { AppRole, Json, Tables } from "@/lib/database.types";
 import { sortTimelineSlots, weddingTitle } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession, type SessionProfile } from "@/server/session";
+import { getSession, requireSession, type SessionProfile } from "@/server/session";
 
 export type WeddingCard = Tables<"weddings"> & { memberRole: AppRole; coupleJoined: boolean };
 
@@ -310,8 +310,35 @@ export async function listTimeline(weddingId: string, userId: string): Promise<S
   return sortTimelineSlots(views);
 }
 
+function missingInvitationCards(error: { code?: string; message?: string } | null): boolean {
+  const message = error?.message ?? "";
+  return error?.code === "PGRST202" || error?.code === "42883" || /schema cache|could not find the function|does not exist/i.test(message);
+}
+
 export async function listInvitations(weddingId: string) {
   const supabase = await createClient();
+  const session = await getSession();
+  if (session?.profile.role === "couple") {
+    const cards = await supabase.rpc("couple_invitation_cards", { p_wedding: weddingId });
+    if (!cards.error && cards.data) {
+      return cards.data.map((row) => ({
+        id: row.id,
+        wedding_id: row.wedding_id,
+        email: row.email ?? "",
+        token: row.token,
+        invited_role: row.invited_role,
+        invited_by: row.invited_by,
+        expires_at: row.expires_at,
+        accepted_at: row.accepted_at,
+        accepted_by: row.accepted_by,
+        invitee_name: row.invitee_name,
+        invitee_trade: row.invitee_trade,
+        invite_source: row.invite_source,
+        created_at: row.created_at,
+      }));
+    }
+    if (cards.error && !missingInvitationCards(cards.error)) return [];
+  }
   const { data } = await supabase
     .from("invitations")
     .select("*")

@@ -10,8 +10,17 @@ import { Field, SelectInput, TextInput } from "@/components/ui/field";
 import { VENDOR_CATEGORIES, categoryLabel, isVendorCategory } from "@/lib/domain/categories";
 import { invitationPath } from "@/lib/domain/paths";
 import { siteUrl } from "@/lib/env";
-import type { Tables } from "@/lib/database.types";
 import { createInvitation, resendInvitation, revokeInvitation } from "@/server/actions/weddings";
+
+export type InviteCard = {
+  id: string;
+  invited_role: "vendor" | "couple";
+  invitee_name: string;
+  invitee_trade: string;
+  token: string;
+  email: string;
+  concealContact: boolean;
+};
 
 export function LinkInvite({
   weddingId,
@@ -27,7 +36,7 @@ export function LinkInvite({
 }: {
   weddingId: string;
   role: "vendor" | "couple";
-  invitations: Tables<"invitations">[];
+  invitations: InviteCard[];
   title: string;
   intro: string;
   emailLabel: string;
@@ -38,7 +47,7 @@ export function LinkInvite({
 }) {
   const [state, action, pending] = useActionState(createInvitation, {});
   const [sentEmail, setSentEmail] = useState("");
-  const waiting = invitations.filter((invitation) => invitation.accepted_at === null && invitation.invited_role === role);
+  const waiting = invitations.filter((invitation) => invitation.invited_role === role);
   const created = state.success?.match(/https?:\/\/\S+/)?.[0] ?? null;
   return (
     <section className={quiet ? "mt-8 border-t border-line pt-6" : "mt-6 rounded-3xl border border-line bg-paper p-5"}>
@@ -98,18 +107,19 @@ export function LinkInvite({
   );
 }
 
-function PendingInvite({ weddingId, invitation }: { weddingId: string; invitation: Tables<"invitations"> }) {
+function PendingInvite({ weddingId, invitation }: { weddingId: string; invitation: InviteCard }) {
   const [copied, setCopied] = useState(false);
   const link = `${siteUrl()}${invitationPath(invitation.token)}`;
   const trade = invitation.invitee_trade && isVendorCategory(invitation.invitee_trade) ? categoryLabel(invitation.invitee_trade) : "";
+  const title = invitation.concealContact ? invitation.invitee_name || "Prestataire" : invitation.invitee_name || invitation.email;
   return (
     <li className="rounded-2xl border border-line bg-ivory/60 p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="font-medium">{invitation.invitee_name || invitation.email}</p>
+        <p className="font-medium">{title}</p>
         <Badge>En attente</Badge>
         {trade ? <Badge>{trade}</Badge> : null}
       </div>
-      {invitation.invitee_name ? <p className="mt-1 text-sm text-muted">{invitation.email}</p> : null}
+      {!invitation.concealContact && invitation.invitee_name ? <p className="mt-1 text-sm text-muted">{invitation.email}</p> : null}
       <code className="mt-3 block overflow-x-auto rounded-lg bg-paper px-3 py-2 text-xs">{link}</code>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
@@ -122,18 +132,17 @@ function PendingInvite({ weddingId, invitation }: { weddingId: string; invitatio
         >
           {copied ? "Copié" : "Copier le lien"}
         </button>
-        <a
-          className="rounded-full border border-line bg-paper px-3 py-2 text-sm"
-          href={`mailto:${invitation.email}?subject=${encodeURIComponent("Votre espace VOW")}&body=${encodeURIComponent(`Bonjour,\n\nVotre espace est prêt :\n${link}\n`)}`}
-        >
-          Écrire
-        </a>
+        {!invitation.concealContact ? (
+          <a
+            className="rounded-full border border-line bg-paper px-3 py-2 text-sm"
+            href={`mailto:${invitation.email}?subject=${encodeURIComponent("Votre espace VOW")}&body=${encodeURIComponent(`Bonjour,\n\nVotre espace est prêt :\n${link}\n`)}`}
+          >
+            Écrire
+          </a>
+        ) : null}
         <form action={resendInvitation}>
           <input type="hidden" name="wedding_id" value={weddingId} />
-          <input type="hidden" name="role" value={invitation.invited_role} />
-          <input type="hidden" name="email" value={invitation.email} />
-          <input type="hidden" name="invitee_name" value={invitation.invitee_name} />
-          <input type="hidden" name="invitee_trade" value={invitation.invitee_trade} />
+          <input type="hidden" name="id" value={invitation.id} />
           <Button type="submit" variant="secondary">
             Renvoyer
           </Button>

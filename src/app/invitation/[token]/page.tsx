@@ -68,30 +68,38 @@ export default async function InvitationPage({
               {preview.venueName ? ` · ${preview.venueName}` : ""}
             </p>
             <p className="mt-4 text-sm leading-6">
-              Cette invitation est destinée à <strong>{preview.email}</strong> en tant que{" "}
-              {preview.role === "vendor" ? "prestataire" : "couple"}.
+              {preview.email ? (
+                <>
+                  Cette invitation est destinée à <strong>{preview.email}</strong> en tant que{" "}
+                  {preview.role === "vendor" ? "prestataire" : "couple"}.
+                </>
+              ) : (
+                <>Cette invitation est destinée au prestataire contacté. Ouvrez-la depuis le message reçu.</>
+              )}
             </p>
             {query.error ? (
               <div className="mt-4">
                 <Alert>{query.error}</Alert>
               </div>
             ) : null}
-            {session && session.profile.email.toLowerCase() === preview.email.toLowerCase() ? (
+            {session && preview.email && session.profile.email.toLowerCase() === preview.email.toLowerCase() ? (
               <form action={acceptInvitation} className="mt-6">
                 <input type="hidden" name="token" value={token} />
                 <Button type="submit">Rejoindre le mariage</Button>
               </form>
-            ) : session ? (
+            ) : session && preview.email ? (
               <p className="mt-4 text-sm leading-6 text-muted">
                 Vous êtes connecté avec une autre adresse. Ouvrez cette invitation avec {preview.email}.
               </p>
+            ) : session ? (
+              <p className="mt-4 text-sm leading-6 text-muted">Ouvrez cette invitation avec le compte qui l&apos;a reçue.</p>
             ) : (
               <div className="mt-6 flex flex-col gap-2 sm:flex-row">
                 <ButtonLink href={`/connexion?next=${encodeURIComponent(next)}`}>
                   J&apos;ai déjà un compte
                 </ButtonLink>
                 <ButtonLink
-                  href={`/inscription?next=${encodeURIComponent(next)}&email=${encodeURIComponent(preview.email)}&role=${preview.role}${preview.trade ? `&trade=${encodeURIComponent(preview.trade)}` : ""}${preview.inviteeName ? `&business=${encodeURIComponent(preview.inviteeName)}` : ""}`}
+                  href={`/inscription?next=${encodeURIComponent(next)}${preview.email ? `&email=${encodeURIComponent(preview.email)}` : ""}&role=${preview.role}${preview.trade ? `&trade=${encodeURIComponent(preview.trade)}` : ""}${preview.inviteeName ? `&business=${encodeURIComponent(preview.inviteeName)}` : ""}`}
                   variant="secondary"
                 >
                   Créer un compte

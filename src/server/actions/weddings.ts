@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/server/actions/auth";
 import { magicInvitationUrl, sendInvitationEmail } from "@/server/product-mail";
 import { requireSession } from "@/server/session";
+import { serviceClient } from "@/server/service";
 import { applyStorageRelocations } from "@/server/storage-relocate";
 
 function readRole(value: FormDataEntryValue | null): "vendor" | "couple" | null {
@@ -132,7 +133,45 @@ export async function revokeInvitation(formData: FormData) {
 }
 
 export async function resendInvitation(formData: FormData) {
-  await createInvitation({}, formData);
+  const session = await requireSession();
+  const weddingId = String(formData.get("wedding_id") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createClient();
+  if (session.profile.role === "couple") {
+    const cards = await supabase.rpc("couple_invitation_cards", { p_wedding: weddingId });
+    const card = cards.data?.find((row) => row.id === id && row.invited_by === session.userId);
+    if (card?.invite_source === "search" && !card.accepted_at) {
+      const admin = serviceClient();
+      if (!admin) return;
+      const { data: stored } = await admin
+        .from("invitations")
+        .select("email, invited_role, accepted_at, invite_source, invited_by")
+        .eq("id", id)
+        .eq("wedding_id", weddingId)
+        .maybeSingle();
+      if (!stored || stored.accepted_at || stored.invite_source !== "search" || stored.invited_by !== session.userId) return;
+      const { data: wedding } = await supabase
+        .from("weddings")
+        .select("partner_one_name, partner_two_name")
+        .eq("id", weddingId)
+        .maybeSingle();
+      const title = wedding ? `${wedding.partner_one_name} & ${wedding.partner_two_name}` : "Votre mariage";
+      const fallback = `${siteUrl()}/invitation/${card.token}`;
+      const url = await magicInvitationUrl({ email: stored.email, role: stored.invited_role, token: card.token, fallback });
+      await sendInvitationEmail({ to: stored.email, title, url, role: stored.invited_role });
+      revalidatePath(`/mariage/${weddingId}`, "layout");
+      return;
+    }
+  }
+  const { data } = await supabase.from("invitations").select("*").eq("id", id).eq("wedding_id", weddingId).maybeSingle();
+  if (!data || data.accepted_at) return;
+  const next = new FormData();
+  next.set("wedding_id", weddingId);
+  next.set("role", data.invited_role);
+  next.set("email", data.email);
+  next.set("invitee_name", data.invitee_name);
+  next.set("invitee_trade", data.invitee_trade);
+  await createInvitation({}, next);
 }
 
 export async function acceptInvitation(formData: FormData) {

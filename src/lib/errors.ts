@@ -15,5 +15,8 @@ export function messageFromError(error: { message: string } | null): string {
   if (message.toLowerCase().includes("password")) {
     return "Le mot de passe doit contenir au moins 8 caractères.";
   }
+  if (message.toLowerCase().includes("invalid input value for enum") || message.toLowerCase().includes("vendor_category")) {
+    return "Ce métier n'est pas encore disponible.";
+  }
   return message;
 }

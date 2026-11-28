@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
 import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
 import { prepareLogoFile } from "@/lib/images/prepare-logo";
+import { saveDiscoverable } from "@/server/actions/vendor-search";
 import { safeFileName, validateUpload } from "@/lib/domain/uploads";
 import { createClient } from "@/lib/supabase/client";
 import { publicObjectUrl } from "@/lib/storage";
@@ -86,6 +87,7 @@ export function BusinessForm({
       <Field label="Métier">
         <SelectInput name="category" defaultValue={category ?? ""} required>
           <option value="">Choisir un métier</option>
+          {category && !(VENDOR_CATEGORIES as readonly string[]).includes(category) ? <option value={category}>{categoryLabel(category)}</option> : null}
           {VENDOR_CATEGORIES.map((value) => (
             <option key={value} value={value}>
               {categoryLabel(value)}
@@ -255,6 +257,27 @@ export function NotificationForm({
       {state.success ? <Alert tone="success">{state.success}</Alert> : null}
       <Button type="submit" variant="secondary" disabled={pending}>
         {pending ? "Enregistrement…" : calm ? "Enregistrer" : "Enregistrer les alertes"}
+      </Button>
+    </form>
+  );
+}
+
+export function DiscoverableForm({ enabled, available }: { enabled: boolean; available: boolean }) {
+  const [state, action, pending] = useActionState(saveDiscoverable, {});
+  return (
+    <form action={action} className="space-y-3">
+      <label className="flex min-h-11 items-start gap-3 text-sm">
+        <input type="checkbox" name="discoverable" defaultChecked={enabled} disabled={!available} className="mt-0.5 h-5 w-5" />
+        <span>
+          Apparaître dans la recherche des mariés
+          <span className="mt-1 block text-xs leading-5 text-muted">Désactivé tant que vous ne le cochez pas. Un mariage peut vous inviter, et vous pouvez refuser.</span>
+        </span>
+      </label>
+      {!available ? <p className="text-sm text-muted">Ce réglage s&apos;ouvrira après la mise à jour de la base.</p> : null}
+      {state.error ? <Alert>{state.error}</Alert> : null}
+      {state.success ? <Alert tone="success">{state.success}</Alert> : null}
+      <Button type="submit" variant="secondary" disabled={pending || !available}>
+        {pending ? "Enregistrement…" : "Enregistrer"}
       </Button>
     </form>
   );

@@ -8,7 +8,7 @@ import { AddressInput } from "@/components/ui/address-input";
 import { Alert } from "@/components/ui/alert";
 import { isValidEmail } from "@/lib/domain/auth-routing";
 import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
-import { VENDOR_CATEGORIES, categoryLabel, type VendorCategory } from "@/lib/domain/categories";
+import { MUSIC_KINDS, VENDOR_CATEGORIES, categoryLabel, musicKindLabel, type MusicKind, type VendorCategory } from "@/lib/domain/categories";
 import { WEDDING_VOLUMES, type WeddingVolume } from "@/lib/domain/volume";
 import { signupMissing, type SignupIntent } from "@/lib/domain/signup-intent";
 import { signUp, type ActionState } from "@/server/actions/auth";
@@ -54,7 +54,9 @@ export function AuthFlow({
               : "choose",
   );
   const [email, setEmail] = useState(initialEmail);
-  const [category, setCategory] = useState<VendorCategory | null>(initialCategory ?? null);
+  const [category, setCategory] = useState<VendorCategory | null>(
+    initialCategory && (VENDOR_CATEGORIES as readonly string[]).includes(initialCategory) ? initialCategory : (VENDOR_CATEGORIES[0] ?? null),
+  );
   const [businessName, setBusinessName] = useState(initialBusinessName);
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
@@ -66,6 +68,7 @@ export function AuthFlow({
   const [partnerTwoLast, setPartnerTwoLast] = useState("");
   const [weddingDate, setWeddingDate] = useState("");
   const [weddingsPerYear, setWeddingsPerYear] = useState<WeddingVolume | "">("");
+  const [musicKind, setMusicKind] = useState<MusicKind | "">("");
   const [password, setPassword] = useState("");
   const [shown, setShown] = useState(false);
   const [state, action, pending] = useActionState(signUp, {} as ActionState);
@@ -179,6 +182,25 @@ export function AuthFlow({
                 </div>
                 <input type="hidden" name="weddings_per_year" value={weddingsPerYear} />
               </fieldset>
+              {category === "dj" ? (
+                <fieldset className="grid gap-2">
+                  <legend className="text-sm">Type de musique</legend>
+                  <p className="text-xs text-muted">Facultatif. DJ, groupe, orchestre ou chorale.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {MUSIC_KINDS.map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={value === musicKind ? "auth-chip auth-chip-on" : "auth-chip"}
+                        onClick={() => setMusicKind(musicKind === value ? "" : value)}
+                      >
+                        {musicKindLabel(value)}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="hidden" name="music_kind" value={musicKind} />
+                </fieldset>
+              ) : null}
               <FieldLike label="Téléphone" name="phone" value={phone} onChange={setPhone} autoComplete="tel" optional />
               <FieldLike label="Instagram" name="instagram" value={instagram} onChange={setInstagram} autoComplete="off" optional />
               <FieldLike label="Site web" name="website" value={website} onChange={setWebsite} autoComplete="url" optional />
@@ -347,6 +369,7 @@ function blankIntent(partial: Partial<SignupIntent> & { role: SignupIntent["role
     website: "",
     instagram: "",
     weddingsPerYear: "",
+    musicKind: partial.musicKind ?? "",
     partnerOne: partial.partnerOne ?? "",
     partnerOneLast: partial.partnerOneLast ?? "",
     partnerTwo: partial.partnerTwo ?? "",

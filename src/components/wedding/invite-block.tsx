@@ -1,3 +1,4 @@
+import { invitationHidesContact } from "@/lib/domain/invitation-card";
 import { listInvitations } from "@/server/data";
 import { requireSession } from "@/server/session";
 import { LinkInvite } from "@/components/wedding/link-invite";
@@ -24,9 +25,24 @@ export async function InviteBlock({
   quiet?: boolean;
 }) {
   const session = await requireSession();
-  const invitations = (await listInvitations(weddingId)).filter(
-    (row) => row.invited_by === session.userId,
-  );
+  const invitations = (await listInvitations(weddingId))
+    .filter((row) => row.invited_by === session.userId && row.accepted_at === null)
+    .map((row) => {
+      const concealContact = invitationHidesContact({
+        invitee_name: row.invitee_name,
+        invitee_trade: row.invitee_trade,
+        invite_source: row.invite_source,
+      });
+      return {
+        id: row.id,
+        invited_role: row.invited_role,
+        invitee_name: row.invitee_name,
+        invitee_trade: row.invitee_trade,
+        token: row.token,
+        concealContact,
+        email: concealContact ? "" : row.email,
+      };
+    });
   return (
     <LinkInvite
       weddingId={weddingId}

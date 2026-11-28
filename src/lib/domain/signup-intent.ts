@@ -1,4 +1,4 @@
-import { isVendorCategory, type VendorCategory } from "@/lib/domain/categories";
+import { isMusicKind, isVendorCategory, type MusicKind, type VendorCategory } from "@/lib/domain/categories";
 import { frenchDateToIso } from "@/lib/domain/french-date";
 import { isVendorPlan, type VendorPlan } from "@/lib/domain/plans";
 import { isWeddingVolume, type WeddingVolume } from "@/lib/domain/volume";
@@ -13,6 +13,7 @@ export type SignupIntent = {
   website: string;
   instagram: string;
   weddingsPerYear: WeddingVolume | "";
+  musicKind: MusicKind | "";
   partnerOne: string;
   partnerOneLast: string;
   partnerTwo: string;
@@ -31,17 +32,20 @@ function text(form: FormData, key: string, max: number): string {
 
 export function readSignupIntent(form: FormData, role: "vendor" | "couple" | null): SignupIntent {
   const categoryRaw = text(form, "category", 40);
+  const category = isVendorCategory(categoryRaw) ? categoryRaw : null;
   const volumeRaw = text(form, "weddings_per_year", 8);
+  const musicRaw = text(form, "music_kind", 20);
   return {
     role,
     fullName: text(form, "full_name", 120),
     businessName: text(form, "business_name", 120),
-    category: isVendorCategory(categoryRaw) ? categoryRaw : null,
+    category,
     city: text(form, "city", 120),
     phone: text(form, "phone", 40),
     website: text(form, "website", 200),
     instagram: text(form, "instagram", 80).replace(/^@/, ""),
     weddingsPerYear: isWeddingVolume(volumeRaw) ? volumeRaw : "",
+    musicKind: category === "dj" && isMusicKind(musicRaw) ? musicRaw : "",
     partnerOne: text(form, "partner_one", 80),
     partnerOneLast: text(form, "partner_one_last", 80),
     partnerTwo: text(form, "partner_two", 80),
@@ -113,6 +117,7 @@ export function intentMetadata(intent: SignupIntent): Record<string, string> {
     data.website = intent.website;
     data.instagram = intent.instagram;
     if (intent.weddingsPerYear) data.weddings_per_year = intent.weddingsPerYear;
+    if (intent.category === "dj" && intent.musicKind) data.music_kind = intent.musicKind;
     if (!data.full_name) data.full_name = intent.businessName;
   }
   if (coupleIntentReady(intent)) {
@@ -140,6 +145,7 @@ export function intentFromMetadata(metadata: Record<string, unknown> | null | un
     "website",
     "instagram",
     "weddings_per_year",
+    "music_kind",
     "partner_one",
     "partner_one_last",
     "partner_two",

@@ -43,6 +43,51 @@ const TEMPLATES: Record<VendorCategory, string[]> = {
     "Où se passent les préparatifs ?",
     "Un essai a-t-il déjà eu lieu ?",
   ],
+  hair: [
+    "À quelle heure commence la coiffure ?",
+    "Où se passent les préparatifs ?",
+    "Un essai a-t-il déjà eu lieu ?",
+  ],
+  makeup: [
+    "À quelle heure commence le maquillage ?",
+    "Où se passent les préparatifs ?",
+    "Un essai a-t-il déjà eu lieu ?",
+  ],
+  cake: [
+    "Combien de parts faut-il prévoir ?",
+    "Quelle palette de couleurs voulez-vous ?",
+    "Où se déroule la réception ?",
+  ],
+  wine: [
+    "Combien d'adultes sont prévus ?",
+    "Quelles boissons faut-il prévoir ?",
+    "À quelle heure le dîner est-il servi ?",
+  ],
+  animation: [
+    "Quel moment de la journée faut-il animer ?",
+    "Y a-t-il des enfants ?",
+    "Où se déroule la réception ?",
+  ],
+  decor: [
+    "Quelle palette de couleurs voulez-vous ?",
+    "Où se déroule la réception ?",
+    "À quelle heure pouvez-vous accéder au lieu ?",
+  ],
+  attire: [
+    "Quelle palette de couleurs voulez-vous ?",
+    "Quand a lieu l'essayage ?",
+    "Combien de tenues faut-il prévoir ?",
+  ],
+  stationery: [
+    "Quelle palette de couleurs voulez-vous ?",
+    "Combien de faire-part faut-il prévoir ?",
+    "Quelle est la date à faire figurer ?",
+  ],
+  transport: [
+    "Où se déroule la cérémonie ?",
+    "Où se déroule la réception ?",
+    "À quelle heure commence la cérémonie ?",
+  ],
   officiant: [
     "Comment vous êtes-vous rencontrés, en quelques lignes ?",
     "Y a-t-il une lecture prévue ?",

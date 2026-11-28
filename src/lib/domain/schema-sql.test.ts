@@ -169,6 +169,13 @@ describe("migration", () => {
     expect(sql).not.toContain("policy invoices_delete");
   });
 
+  it("keeps a search invitation address off the couple select", () => {
+    expect(sql).toContain("invite_source <> 'search'");
+    expect(sql).toContain("function public.couple_invitation_cards(p_wedding uuid)");
+    expect(sql).toContain("when i.invite_source = 'search' then null");
+    expect(sql).toContain("invite_source = 'search'");
+  });
+
   it("lets a couple resolve a vendor on their own wedding", () => {
     expect(sql).toContain("function public.wedding_vendor_id(p_wedding uuid, p_user uuid)");
     expect(sql).toContain("public.is_wedding_couple(p_wedding)");
