@@ -113,6 +113,7 @@ describe("migration", () => {
       "vendor_invoice_counters",
       "invoice_payments",
       "storage_relocations",
+      "wedding_songs",
     ]);
     for (const table of tables) {
       expect(sql).toContain(`alter table public.${table} enable row level security`);
@@ -174,6 +175,16 @@ describe("migration", () => {
     expect(sql).toContain("function public.couple_invitation_cards(p_wedding uuid)");
     expect(sql).toContain("when i.invite_source = 'search' then null");
     expect(sql).toContain("invite_source = 'search'");
+  });
+
+  it("lets the couple write songs and the DJ read them", () => {
+    expect(sql).toContain("create table if not exists public.wedding_songs");
+    expect(sql).toContain("policy wedding_songs_select");
+    expect(sql).toContain("policy wedding_songs_insert");
+    expect(sql).toContain("policy wedding_songs_delete");
+    expect(sql).toContain("category = 'dj'");
+    expect(sql).toContain("public.is_wedding_couple(wedding_id)");
+    expect(sql).not.toContain("policy wedding_songs_update");
   });
 
   it("lets a couple resolve a vendor on their own wedding", () => {
